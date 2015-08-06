@@ -1,0 +1,16 @@
+MSER detector sources.
+
+Documentation is located in subdirectories:
+
+doc/extrema/html/index.html
+doc/extrema-mt/html/index.html
+
+To build sources use:
+
+make all
+
+Documentation is generated using doxygen. Once doxygen is installed, use:
+
+make doc
+
+to build it.

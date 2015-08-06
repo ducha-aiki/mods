@@ -1,0 +1,4 @@
+This files are an implementation of the MROGH descriptor proposed in "Bin Fan, Fuchao Wu and Zhanyi Hu, Aggregating Gradient Distributions into Intensity Orders: A Novel Local Image Descriptor,CVPR 2011,pp.2377-2384" and "Bin Fan, Fuchao Wu and Zhanyi Hu, Rotation Invariant Descriptors using Intensity Order Pooling,TPAMI 2012,34(10):2031-2045".
+
+Update:
+2013/3/11: A small bug fixed for combiling with GCC, thanks Karel Lenc for this issue.

@@ -1,0 +1,3 @@
+Import('env');
+
+env.Library('ransac', Split('Ftools.c Htools.c ranF.c ranH.c usac.cpp rtools.c utools.c experF.c proF.c waldtools.c usac/ConfigParams.cpp usac/HTools.cpp usac/FTools.cpp usac/MathFunctions.cpp exp_ranF.c DegUtils.c exp_ranH.c hash.c ranH2el.c'), CPPPATH = Split('../utls ../matutls ../lapack')+env['LAPACK_INC']);
