@@ -606,7 +606,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           AffineRegionVector temp_kp1;
           AffineRegionVectorMap temp_kp_map;
           SynthImage temp_img1;
-          if (curr_det != "TILDE") {
+          if ((curr_det != "TILDE") && (curr_det != "TILDE-plugin")) {
               GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
                                      synth_par[curr_det][synth].tilt,
                                      synth_par[curr_det][synth].phi,
@@ -618,47 +618,23 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
               if (OriginalImg.channels() == 3)
                 {
-                  std::cerr << "Color input" << std::endl;
-
+                  const bool convert_to_gray = false;
+                  GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
+                                    synth_par[curr_det][synth].tilt,
+                                    synth_par[curr_det][synth].phi,
+                                    synth_par[curr_det][synth].zoom,
+                                    synth_par[curr_det][synth].InitSigma,
+                                    synth_par[curr_det][synth].doBlur, synth,convert_to_gray);
+                  temp_img1.rgb_pixels = temp_img1.pixels.clone();
                   std::vector<cv::Mat> RGB_planes(3);
                   cv::Mat in_32f;
-                  OriginalImg.convertTo(in_32f,CV_32FC3);
+                  temp_img1.rgb_pixels.convertTo(in_32f,CV_32FC3);
                   cv::split(in_32f, RGB_planes);
-                  SynthImage Rs, Gs,Bs;
-
-                  GenerateSynthImageCorr(RGB_planes[0], Rs, Name.c_str(),
-                      synth_par[curr_det][synth].tilt,
-                      synth_par[curr_det][synth].phi,
-                      synth_par[curr_det][synth].zoom,
-                      synth_par[curr_det][synth].InitSigma,
-                      synth_par[curr_det][synth].doBlur, synth);
-                  GenerateSynthImageCorr(RGB_planes[1], Gs, Name.c_str(),
-                      synth_par[curr_det][synth].tilt,
-                      synth_par[curr_det][synth].phi,
-                      synth_par[curr_det][synth].zoom,
-                      synth_par[curr_det][synth].InitSigma,
-                      synth_par[curr_det][synth].doBlur, synth);
-                  GenerateSynthImageCorr(RGB_planes[2], Bs, Name.c_str(),
-                      synth_par[curr_det][synth].tilt,
-                      synth_par[curr_det][synth].phi,
-                      synth_par[curr_det][synth].zoom,
-                      synth_par[curr_det][synth].InitSigma,
-                      synth_par[curr_det][synth].doBlur, synth);
-                  std::vector<cv::Mat> generated_RGB;
-                  generated_RGB.push_back(Rs.pixels);
-                  generated_RGB.push_back(Gs.pixels);
-                  generated_RGB.push_back(Bs.pixels);
-
-                  temp_img1.pixels = (Rs.pixels + Gs.pixels + Bs.pixels ) / 3.0 ;
-
-                  cv::merge(generated_RGB,rgbimg);
-
-                  temp_img1 = Rs;
-                  temp_img1.rgb_pixels = rgbimg;
+                  temp_img1.pixels = (RGB_planes[0] + RGB_planes[1] + RGB_planes[2]) / 3.0 ;
 
                 } else
                 {
-                  std::cerr << "Grayscale input" << std::endl;
+                  std::cerr << "Grayscale input to TILDE!" << std::endl;
                   GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
                                          synth_par[curr_det][synth].tilt,
                                          synth_par[curr_det][synth].phi,
@@ -671,7 +647,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                 }
            }
           bool doExternalAffineAdaptation = false;
-          //    std::cerr << "generated" << std::endl;
+
           time1 = ((double)(getMilliSecs1() - s_time))/1000;
           TimeSpent.SynthTime += time1;
 
@@ -973,72 +949,28 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   temp_kp1[kp_num].type = DET_ORB;
                 }
             }
-          else if (curr_det.compare("TILDE")==0)
+          else if (curr_det.compare("TILDE-plugin")==0)
             {
-              //              cv::Mat rgbimg;
-              //              if (OriginalImg.channels() == 3)
-              //                {
-              //                         std::cerr << "Color input" << std::endl;
-              //                  //cv::cvtColor(in_img, gray_in_img, CV_BGR2GRAY);
-              //                  std::vector<cv::Mat> RGB_planes(3);
-              //                  cv::Mat in_32f;
-              //                  OriginalImg.convertTo(in_32f,CV_32FC3);
-              //                  cv::split(in_32f, RGB_planes);
-              //                  SynthImage Rs, Gs,Bs;
 
+              doExternalAffineAdaptation = det_par.TILDEScaleSpaceParam.AffineShapePars.doBaumberg;
+              keypoints_1 = getTILDEKeyPoints(temp_img1.rgb_pixels,
+                det_par.TILDEScaleSpaceParam.TILDEParam.pathFilter, det_par.TILDEScaleSpaceParam.TILDEParam.approx,true,false);
 
-              //                  GenerateSynthImageCorr(RGB_planes[0], Rs, Name.c_str(),
-              //                      synth_par[curr_det][synth].tilt,
-              //                      synth_par[curr_det][synth].phi,
-              //                      synth_par[curr_det][synth].zoom,
-              //                      synth_par[curr_det][synth].InitSigma,
-              //                      synth_par[curr_det][synth].doBlur, synth);
-              //                  GenerateSynthImageCorr(RGB_planes[1], Gs, Name.c_str(),
-              //                      synth_par[curr_det][synth].tilt,
-              //                      synth_par[curr_det][synth].phi,
-              //                      synth_par[curr_det][synth].zoom,
-              //                      synth_par[curr_det][synth].InitSigma,
-              //                      synth_par[curr_det][synth].doBlur, synth);
-              //                  GenerateSynthImageCorr(RGB_planes[2], Bs, Name.c_str(),
-              //                      synth_par[curr_det][synth].tilt,
-              //                      synth_par[curr_det][synth].phi,
-              //                      synth_par[curr_det][synth].zoom,
-              //                      synth_par[curr_det][synth].InitSigma,
-              //                      synth_par[curr_det][synth].doBlur, synth);
-              //                  std::vector<cv::Mat> generated_RGB;
-              //                  generated_RGB.push_back(Rs.pixels);
-              //                  generated_RGB.push_back(Gs.pixels);
-              //                  generated_RGB.push_back(Bs.pixels);
+              int kp_size = keypoints_1.size();
+              temp_kp1.resize(kp_size);
 
-              //                  cv::merge(generated_RGB,rgbimg);
-
-              //                } else
-              //                {
-              //                  cv::cvtColor(temp_img1.pixels, rgbimg, CV_GRAY2BGR);
-              //                  std::cerr << "Grayscale input" << std::endl;
-              //                }
-
-
-              //              doExternalAffineAdaptation = det_par.TILDEParam.doBaumberg;
-              ////              cv::cvtColor(temp_img1.pixels, rgbimg, CV_GRAY2BGR);
-//                            keypoints_1 = getTILDEKeyPoints(rgbimg,
-//                                                            det_par.TILDEParam.pathFilter, det_par.TILDEParam.approx,true,false);
-
-              //              int kp_size = keypoints_1.size();
-              //              temp_kp1.resize(kp_size);
-
-              //              for (int kp_num=0; kp_num < min(kp_size,det_par.TILDEParam.maxPoints); kp_num++)
-              //                {
-              //                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-              //                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-              //                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-              //                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
-              //                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
-              //                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-              //                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
-              //                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
-              //                  temp_kp1[kp_num].type = DET_TILDE;
-              //                }
+              for (int kp_num=0; kp_num < min(kp_size,det_par.TILDEScaleSpaceParam.TILDEParam.maxPoints); kp_num++)
+                {
+                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
+                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
+                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
+                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
+                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
+                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
+                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
+                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
+                  temp_kp1[kp_num].type = DET_TILDE;
+                }
             }
           else if (curr_det.compare("KAZE")==0)
             {
@@ -1133,11 +1065,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   temp_kp1[kp_num].type = DET_STAR;
                 }
             }
-
-
-          time1 = ((double)(getMilliSecs1() - s_time))/1000;
-          TimeSpent.DetectTime += time1;
-
           //Baumberg iteration
           if (doExternalAffineAdaptation) {
               AffineRegionVector temp_kp_aff;
@@ -1150,6 +1077,11 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
           //
           /// Orientation estimation
+
+          time1 = ((double)(getMilliSecs1() - s_time))/1000;
+          TimeSpent.DetectTime += time1;
+          s_time = getMilliSecs1();
+
           AffineRegionVector temp_kp1_SIFT_like_desc;
           AffineRegionVector temp_kp1_HalfSIFT_like_desc;
           AffineRegionVector temp_kp1_upright;
@@ -1179,10 +1111,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
             }
 
           temp_kp_map["None"] = temp_kp1;
-          // Description
-          time1 = ((double) (getMilliSecs1() - s_time)) / 1000;
-          TimeSpent.OrientTime += time1;
-          s_time = getMilliSecs1();
+
           for (unsigned int i_desc=0; i_desc < synth_par[curr_det][synth].descriptors.size();i_desc++) {
               std::string curr_desc = synth_par[curr_det][synth].descriptors[i_desc];
               AffineRegionVector temp_kp1_desc;
@@ -1219,6 +1148,9 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
               ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               ///Description
+              time1 = ((double) (getMilliSecs1() - s_time)) / 1000;
+              TimeSpent.OrientTime += time1;
+              s_time = getMilliSecs1();
 
               if (curr_desc.compare("RootSIFT") == 0) //RootSIFT
                 {

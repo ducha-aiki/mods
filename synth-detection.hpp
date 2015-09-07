@@ -74,7 +74,8 @@ void GenerateSynthImageCorr(const cv::Mat &in_img,
                             const double zoom,
                             const double InitSigma=0.5,
                             const int doBlur=1,
-                            const int img_id = 0);
+                            const int img_id = 0,
+                            const bool convert2gray = true);
 //Function generates scaled, rotated and tilted image with homography from original to generated image and places all this into SynthImage structure
 //Phi is rotation angle in radians
 //Tilt - is scale factor in horizontal direction (to simulate real tilt)

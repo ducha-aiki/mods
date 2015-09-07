@@ -1,5 +1,5 @@
 #!/bin/bash
-home1="/home/old-ufo/mods/mods-new/build/configs"
+home1="/home/old-ufo/mods/wxbs-journal/build/configs"
 matcher="${home1}/./mods"
 dataset="/windows/datasets/Mik"
 logs="/windows/mods/BMVC-2015/det_test/oxford"
@@ -9,11 +9,16 @@ logs="/windows/mods/BMVC-2015/det_test/oxford"
 #dets=("FOCIAff" "iiDoG" "SURF" "SURFAff" "ORB" "KAZE" "KAZEAff")
 #dets=("WXBS" "SFOP" "WADE" "WASH")
 dets=("WXBS-plain")
+dets=("TILDE" "TILDE-scalespace")
 
-for (( dd=0; dd<1; dd++)); do
+dets=("TILDE-Cha" "TILDE-Cou" "TILDE-Fra" "TILDE-Mex" "TILDE-Pan")
+
+
+for (( dd=4; dd<5; dd++)); do
 det=${dets[${dd}]}
   logdir=${logs}/${det}
   echo $det
+  config_file=config_iter_${det}.ini
   
     if [ "$det" = "WXBS-plain" ]; then
     config_file=config_iter_match_AdHes.ini

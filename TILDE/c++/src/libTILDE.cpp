@@ -647,6 +647,7 @@ vector < vector < lfilter > >getTILDENonApproxFilters(const string & name, void 
   std::ifstream fic(name, ios::in);
   bool isOpen = fic.is_open();
   if (!isOpen) {
+      std::cerr << name << std::endl;
       throw std::runtime_error("Cannot open filters");
     }
 
@@ -1223,6 +1224,13 @@ TILDEobjects getTILDEApproxObjects(const string & name, void *_p)
 
 //
 // libTILDE.cpp ends here
+//#include <sys/time.h>
+//inline long getMilliSecs1()
+//{
+//  timeval t;
+//  gettimeofday(&t, NULL);
+//  return t.tv_sec*1000 + t.tv_usec/1000;
+//}
 
 Mat getTILDEResponce(
     const Mat & indatav,
@@ -1233,11 +1241,13 @@ Mat getTILDEResponce(
   cv::Mat resp;
   bool bUseDescriptorField = false; // disabled by default - for
 
-  cv::Mat img = indatav.clone();//we copy the input data here, because we will resize it before filtering
+//   double start = (double) getMilliSecs1();
 
+  cv::Mat img = indatav.clone();//we copy the input data here, because we will resize it before filtering
   // Read the txt file to get the filter
   vector < float > param;
   TILDEobjects  tilde_obj = getTILDEObject(nameFilter, &param,  useApprox, bUseDescriptorField);
+//std::cerr <<   ((double) getMilliSecs1() - start)/1000.0 << " sec for load" << std::endl;
 
   // Apply filtering
   // NOTE: score is CV_32FC1
@@ -1333,6 +1343,6 @@ Mat getTILDEResponce(
 
     }
 
-  resp = normalizeScore(resp);
+//  resp = normalizeScore(resp);
   return resp;
 }

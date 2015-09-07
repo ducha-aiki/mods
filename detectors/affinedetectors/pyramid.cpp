@@ -22,13 +22,7 @@
 //
 #include <iostream>
 //
-#include <sys/time.h>
-inline long getMilliSecs1()
-{
-  timeval t;
-  gettimeofday(&t, NULL);
-  return t.tv_sec*1000 + t.tv_usec/1000;
-}
+
 // it seems 0.6 works better than 0.5 (as in DL paper)
 #define MAX_SUBPIXEL_SHIFT 0.6
 

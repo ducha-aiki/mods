@@ -195,7 +195,8 @@ void GenerateSynthImageCorr(const cv::Mat &in_img,
                             const double zoom,
                             const double InitSigma,
                             const int doBlur,
-                            const int img_id)
+                            const int img_id,
+                            const bool convert2gray)
 {
   int zoomed=0;
   bool vertical_tilt = false;
@@ -206,19 +207,16 @@ void GenerateSynthImageCorr(const cv::Mat &in_img,
   if (fabs(zoom-1.0f)>=0.05) zoomed = 1;
   cv::Mat temp_img;
   cv::Mat gray_in_img;
-  if (in_img.channels() == 3)
+  if ((in_img.channels() == 3) && (convert2gray))
     {
-      //cv::cvtColor(in_img, gray_in_img, CV_BGR2GRAY);
       std::vector<cv::Mat> RGB_planes(3);
       cv::Mat in_32f;
       in_img.convertTo(in_32f,CV_32FC3);
       cv::split(in_32f, RGB_planes);
-      // gray_in_img = cv::Mat::zeros(in_img.cols, in_img.rows,CV_32FC1);
       gray_in_img = (RGB_planes[0] + RGB_planes[1] + RGB_planes[2]) / 3.0 ;
     } else
     {
       gray_in_img = in_img;
-      std::cerr << "Grayscale input" << std::endl;
     }
 
   double sigma_aa, sigma_aa_2, sigma_x,sigma_y;
