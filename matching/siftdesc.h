@@ -45,6 +45,7 @@ struct SIFTDescriptorParams
   bool estimateOrientation;
   double orientTh;
   bool doNorm;
+  bool magnLess;
   DomainSizePolingParams DSPParam;
   PatchExtractionParams PEParam;
   SIFTDescriptorParams()
@@ -62,6 +63,7 @@ struct SIFTDescriptorParams
     estimateOrientation= true;
     doNorm=true;
     orientTh = 0.8;
+    magnLess = false;
     //  FastPatchExtraction = false;
   }
 };

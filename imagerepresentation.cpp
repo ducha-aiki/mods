@@ -1394,12 +1394,13 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   dspsiftparams.doNorm = false;
                   SIFTDescriptor DSPSIFTdesc(dspsiftparams);
                   const int num_domains = desc_par.SIFTParam.DSPParam.numScales;
-                  for (int dsp_idx = 0; dsp_idx < num_domains; dsp_idx++) {
+                                   for (int dsp_idx = 0; dsp_idx < num_domains; dsp_idx++) {
                       dsp_desc = temp_kp1_desc;
                       const double start_coef = desc_par.SIFTParam.DSPParam.startCoef;
                       const double end_coef = desc_par.SIFTParam.DSPParam.endCoef;
-                      const double curr_mrSize = start_coef*desc_par.SIFTParam.PEParam.mrSize +
-                          dsp_idx * (end_coef - start_coef) / (num_domains - 1);
+                      const double curr_mrSize = desc_par.SIFTParam.PEParam.mrSize * (
+                            start_coef +  dsp_idx * (end_coef - start_coef) / num_domains);
+              //        std::cout << dsp_idx << " " << curr_mrSize << std::endl;
 
                       DescribeRegions(dsp_desc,
                                       temp_img1, DSPSIFTdesc,
@@ -1440,6 +1441,17 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
 
                 }
+              else if (curr_desc.compare("MagnLessSIFT") == 0)
+                {
+                  SIFTDescriptor SIFTdesc(desc_par.MagnLessSIFTParam);
+                  DescribeRegions(temp_kp1_desc,
+                                  temp_img1, SIFTdesc,
+                                  desc_par.MagnLessSIFTParam.PEParam.mrSize,
+                                  desc_par.MagnLessSIFTParam.PEParam.patchSize,
+                                  desc_par.MagnLessSIFTParam.PEParam.FastPatchExtraction,
+                                  desc_par.MagnLessSIFTParam.PEParam.photoNorm);
+                }
+
               else if (curr_desc.compare("BICE") == 0)
                 {
                   BICEDescriptor BICEdesc(desc_par.BICEParam);

@@ -72,6 +72,7 @@ void SIFTDescriptor::precomputeBinsAndWeights()
 
 void SIFTDescriptor::samplePatch()
 {
+
   for (int r = 0; r < par.PEParam.patchSize; ++r)
   {
     const int br0 = par.spatialBins * bin0[r];
@@ -85,7 +86,7 @@ void SIFTDescriptor::samplePatch()
 
     for (int c = 0; c < par.PEParam.patchSize; ++c)
     {
-      float val = maskRow[c]*gradRow[c];
+      float val = float(par.magnLess) * 1.0 + (1.0 - float(par.magnLess))*maskRow[c]*gradRow[c];
 
       const int bc0 = bin0[c];
       const float wc0 = w0[c]*val;

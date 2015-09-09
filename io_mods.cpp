@@ -832,6 +832,11 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   conf1.DescriptorPars.HalfSIFTParam = conf1.DescriptorPars.HalfRootSIFTParam;
   conf1.DescriptorPars.HalfSIFTParam.useRootSIFT = 0;
 
+  conf1.DescriptorPars.MagnLessSIFTParam = conf1.DescriptorPars.SIFTParam;
+  conf1.DescriptorPars.MagnLessSIFTParam.useRootSIFT = 1;
+  conf1.DescriptorPars.MagnLessSIFTParam.magnLess = true;
+  conf1.DescriptorPars.MagnLessSIFTParam.doHalfSIFT = 1;
+
   GetFREAKPars(conf1.DescriptorPars.FREAKParam, ConfigIni);
   GetMROGHPars(conf1.DescriptorPars.MROGHParam, ConfigIni);
   GetLIOPPars(conf1.DescriptorPars.LIOPParam, ConfigIni);
@@ -957,6 +962,13 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   conf1.DescriptorPars.HalfSIFTParam = conf1.DescriptorPars.HalfRootSIFTParam;
   conf1.DescriptorPars.HalfSIFTParam.useRootSIFT = 0;
 
+  conf1.DescriptorPars.MagnLessSIFTParam = conf1.DescriptorPars.SIFTParam;
+  conf1.DescriptorPars.MagnLessSIFTParam.useRootSIFT = 1;
+  conf1.DescriptorPars.MagnLessSIFTParam.magnLess = true;
+  conf1.DescriptorPars.MagnLessSIFTParam.doHalfSIFT = 1;
+
+
+  /////////////////////////////
   GetFREAKPars(conf1.DescriptorPars.FREAKParam, ConfigIni);
   GetMROGHPars(conf1.DescriptorPars.MROGHParam, ConfigIni);
   GetLIOPPars(conf1.DescriptorPars.LIOPParam, ConfigIni);
@@ -1112,6 +1124,11 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
 
   conf1.DescriptorPars.HalfSIFTParam = conf1.DescriptorPars.HalfRootSIFTParam;
   conf1.DescriptorPars.HalfSIFTParam.useRootSIFT = 0;
+
+  conf1.DescriptorPars.MagnLessSIFTParam = conf1.DescriptorPars.SIFTParam;
+  conf1.DescriptorPars.MagnLessSIFTParam.useRootSIFT = 1;
+  conf1.DescriptorPars.MagnLessSIFTParam.magnLess = true;
+  conf1.DescriptorPars.MagnLessSIFTParam.doHalfSIFT = 1;
 
   GetFREAKPars(conf1.DescriptorPars.FREAKParam, ConfigIni);
   GetMROGHPars(conf1.DescriptorPars.MROGHParam, ConfigIni);

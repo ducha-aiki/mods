@@ -89,15 +89,16 @@ enum descriptor_type {DESC_SIFT = 0,
                       DESC_DAISY = 17,
                       DESC_SSIM = 18,
                       DESC_DSPSIFT = 19,
+                      DESC_MEGNLESSSIFT = 20,
                       DESC_UNKNOWN = 1000};
 
 
 const std::string _DescriptorNames [] = {"SIFT", "RootSIFT",
                                      "HalfSIFT", "HalfRootSIFT",
-                                     "InvSIFT", "ORB", "FREAK",
+                                     "InvSIFT",  "ORB", "FREAK",
                                       "SURF", "Pixels", "LIOP",
                                          "BRISK","KAZE", "MROGH","BICE"
-                                        "CAFFE", "DALI", "SMSLD", "DAISY", "SSIM", "DSPSIFT"};
+                                        "CAFFE", "DALI", "SMSLD", "DAISY", "SSIM", "DSPSIFT", "MagnLessSIFT"};
 
 const std::vector<std::string> DescriptorNames (_DescriptorNames,_DescriptorNames +
                                               sizeof(_DescriptorNames)/sizeof(*_DescriptorNames));
