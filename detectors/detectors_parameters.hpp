@@ -35,6 +35,13 @@ struct WASHParams{
   }
 };
 
+struct ToSMSERParams{
+  int run_mode;
+  ToSMSERParams() {
+    run_mode = 0;
+  }
+};
+
 struct SFOPParams{
   float noise;
   int pThresh;
@@ -52,6 +59,22 @@ struct SFOPParams{
   }
 };
 
+struct SaddleParams{
+  bool doBaumberg;
+  bool doNMS;
+  double threshold;
+  int epsilon;
+  int pyrLevels;
+  double scalefac;
+  SaddleParams() {
+    doBaumberg = false;
+    doNMS = true;
+    threshold = 0;
+    epsilon = 1;
+    pyrLevels = 8;
+    scalefac = 1.3;
+  }
+};
 
 
 struct FOCIParams{
@@ -187,6 +210,8 @@ struct DetectorsParameters
   ScaleSpaceDetectorParams DoGParam;
   ScaleSpaceDetectorParams TILDEScaleSpaceParam;
   SURFParams SURFParam;
+  SaddleParams SaddleParam;
+  ToSMSERParams ToSMSERParam;
   FASTParams FASTParam;
   STARParams STARParam;
   BRISKParams BRISKParam;

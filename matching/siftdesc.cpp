@@ -294,7 +294,7 @@ void SIFTDescriptor::computeSiftDescriptor(Mat &patch)
   //   float *pPtr = (float*)patch.data;
 
   // photometrically normalize with weights as in SIFT gradient magnitude falloff
-  float mean, var;
+  // float mean, var;
  // photometricallyNormalize(patch, mask, mean, var);
 
   //prepare gradients
@@ -348,7 +348,7 @@ void SIFTDescriptor::computeRootSiftDescriptor(Mat &patch)
   const int width = patch.cols;
   const int height = patch.rows;
   // photometrically normalize with weights as in SIFT gradient magnitude falloff
-  float mean, var;
+//  float mean, var;
 //  photometricallyNormalize(patch, mask, mean, var);
   // prepare gradients
   for (int r = 0; r < height; ++r)
@@ -433,8 +433,7 @@ void SIFTDescriptor::operator()(cv::Mat &patch, std::vector<float>& desc)
     for (unsigned int i = 0; i < half_vec.size(); i++) {
       desc[i] = (float) half_vec[i];
     }
-  }
-  else { //Normal SIFT
+  } else { //Normal SIFT
     desc.resize(vec.size());
     for (unsigned int i = 0; i < vec.size(); i++) {
       desc[i]=(float) vec[i];

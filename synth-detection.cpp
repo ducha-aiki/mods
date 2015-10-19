@@ -1082,20 +1082,31 @@ void ReadKPs(AffineRegionList &keys, std::istream &in1)
   //  keys = temp_list;
 
 }
-void ReadKPsMik(AffineRegionList &keys, std::istream &in1) //Mikolajczuk.
+void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1) //Mikolajczuk.
 {
   AffineRegionList temp_keys;
   AffineRegion temp_reg;
   int n_regs;
   double rub;
   double a,b,c;
-  in1 >> rub;
-  in1 >> n_regs;
+  std::string line;
+  std::getline(in1, line);
+  std::istringstream iss(line);
+  iss >> rub;
+  std::getline(in1, line);
+  std::istringstream iss2(line);
+  iss2 >> n_regs;
+ // in1 >> rub;
+ // in1 >> n_regs;
   temp_reg.img_id = 1;
   for(int i=0; i < n_regs; i++)
     {
       temp_reg.id = i;
-      in1 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
+    //  in1 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
+      std::getline(in1, line);
+      std::istringstream iss3(line);
+      iss3 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
+     // std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << a << " " << b << " " << c << std::endl;
       utls::Matrix2 C(a, b, b, c);
       utls::Matrix2 U, T1, A;
       C.inv();
@@ -1107,8 +1118,12 @@ void ReadKPsMik(AffineRegionList &keys, std::istream &in1) //Mikolajczuk.
       temp_reg.det_kp.a21=A[1][0];
       temp_reg.det_kp.a22=A[1][1];
       temp_reg.det_kp.response = 11.1;
+      temp_reg.type = (detector_type) det_type1;
       temp_reg.det_kp.s = 1/sqrt(temp_reg.det_kp.a11*temp_reg.det_kp.a22 - temp_reg.det_kp.a12*temp_reg.det_kp.a21);
       rectifyTransformation(temp_reg.det_kp.a11,temp_reg.det_kp.a12,temp_reg.det_kp.a21,temp_reg.det_kp.a22);
+//      std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << temp_reg.det_kp.a11 << " " << temp_reg.det_kp.a22  << " "
+//                << temp_reg.det_kp.s << std::endl;
+
       temp_reg.reproj_kp =  temp_reg.det_kp;
       temp_keys.push_back(temp_reg);
     }

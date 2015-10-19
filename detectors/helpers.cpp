@@ -456,6 +456,7 @@ void computeCircularGaussMask(Mat &mask, float sigma)
     {
       disq = float((i-halfSize)*(i-halfSize)+(j-halfSize)*(j-halfSize));
       *mp++ = (disq < r2) ? exp(- disq / sigma2) : 0;
+//      *mp++ = exp(- disq / sigma2);
     }
 }
 

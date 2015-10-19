@@ -172,6 +172,16 @@ void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section)
   pars.pThresh = reader.GetInteger(section, "pThresh", pars.pThresh);
   pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
 }
+void GetSaddlePars(SaddleParams &pars, INIReader &reader,const char* section)
+{
+  pars.threshold = reader.GetDouble(section, "threshold", pars.threshold);
+  pars.epsilon =  reader.GetInteger(section, "epsilon", pars.epsilon);
+  pars.pyrLevels = reader.GetInteger(section, "pyrLevels", pars.pyrLevels);
+  pars.scalefac = reader.GetDouble(section, "scalefac", pars.scalefac);
+  pars.doNMS = reader.GetBoolean(section, "doNMS", pars.doNMS);
+  pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
+}
+
 void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section)
 {
   pars.orientationKeypoint = reader.GetDouble(section, "orientationKeypoint", pars.orientationKeypoint);
@@ -710,6 +720,8 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
+  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
+
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE"); conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
@@ -790,6 +802,8 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
     }
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
+  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
+
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
@@ -925,7 +939,8 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetFASTPars(conf1.DetectorsPars.FASTParam, ConfigIni);
   GetSTARPars(conf1.DetectorsPars.STARParam, ConfigIni);
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
-  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
+  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);
+  GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
   GetFOCIPars(conf1.DetectorsPars.FOCIParam, ConfigIni);
@@ -939,6 +954,9 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
+  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
+
+
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
@@ -956,6 +974,7 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetSIFTDescPars(conf1.DescriptorPars.SIFTParam, ConfigIni);
   conf1.DescriptorPars.RootSIFTParam = conf1.DescriptorPars.SIFTParam;
   conf1.DescriptorPars.RootSIFTParam.useRootSIFT = 1;
+
   conf1.DescriptorPars.HalfRootSIFTParam =  conf1.DescriptorPars.RootSIFTParam;
   conf1.DescriptorPars.HalfRootSIFTParam.doHalfSIFT = 1;
 
@@ -964,6 +983,7 @@ int getCLIparam(configs &conf1,int argc, char **argv)
 
   conf1.DescriptorPars.MagnLessSIFTParam = conf1.DescriptorPars.SIFTParam;
   conf1.DescriptorPars.MagnLessSIFTParam.useRootSIFT = 1;
+
   conf1.DescriptorPars.MagnLessSIFTParam.magnLess = true;
   conf1.DescriptorPars.MagnLessSIFTParam.doHalfSIFT = 1;
 
@@ -1098,6 +1118,7 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
   GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
+  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);

@@ -31,6 +31,8 @@ enum detector_type {DET_HESSIAN = 0,
                     DET_SFOP = 15,
                     DET_TILDE = 16,
                     DET_TILDE_PLUGIN= 17,
+                    DET_SADDLE = 18,
+                    DET_TOS_MSER = 19,
                     DET_UNKNOWN = 1000};
 
 
@@ -38,7 +40,8 @@ const std::string _DetectorNames [] = {"HessianAffine", "DoG",
                                        "HarrisAffine", "MSER",
                                        "ORB", "FAST", "SURF",
                                        "STAR", "BRISK", "KAZE",
-                                       "FOCI","CAFFE", "ReadAffs", "WAVE", "WASH", "SFOP", "TILDE", "TILDE-plugin"};
+                                       "FOCI","CAFFE", "ReadAffs", "WAVE", "WASH", "SFOP",
+                                       "TILDE", "TILDE-plugin", "Saddle", "TOS-MSER"};
 
 
 const std::vector<std::string> DetectorNames (_DetectorNames,_DetectorNames +

@@ -364,7 +364,7 @@ void ReadKPs(AffineRegionList &keys, std::istream &in1);
 //descriptor_size(default = 128) keys_number
 //x y scale a11 a12 a21 a22 desc[descriptor_size]
 
-void ReadKPsMik(AffineRegionList &keys, std::istream &in1);
+void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1 = DET_UNKNOWN);
 //Function reads keypoints from stream in Mikolajczuk format:
 //descriptor_size(default = 128) keys_number
 //x y scale a b c desc[descriptor_size]

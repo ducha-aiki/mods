@@ -8,8 +8,8 @@ logs="/windows/mods/BMVC-2015/det_test/lostinpast"
 #dets=("AdHesAfR")
 dets=("WXBS-plain")
 dets=("TILDE-Cha" "TILDE-Cou" "TILDE-Fra" "TILDE-Mex" "TILDE-Pan" "TILDE-StL" )
-
-for (( dd=2; dd<6; dd++)); do
+dets=("saddle_nms_affine")
+for (( dd=0; dd<1; dd++)); do
 det=${dets[${dd}]}
   logdir=${logs}/${det}
   echo $det

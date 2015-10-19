@@ -49,6 +49,7 @@ void GetSTARPars(STARParams &pars, INIReader &reader,const char* section="STAR")
 
 void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section="TILDE");
 void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section="SFOP");
+void GetSaddlePars(SaddleParams &pars, INIReader &reader,const char* section="Saddle");
 void GetWAVEPars(WAVEParams &pars, INIReader &reader,const char* section="WAVE");
 void GetWASHPars(WASHParams &pars, INIReader &reader,const char* section="WASH");
 

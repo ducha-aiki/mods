@@ -14,7 +14,8 @@ dets=("TILDE" "TILDE-scalespace")
 dets=("TILDE-Cha" "TILDE-Cou" "TILDE-Fra" "TILDE-Mex" "TILDE-Pan")
 
 
-for (( dd=4; dd<5; dd++)); do
+dets=("saddle_nms_affine")
+for (( dd=0; dd<1; dd++)); do
 det=${dets[${dd}]}
   logdir=${logs}/${det}
   echo $det

@@ -1,11 +1,11 @@
 #!/bin/bash
-#./mods-snavely.sh
-#./mods-stewart.sh
-#./mods-evd.sh
-#./mods-ef.sh
-#./mods-oxford.sh
-#./mods-wxbs.sh
-#./mods-mms.sh
+./mods-snavely.sh
+./mods-stewart.sh
+./mods-evd.sh
+./mods-ef.sh
+./mods-oxford.sh
+./mods-wxbs.sh
+./mods-mms.sh
 ./mods-lost-in-past.sh
 
 #./db-ef.sh

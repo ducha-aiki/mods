@@ -724,7 +724,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
             {
               doExternalAffineAdaptation = det_par.FOCIParam.doBaumberg;
               //  DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
-              int rnd1 = (int) getMilliSecs();
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
               std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               //srand();
@@ -794,7 +794,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("SFOP")==0)
             {
               doExternalAffineAdaptation = det_par.SFOPParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs();
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
               std::string img_fname = "SFOP"+std::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               std::string command = "./sfop -i " + img_fname;
@@ -822,7 +822,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("WAVE")==0)
             {
               doExternalAffineAdaptation = det_par.WAVEParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs();
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
               std::string img_fname = "WAVE"+std::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               std::string command = "./WaveDetector -i " + img_fname;
@@ -852,7 +852,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("WASH")==0)
             {
               doExternalAffineAdaptation = det_par.WASHParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs();
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
               std::string img_fname = "WASH"+std::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               std::string command = "./WaSH_linux_64 -i " + img_fname;
@@ -863,13 +863,76 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               std::ifstream focikp(fname1);
               if (focikp.is_open()) {
                   ReadKPsMik(temp_kp1, focikp);
-                }
+                }                 
               focikp.close();
               std::string rm_command = "rm " + fname1;
               system(rm_command.c_str());
               rm_command = "rm " + img_fname;
               system(rm_command.c_str());
             }
+          else if (curr_det.compare("Saddle")==0)
+            {
+              //./saddlepts1 -i image-00547.bmp -o pts_saddle.txt
+              doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+
+              std::string img_fname = "Saddle"+std::to_string(synth+rnd1)+".png";
+              cv::imwrite(img_fname,temp_img1.pixels);
+              std::string command = "./saddlepts_very_new -i " + img_fname;
+              std::string fname1 = img_fname + ".saddle";
+              command += " -o "+ fname1;
+              command += " -t "+ std::to_string(det_par.SaddleParam.threshold);
+              command += " -l "+ std::to_string(det_par.SaddleParam.pyrLevels);
+              command += " -s "+ std::to_string(det_par.SaddleParam.scalefac);
+              command += " -e "+ std::to_string(det_par.SaddleParam.epsilon);
+              if (det_par.SaddleParam.doNMS) {
+                  command += " -n ";
+                };
+              std::cerr << command << std::endl;
+              system(command.c_str());
+              std::ifstream focikp(fname1);
+              if (focikp.is_open()) {
+                  ReadKPsMik(temp_kp1, focikp,DET_SADDLE);
+                }
+              focikp.close();
+              std::cout << temp_kp1.size() << " saddle points detected" << std::endl;
+              for (int kp_num=0; kp_num < temp_kp1.size(); kp_num++) {
+                  temp_kp1[kp_num].det_kp.s = sqrt(temp_kp1[kp_num].det_kp.s) / (sqrt(3.0)*3.0);
+                }
+              std::string rm_command = "rm " + fname1;
+              system(rm_command.c_str());
+              rm_command = "rm " + img_fname;
+              system(rm_command.c_str());
+            }
+          else if (curr_det.compare("TOS-MSER")==0)
+            {
+              //./saddlepts1 image-00547.bmp pts_saddle.txt 0/1
+         //     doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+              std::string img_fname = "tos-mser"+std::to_string(synth+rnd1)+".png";
+              cv::imwrite(img_fname,temp_img1.pixels);
+              std::string command = "./Trees_no_img " + img_fname;
+              std::string fname1 = img_fname + ".tosmser";
+              command += " "+ fname1;
+              command += " 1";//+ std::to_string(det_par.ToSMSERParam.run_mode);
+
+              std::cerr << command << std::endl;
+              system(command.c_str());
+              std::ifstream focikp(fname1);
+              if (focikp.is_open()) {
+                  ReadKPsMik(temp_kp1, focikp,DET_TOS_MSER);
+                }
+              focikp.close();
+              std::cout << temp_kp1.size() << " ToS-MSER points detected" << std::endl;
+              for (int kp_num=0; kp_num < temp_kp1.size(); kp_num++) {
+                  temp_kp1[kp_num].det_kp.s = sqrt(temp_kp1[kp_num].det_kp.s);// / (sqrt(3.0)*3.0);
+                }
+              std::string rm_command = "rm " + fname1;
+              system(rm_command.c_str());
+              rm_command = "rm " + img_fname;
+              system(rm_command.c_str());
+            }
+
           else if (curr_det.compare("DoG")==0)
             {
               DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
@@ -944,7 +1007,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
                   temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
                   temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
+                  temp_kp1[kp_num].det_kp.s = sqrt(keypoints_1[kp_num].size);// /3.0; //?
                   temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
                   temp_kp1[kp_num].type = DET_ORB;
                 }
@@ -1391,10 +1454,11 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               else if (curr_desc.compare("DSPSIFT") == 0)
                 {
                   SIFTDescriptorParams dspsiftparams = desc_par.SIFTParam;
+                  dspsiftparams.useRootSIFT = false;
                   dspsiftparams.doNorm = false;
                   SIFTDescriptor DSPSIFTdesc(dspsiftparams);
                   const int num_domains = desc_par.SIFTParam.DSPParam.numScales;
-                                   for (int dsp_idx = 0; dsp_idx < num_domains; dsp_idx++) {
+                                   for (int dsp_idx = 0; dsp_idx < num_domains+1; dsp_idx++) {
                       dsp_desc = temp_kp1_desc;
                       const double start_coef = desc_par.SIFTParam.DSPParam.startCoef;
                       const double end_coef = desc_par.SIFTParam.DSPParam.endCoef;
@@ -1974,7 +2038,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
                     }
                 }
             }
-          //      int rnd1 = (int) getMilliSecs();
+          //      int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
           //      std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
           //      cv::imwrite(img_fname,temp_img1.pixels);
           /// Detection
@@ -2011,7 +2075,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
           else if (curr_det.compare("FOCI")==0)
             {
               //  DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
-              int rnd1 = (int) getMilliSecs();
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
               std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               //srand();
