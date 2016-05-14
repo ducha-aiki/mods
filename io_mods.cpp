@@ -915,7 +915,7 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   if (argc >= Tmin +4) conf1.CLIparams.config_fname = argv[Tmin+3];
   if (argc >= Tmin +5) conf1.CLIparams.iters_fname = argv[Tmin+4];
   if (argc >= Tmin +6) conf1.read_pre_extracted = atoi(argv[Tmin+5]) > 0;
-  if (argc >= Tmin +7) conf1.match_one_to_many = atoi(argv[Tmin+6]) > 0;
+//  if (argc >= Tmin +7) conf1.match_one_to_many = atoi(argv[Tmin+6]) > 0;
 
   INIReader ConfigIni(conf1.CLIparams.config_fname);
   if (ConfigIni.ParseError() < 0)

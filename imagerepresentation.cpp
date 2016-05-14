@@ -87,11 +87,11 @@ void saveKPMichalBin(AffineKeypoint &ak, std::ostream &s) {
 }
 
 void saveAR(AffineRegion &ar, std::ostream &s) {
- // s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
- // s << ar.parent_id <<  " ";
- // saveKP(ar.det_kp,s);
-  saveKPBench(ar.reproj_kp,s);
-  // s << ar.desc.type <<
+  s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
+  s << ar.parent_id <<  " ";
+  saveKP(ar.det_kp,s);
+  saveKP(ar.reproj_kp,s);
+//  s << ar.desc.type <<
   s << " " << ar.desc.vec.size() << " ";
   for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {
       s << ar.desc.vec[i] << " ";
@@ -2180,15 +2180,15 @@ void ImageRepresentation::LoadRegions(std::string fname) {
   if (kpfile.is_open()) {
       int numberOfDetectors = 0;
       kpfile >> numberOfDetectors;
-      //    std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
+          std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
       for (int det = 0; det < numberOfDetectors; det++) {
           std::string det_name;
           int num_of_descs = 0;
           kpfile >> det_name;
           kpfile >> num_of_descs;
-          //      std::cerr << det_name << " " << num_of_descs << std::endl;
+                std::cerr << det_name << " " << num_of_descs << std::endl;
 
-          //reg_it->first << " " << reg_it->second.size() << std::endl;
+       //   reg_it->first << " " << reg_it->second.size() << std::endl;
           for (int desc = 0; desc < num_of_descs; desc++)  {
               AffineRegionVector desc_regions;
               std::string desc_name;
@@ -2198,7 +2198,7 @@ void ImageRepresentation::LoadRegions(std::string fname) {
               kpfile >> num_of_kp;
               int desc_size;
               kpfile >> desc_size;
-              //        std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
+                      std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
               for (int kp = 0; kp < num_of_kp; kp++)  {
                   AffineRegion ar;
                   loadAR(ar, kpfile);
@@ -2209,7 +2209,7 @@ void ImageRepresentation::LoadRegions(std::string fname) {
         }
     }
   else {
-      std::cerr << "Cannot open file " << fname << " to save keypoints" << endl;
+      std::cerr << "Cannot open file " << fname << " to load keypoints" << endl;
     }
   kpfile.close();
 }

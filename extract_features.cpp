@@ -63,8 +63,8 @@ int main(int argc, char **argv)
     << " ******** Two-view Matching with On-Demand Synthesis ********************** " << std::endl
     << " ************************************************************************** " << std::endl
     << "Usage: " << argv[0] << " imgIn1.png keys-1.txt config_iter.ini iters.ini" << std::endl
-    << "- imgIn1.png: input images " << std::endl
-    << "- keys1.txt: affine regions and their descriptors of the two images." << std::endl
+    << "- imgIn1.png: input image " << std::endl
+    << "- keys1.txt: affine regions and their descriptors." << std::endl
     << "- config_iter.ini: input file with detectors and descriptors paramaters [optional, default = 'config_iter.ini'] " << std::endl
     << "- iters.ini: input file with parameters of iterative view synthesis [optional, default= 'iters.ini']" << std::endl
     << " ******************************************************************************* " << std::endl;
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
   std::cerr << "Writing files... " << endl;
 
 //  ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
-  ImgRep1.SaveRegionsMichal(Config1.CLIparams.k1_fname,ios::binary);
+  ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
   return 0;
 }
 

@@ -75,8 +75,7 @@ int main(int argc, char **argv)
     << "- homography file for ground truth verification (if type=1)" << std::endl
     << "- config_iter.ini: input file with detectors and descriptors paramaters [optional, default = 'config_iter.ini'] " << std::endl
     << "- iters.ini: input file with parameters of iterative view synthesis [optional, default= 'iters.ini']" << std::endl
-    << "- read preextracted keys.txt: [optional, [0/1] default = 0]" << std::endl
-    << "- one-to-many mathc (keys2.txt contains list of files): [optional, [0/1] default = 0]" << std::endl
+    << "- read pre-extracted from keys-1.txt keys2.txt: [optional, [0/1] default = 0]" << std::endl
     << " ******************************************************************************* " << std::endl;
     return 1;
   }
@@ -231,20 +230,25 @@ if (Config1.read_pre_extracted)
                    && (curr_matches < Config1.Matchparam.minMatches); step++, final_step++)
   {
     double parallel_curr_start = getMilliSecs();
-    if (VERB)
-    {
-      std::cerr << "Iteration " << step << std::endl;
-      for (unsigned int det=0; det < DetectorNames.size(); det++)
-      {
-        unsigned int n_synths = Config1.ItersParam[step][DetectorNames[det]].size();
-        if (n_synths > 0)
-          std::cerr << DetectorNames[det] << ": " << n_synths << " synthesis will be done." << std::endl;
-      }
-    }
+
     if (Config1.read_pre_extracted) {
+        std::cerr << "Iteration 0, loading pre-extracted features"<< std::endl;
+
     ImgRep1.LoadRegions(Config1.CLIparams.k1_fname);
     ImgRep2.LoadRegions(Config1.CLIparams.k2_fname);
+    std::cerr << "Loading done"<< std::endl;
+
     } else {
+        if (VERB)
+        {
+          std::cerr << "Iteration " << step << std::endl;
+          for (unsigned int det=0; det < DetectorNames.size(); det++)
+          {
+            unsigned int n_synths = Config1.ItersParam[step][DetectorNames[det]].size();
+            if (n_synths > 0)
+              std::cerr << DetectorNames[det] << ": " << n_synths << " synthesis will be done." << std::endl;
+          }
+        }
 #ifdef _OPENMP
       omp_set_nested(1);
 #endif
