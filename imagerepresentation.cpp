@@ -87,10 +87,10 @@ void saveKPMichalBin(AffineKeypoint &ak, std::ostream &s) {
 }
 
 void saveAR(AffineRegion &ar, std::ostream &s) {
-  s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
-  s << ar.parent_id <<  " ";
-  saveKP(ar.det_kp,s);
-  saveKP(ar.reproj_kp,s);
+ // s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
+ // s << ar.parent_id <<  " ";
+ // saveKP(ar.det_kp,s);
+  saveKPBench(ar.reproj_kp,s);
   // s << ar.desc.type <<
   s << " " << ar.desc.vec.size() << " ";
   for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {

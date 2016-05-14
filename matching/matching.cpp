@@ -2924,40 +2924,18 @@ void WriteMatchings(TentativeCorrespListExt &match, std::ostream &out1, int writ
 {
 //  out1 << (int) match.TCList.size() << std::endl;
   std::vector<TentativeCorrespExt>::iterator ptr = match.TCList.begin();
-//Hungurians
-        for(int i=0; i < (int) match.TCList.size(); i++, ptr++) {
-          out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y << " ";
 
-          cv::Mat A1(2,2,CV_64F);
-          cv::Mat A2(2,2,CV_64F);
-
-          A2.at<double>(0,0) = ptr->second.reproj_kp.a11;
-          A2.at<double>(0,1) = ptr->second.reproj_kp.a21;
-          A2.at<double>(1,0) = ptr->second.reproj_kp.a12;
-          A2.at<double>(1,1) = ptr->second.reproj_kp.a22;
-
-          A1.at<double>(0,0) = ptr->first.reproj_kp.a11;
-          A1.at<double>(0,1) = ptr->first.reproj_kp.a21;
-          A1.at<double>(1,0) = ptr->first.reproj_kp.a12;
-          A1.at<double>(1,1) = ptr->first.reproj_kp.a22;
-
-            cv::Mat Afin=A2*A1.inv();
-
-
-             out1  << Afin.at<double>(0,0) << " " << Afin.at<double>(1,0) << " " << Afin.at<double>(0,1) << " "<<Afin.at<double>(1,1) << " "<< std::endl;
-        }
-
-  //  if (writeWithRatios)
-//    {
-//      for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
-//        out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y << " "
-//             << sqrt(ptr->d1 / ptr->d2) << " " << sqrt(ptr->d1 / ptr->d2by2ndcl) << " " << ptr->isTrue << std::endl;
-//    }
-//  else
-//    {
-//      for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
-//        out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y  << std::endl;
-//    }
+   if (writeWithRatios)
+    {
+      for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
+        out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y << " "
+             << sqrt(ptr->d1 / ptr->d2) << " " << sqrt(ptr->d1 / ptr->d2by2ndcl) << " " << ptr->isTrue << std::endl;
+    }
+  else
+    {
+      for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
+        out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y  << std::endl;
+    }
 }
 
 //void DuplicateFiltering(TentativeCorrespList &in_corresp, const double r)
