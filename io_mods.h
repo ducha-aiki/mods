@@ -1,6 +1,6 @@
-//
-// Created by old-ufo on 3/30/15.
-//
+/*------------------------------------------------------*/
+/* Copyright 2013, Dmytro Mishkin  ducha.aiki@gmail.com */
+/*------------------------------------------------------*/
 #ifndef MODS_NEW_IO_MODS_H
 #define MODS_NEW_IO_MODS_H
 
@@ -49,7 +49,8 @@ void GetSTARPars(STARParams &pars, INIReader &reader,const char* section="STAR")
 
 void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section="TILDE");
 void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section="SFOP");
-void GetSaddlePars(SaddleParams &pars, INIReader &reader,const char* section="Saddle");
+void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section="TOS-MSER");
+
 void GetWAVEPars(WAVEParams &pars, INIReader &reader,const char* section="WAVE");
 void GetWASHPars(WASHParams &pars, INIReader &reader,const char* section="WASH");
 
@@ -59,7 +60,7 @@ void GetFREAKPars(FREAKParams &pars, INIReader &reader,const char* section="FREA
 void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section="MROGHDescriptor");
 void GetLIOPPars(LIOPDescriptorParams &pars, INIReader &reader,const char* section="LIOP");
 void GetKAZEPars(KAZEParams &pars, INIReader &reader,const char* section="AKAZE");
-void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section="DALI");
+//void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section="DALI");
 void GetSMSLDPars(SMSLDParams &pars, INIReader &reader,const char* section="SMSLD");
 void GetORBPars(ORBParams &pars, INIReader &reader,const char* section="ORB");
 void GetDAISYPars(DAISYParams &pars, INIReader &reader,const char* section="DAISY");

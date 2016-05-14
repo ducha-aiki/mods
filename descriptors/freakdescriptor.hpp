@@ -4,6 +4,7 @@
 // Created by old-ufo on 5/2/15.
 //
 #include "detectors/structures.hpp"
+//#include <opencv2/xfeatures2d.hpp>
 
 struct FREAKParams
 {

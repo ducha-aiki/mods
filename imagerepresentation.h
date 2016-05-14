@@ -1,3 +1,6 @@
+/*------------------------------------------------------*/
+/* Copyright 2013, Dmytro Mishkin  ducha.aiki@gmail.com */
+/*------------------------------------------------------*/
 #ifndef IMAGEREPRESENTATION_H
 #define IMAGEREPRESENTATION_H
 

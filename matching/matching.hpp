@@ -302,6 +302,12 @@ void DuplicateFiltering(TentativeCorrespListExt &in_corresp, const double r = 3.
 //If distance^2 < r_sq in both images, correspondences are considered as duplicates and
 //second point is deleted.
 
+
+cv::Mat DrawRegions(const cv::Mat &in_img,
+                         const AffineRegionList kps,
+                         const int r1 = 7,
+                         const cv::Scalar color1 = cv::Scalar(255,0,0));
+
 void DrawMatchingsSimple(const cv::Mat &in_img, cv::Mat &out_img, const cv::Mat &H1,
                          std::vector<corresp> matchings,const int order = 1,
                          const int r1 = 7,const int r2 = 4,

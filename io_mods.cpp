@@ -1,10 +1,9 @@
-//
-// Created by old-ufo on 3/30/15.
-//
+/*------------------------------------------------------*/
+/* Copyright 2013, Dmytro Mishkin  ducha.aiki@gmail.com */
+/*------------------------------------------------------*/
 
 #include "io_mods.h"
 #include "synth-detection.hpp"
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -19,8 +18,8 @@ void WriteLog(logs log, ostream& out)
         out << log.TrueMatch1st << " ";
         out << log.Tentatives1st << " ";
         out << log.InlierRatio1st*100 << " ";
-        out << log.OrientReg1 << " ";
-        out << log.OrientReg2 << " ";
+        out << log.UnorientedReg1 << " ";
+        out << log.UnorientedReg2  << " ";
         out << log.FinalStep << " ";
         out << std::endl;
         break;
@@ -172,14 +171,10 @@ void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section)
   pars.pThresh = reader.GetInteger(section, "pThresh", pars.pThresh);
   pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
 }
-void GetSaddlePars(SaddleParams &pars, INIReader &reader,const char* section)
+void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section)
 {
-  pars.threshold = reader.GetDouble(section, "threshold", pars.threshold);
-  pars.epsilon =  reader.GetInteger(section, "epsilon", pars.epsilon);
-  pars.pyrLevels = reader.GetInteger(section, "pyrLevels", pars.pyrLevels);
-  pars.scalefac = reader.GetDouble(section, "scalefac", pars.scalefac);
-  pars.doNMS = reader.GetBoolean(section, "doNMS", pars.doNMS);
-  pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
+  pars.scale = reader.GetDouble(section, "scale", pars.scale);
+  pars.run_mode =  reader.GetInteger(section, "run_mode", pars.run_mode);
 }
 
 void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section)
@@ -269,10 +264,10 @@ void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section)
   pars.nOrder = reader.GetInteger(section, "nOrder", pars.nOrder);
   GetPatchExtractionPars(pars.PEParam,reader,section);
 }
-void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section)
-{
-  GetPatchExtractionPars(pars.PEParam,reader,section);
-}
+//void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section)
+//{
+//  GetPatchExtractionPars(pars.PEParam,reader,section);
+//}
 
 void GetBaumbergPars(AffineShapeParams &par, INIReader &reader,const char* section) {
   par.maxIterations = reader.GetInteger(section, "max_iter", par.maxIterations);
@@ -336,6 +331,8 @@ void GetReadPars(ReadAffsFromFileParams &pars, INIReader &reader,const char* sec
   pars.WTA_K = reader.GetInteger(section, "WTA_K", pars.WTA_K);
   GetPatchExtractionPars(pars.PEParam,reader,section);
   pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
+  pars.doNMS = reader.GetInteger(section,"doNMS",pars.doNMS);
+
 }
 void GetHessPars(ScaleSpaceDetectorParams &HessPars, INIReader &reader,const char* section)
 {
@@ -360,6 +357,10 @@ void GetHessPars(ScaleSpaceDetectorParams &HessPars, INIReader &reader,const cha
   HessPars.AffineShapePars.smmWindowSize = reader.GetInteger(section, "smmWindowSize", HessPars.AffineShapePars.smmWindowSize);
   HessPars.AffineShapePars.convergenceThreshold = reader.GetDouble(section, "convergenceThreshold", HessPars.AffineShapePars.convergenceThreshold);
   HessPars.AffineShapePars.doBaumberg = reader.GetInteger(section, "doBaumberg", HessPars.AffineShapePars.doBaumberg);
+  //    AFF_BMBRG_SMM = 0, // Use Second Moment Matrix (original baumberg)
+  //AFF_BMBRG_HESSIAN = 1  // Use Hessian matrix
+  HessPars.AffineShapePars.affBmbrgMethod = (AffineBaumbergMethod) reader.GetInteger(section, "affBmbrgMethod", HessPars.AffineShapePars.affBmbrgMethod);
+
   HessPars.PyramidPars.WLDPar.a = reader.GetDouble(section, "a", HessPars.PyramidPars.WLDPar.a);
   HessPars.PyramidPars.WLDPar.b = reader.GetDouble(section, "b", HessPars.PyramidPars.WLDPar.b);
   HessPars.PyramidPars.WLDPar.g = reader.GetDouble(section, "g", HessPars.PyramidPars.WLDPar.g);
@@ -694,8 +695,6 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   conf1.CLIparams.config_fname = argv[3];
   conf1.CLIparams.iters_fname = argv[4];
 
-
-
   INIReader ConfigIni(conf1.CLIparams.config_fname);
   if (ConfigIni.ParseError() < 0)
     {
@@ -720,7 +719,7 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
-  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
+ 
 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
@@ -734,7 +733,7 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
-  GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni);
+ /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
   GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
   GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
@@ -802,8 +801,7 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
     }
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
-  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
-
+ 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
@@ -823,7 +821,7 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
-  GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni);
+ /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
   GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
   GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
@@ -945,7 +943,7 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
   GetFOCIPars(conf1.DetectorsPars.FOCIParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
-  GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni);
+ /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
@@ -954,7 +952,6 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
-  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
 
 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
@@ -998,6 +995,9 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   conf1.DrawParam.drawOnlyCenters = ConfigIni.GetInteger("ImageOutput", "drawOnlyCenters", 1);
   conf1.DrawParam.drawReprojected = ConfigIni.GetInteger("ImageOutput", "drawReprojected", 1);
   conf1.DrawParam.writeImages = ConfigIni.GetInteger("ImageOutput", "writeImages", 1);
+  conf1.DrawParam.drawDetectedRegions = ConfigIni.GetBoolean("ImageOutput", "drawDetectedRegions",
+                                                             conf1.DrawParam.drawDetectedRegions);
+
   conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);
   conf1.OutputParam.writeMatches = ConfigIni.GetInteger("TextOutput", "writeMatches", 1);
   conf1.OutputParam.timeLog = ConfigIni.GetInteger("TextOutput", "timeLog", 0);
@@ -1113,12 +1113,11 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
-  GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni);
+ /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
   GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
-  GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);

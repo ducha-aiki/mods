@@ -1,3 +1,6 @@
+/*------------------------------------------------------*/
+/* Copyright 2013, Dmytro Mishkin  ducha.aiki@gmail.com */
+/*------------------------------------------------------*/
 #ifndef CORRESPONDENCEBANK_H
 #define CORRESPONDENCEBANK_H
 

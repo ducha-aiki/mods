@@ -53,7 +53,53 @@ void rectifyTransformation(double &a11, double &a12, double &a21, double &a22)
   a21 = (d*b+c*a)/(b2a2*det);
   a22 = det/b2a2;
 }
+bool HIsEye(double* H) {
+  return (fabs(H[0] - 1.0) + fabs(H[1]) + fabs(H[2])
+      + fabs(H[3]) + fabs(H[4] - 1.0) + fabs(H[5]) +
+      fabs(H[6]) + fabs(H[7]) + fabs(H[8] - 1.0) < eps1);
 
+}
+
+int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize) {
+int old_size = keypoints.size();
+  cv::Mat H1(3, 3, CV_64F, H);
+  cv::Mat Hinv(3, 3, CV_64F);
+  cv::invert(H1, Hinv, cv::DECOMP_LU);
+  double *HinvPtr = (double *) Hinv.data;
+
+  AffineRegionList::iterator ptr = keypoints.begin();
+  if (HIsEye(H)) {
+      for (unsigned i = 0; i < keypoints.size(); i++, ptr++) {
+          ptr->reproj_kp = ptr->det_kp;
+        }
+    } else {
+      for (unsigned i = 0; i < keypoints.size(); i++, ptr++) {
+          ptr->reproj_kp = ptr->det_kp;
+          ReprojectByH(ptr->det_kp, ptr->reproj_kp, HinvPtr);
+        }
+    }
+
+  AffineRegionList temp_keypoints;
+  temp_keypoints.reserve(keypoints.size());
+  ptr = keypoints.begin();
+  for (unsigned int i=0; i < keypoints.size(); i++, ptr++)
+    {
+      if ( (ptr->reproj_kp.x < orig_w) && (ptr->reproj_kp.y < orig_h)
+           && (ptr->reproj_kp.x > 0) && (ptr->reproj_kp.y > 0)) {  //center is inside
+          if ( !interpolateCheckBorders(orig_w, orig_h,
+                                        ptr->reproj_kp.x, ptr->reproj_kp.y,
+                                        ptr->reproj_kp.a11, ptr->reproj_kp.a12,
+                                        ptr->reproj_kp.a21, ptr->reproj_kp.a22,
+                                        mrSize * ptr->reproj_kp.s,
+                                        mrSize * ptr->reproj_kp.s)) {
+              temp_keypoints.push_back(keypoints[i]);
+            }
+        }
+    }
+  keypoints = temp_keypoints;
+  std::cout << old_size << " , become " << keypoints.size() << std::endl;
+  return (int)keypoints.size();
+}
 int SetVSPars(const std::vector <double> &scale_set,
               const std::vector <double> &tilt_set,
               const double phi_base,
@@ -492,12 +538,6 @@ int ReprojectRegionsBackReal(AffineRegionList &keypoints, double *H, const int w
   keypoints = reproj_keypoints;
 }
 
-bool HIsEye(double* H) {
-  return (fabs(H[0] - 1.0) + fabs(H[1]) + fabs(H[2])
-      + fabs(H[3]) + fabs(H[4] - 1.0) + fabs(H[5]) +
-      fabs(H[6]) + fabs(H[7]) + fabs(H[8] - 1.0) < eps1);
-
-}
 int ReprojectRegions(AffineRegionList &keypoints, double *H, int orig_w, int orig_h) {
   double k;//3 sigma
   cv::Mat H1(3, 3, CV_64F, H);
@@ -1082,7 +1122,7 @@ void ReadKPs(AffineRegionList &keys, std::istream &in1)
   //  keys = temp_list;
 
 }
-void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1) //Mikolajczuk.
+void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1, const double scale_factor) //Mikolajczuk.
 {
   AffineRegionList temp_keys;
   AffineRegion temp_reg;
@@ -1096,22 +1136,21 @@ void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1) 
   std::getline(in1, line);
   std::istringstream iss2(line);
   iss2 >> n_regs;
- // in1 >> rub;
- // in1 >> n_regs;
   temp_reg.img_id = 1;
+  const double sc_f = scale_factor*scale_factor;
   for(int i=0; i < n_regs; i++)
     {
       temp_reg.id = i;
-    //  in1 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
       std::getline(in1, line);
       std::istringstream iss3(line);
       iss3 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
      // std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << a << " " << b << " " << c << std::endl;
-      utls::Matrix2 C(a, b, b, c);
-      utls::Matrix2 U, T1, A;
-      C.inv();
-      C.schur_sym(U, T1);
-      A = U * T1.sqrt() * U.transpose();
+
+      utls::Matrix2 A(a, b, b, c);
+      utls::Matrix2 U, T, C;
+      C = A.inv() / sc_f;
+      C.schur_sym(U, T);
+      A = U * T.sqrt() * U.transpose();
 
       temp_reg.det_kp.a11=A[0][0];
       temp_reg.det_kp.a12=A[0][1];
@@ -1119,10 +1158,10 @@ void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1) 
       temp_reg.det_kp.a22=A[1][1];
       temp_reg.det_kp.response = 11.1;
       temp_reg.type = (detector_type) det_type1;
-      temp_reg.det_kp.s = 1/sqrt(temp_reg.det_kp.a11*temp_reg.det_kp.a22 - temp_reg.det_kp.a12*temp_reg.det_kp.a21);
+      temp_reg.det_kp.s = sqrt(temp_reg.det_kp.a11*temp_reg.det_kp.a22 - temp_reg.det_kp.a12*temp_reg.det_kp.a21);
       rectifyTransformation(temp_reg.det_kp.a11,temp_reg.det_kp.a12,temp_reg.det_kp.a21,temp_reg.det_kp.a22);
-//      std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << temp_reg.det_kp.a11 << " " << temp_reg.det_kp.a22  << " "
-//                << temp_reg.det_kp.s << std::endl;
+   //   std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << temp_reg.det_kp.a11 << " " << temp_reg.det_kp.a22  << " "
+   //             << temp_reg.det_kp.s << std::endl;
 
       temp_reg.reproj_kp =  temp_reg.det_kp;
       temp_keys.push_back(temp_reg);
