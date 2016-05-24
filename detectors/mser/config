@@ -1,0 +1,58 @@
+MAKEFLAGS = '-r'
+
+ARCH = A64
+#ARCH = X86
+
+ifeq ($(ARCH),A64)
+  ARCH_FLAGS = -D$(ARCH) -fPIC
+  CC  = gcc
+  CXX = g++
+else
+  ARCH_FLAGS = -D$(ARCH)
+  CC  = gcc
+  CXX = g++
+endif
+
+# optimisation on debugin
+OPTIMIZATION_FLAGS = -O3 -fomit-frame-pointer
+
+# debuging
+#OPTIMIZATION_FLAGS = -g
+
+CFLAGS = $(ARCH_FLAGS)   -Wall -pipe $(OPTIMIZATION_FLAGS)
+CXXFLAGS = $(ARCH_FLAGS) -Wall -pipe $(OPTIMIZATION_FLAGS)
+
+# used image libs
+IMAGE_LIBS_CFLAGS = -DWITH_LIBPNG -DWITH_LIBJPEG
+IMAGE_LIBS_LFLAGS = -lpng -ljpeg -lz
+
+# archiver
+AR = ar
+
+# command to remove files
+RM = /bin/rm -rf
+
+# command to move files
+MV = /bin/mv -f
+
+# command to copy files
+CP = /bin/cp
+
+INSTALL = /usr/bin/install -c
+
+# common makefile rules
+%.o: %.cxx
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) -c $< -o $@
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) -c $< -o $@
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) -c $< -o $@
+
+%.o: %.c
+	$(CC) $(CXXFLAGS) $(INCLUDE_PATHS) -c $< -o $@
+
+-include depend
+
+.PHONY: all clean
