@@ -248,6 +248,8 @@ int main(int argc, char **argv) {
     for (int img_idx = 0; img_idx < imgs2.size(); img_idx++) {
       ImageRepresentation ImgRep2 = ImgReps2[img_idx];
       logs log1 = logs1[img_idx];
+
+      //ImgRep2.LoadRegions(Config1.CLIparams.);
       ImgRep2.SynthDetectDescribeKeypoints(Config1.ItersParam[step],
                                            Config1.DetectorsPars,
                                            Config1.DescriptorPars,
