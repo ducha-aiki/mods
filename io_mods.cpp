@@ -150,6 +150,21 @@ void GetBICEPars(BICEParams &pars, INIReader &reader,const char* section)
   pars.dv = reader.GetInteger(section, "dv", pars.dv);
   pars.dori = reader.GetInteger(section, "dori", pars.dori);
 }
+void GetCLIDetPars(CLIDetectorParams &pars, INIReader &reader,const char* section) {
+  pars.path_to = reader.GetString(section, "path_to", pars.path_to);
+  pars.input_image_key = reader.GetString(section, "input_image_key", pars.input_image_key);
+  pars.output_file_key = reader.GetString(section, "output_file_key", pars.output_file_key);
+  pars.other_keylayers = reader.GetString(section, "other_keylayers", pars.other_keylayers);
+  pars.keypoints_format = reader.GetString(section, "keypoints_format", pars.keypoints_format);
+}
+
+void GetCLIDescPars(CLIDescriptorParams &pars, INIReader &reader,const char* section) {
+  pars.path_to = reader.GetString(section, "path_to", pars.path_to);
+  pars.input_image_key = reader.GetString(section, "input_image_key", pars.input_image_key);
+  pars.input_keypoints_file_key = reader.GetString(section, "input_keypoints_file_key", pars.input_keypoints_file_key);
+  pars.output_file_key = reader.GetString(section, "output_file_key", pars.output_file_key);
+  pars.other_keylayers = reader.GetString(section, "other_keylayers", pars.other_keylayers);
+}
 
 
 void GetSTARPars(STARParams &pars, INIReader &reader,const char* section)
@@ -717,11 +732,15 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
   GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);
   GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
+  GetCLIDetPars(conf1.DetectorsPars.CLIDetParam,ConfigIni);
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam,ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
  
 
-  GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
+   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);  GetCLIDetPars(conf1.DetectorsPars.CLIDetParam,ConfigIni);
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam,ConfigIni);
+
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE"); conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
  conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
@@ -802,7 +821,9 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
  
-  GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
+   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);  GetCLIDetPars(conf1.DetectorsPars.CLIDetParam,ConfigIni);
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam,ConfigIni);
+
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE");
@@ -954,7 +975,9 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
 
 
-  GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
+   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);  GetCLIDetPars(conf1.DetectorsPars.CLIDetParam,ConfigIni);
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam,ConfigIni);
+
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE"); conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
@@ -1120,7 +1143,9 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
-  GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
+   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);  GetCLIDetPars(conf1.DetectorsPars.CLIDetParam,ConfigIni);
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam,ConfigIni);
+
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
   GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE");

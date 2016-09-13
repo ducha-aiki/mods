@@ -49,6 +49,10 @@ void GetSTARPars(STARParams &pars, INIReader &reader,const char* section="STAR")
 
 void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section="TILDE");
 void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section="SFOP");
+
+void GetCLIDetPars(CLIDetectorParams &pars, INIReader &reader,const char* section="CLIDetector");
+void GetCLIDescPars(CLIDescriptorParams &pars, INIReader &reader,const char* section="CLIDescriptor");
+
 void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section="TOS-MSER");
 
 void GetWAVEPars(WAVEParams &pars, INIReader &reader,const char* section="WAVE");

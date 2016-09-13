@@ -53,7 +53,7 @@ public:
   cv::Mat OriginalImg;
   void SaveRegions(std::string fname, int mode);
   void SaveRegionsMichal(std::string fname, int mode);
-  void SaveRegionsBenchmark(std::string fname1, std::string fname2);
+  void SaveRegionsBenchmark(std::string det_kps_fname, std::string reproject_kps_fname);
   void SaveDescriptorsBenchmark(std::string fname1);
   void LoadRegions(std::string fname);
 

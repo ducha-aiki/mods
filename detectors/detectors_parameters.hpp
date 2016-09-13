@@ -35,6 +35,15 @@ struct WASHParams{
     }
 };
 
+struct CLIDetectorParams {
+  std::string path_to; //=mser.ln
+  std::string input_image_key;//=--i=
+  std::string output_file_key;//=--o=
+  std::string other_keylayers;//=--nms --th=0
+  std::string keypoints_format;
+
+};
+
 struct ToSMSERParams{
     int run_mode;
     double scale;
@@ -251,7 +260,7 @@ struct DetectorsParameters
     SFOPParams SFOPParam;
     WASHParams WASHParam;
     WAVEParams WAVEParam;
-
+    CLIDetectorParams CLIDetParam;
     AffineShapeParams BaumbergParam;
 };
 

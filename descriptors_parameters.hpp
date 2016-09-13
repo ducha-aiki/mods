@@ -35,7 +35,14 @@ struct DominantOrientationParams {
   }
 };
 
+struct CLIDescriptorParams {
+  std::string path_to; //=mser.ln
+  std::string input_image_key;//=--i=
+  std::string input_keypoints_file_key;//=--i=
+  std::string output_file_key;//=--o=
+  std::string other_keylayers;//=--nms --th=0
 
+};
 struct CaffeDescriptorParams
 {
   std::string WeightsFile;
@@ -82,6 +89,7 @@ struct DescriptorsParameters {
   PIXELSDescriptorParams PixelsParam;
   KAZEParams KAZEParam;
   SURFParams SURFDescParam;
+  CLIDescriptorParams CLIDescParam;
  // DALIParams DALIDescParam;
   SMSLDParams SMSLDDescParam;
   DAISYParams DAISYParam;

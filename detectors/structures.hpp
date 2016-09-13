@@ -34,6 +34,7 @@ enum detector_type {DET_HESSIAN = 0,
                     DET_SADDLE = 18,
                     DET_TOS_MSER = 19,
                     DET_MIK_MSER = 20,
+                    DET_CLI_DETECTOR = 21,
                     DET_UNKNOWN = 1000};
 
 
@@ -42,7 +43,7 @@ const std::string _DetectorNames [] = {"HessianAffine", "DoG",
                                        "ORB", "FAST", "SURF",
                                        "STAR", "BRISK", "KAZE",
                                        "FOCI","CAFFE", "ReadAffs", "WAVE", "WASH", "SFOP",
-                                       "TILDE", "TILDE-plugin", "Saddle", "TOS-MSER", "MIK-MSER"};
+                                       "TILDE", "TILDE-plugin", "Saddle", "TOS-MSER", "MIK-MSER", "CLIDetector"};
 
 
 const std::vector<std::string> DetectorNames (_DetectorNames,_DetectorNames +
@@ -94,6 +95,7 @@ enum descriptor_type {DESC_SIFT = 0,
                       DESC_SSIM = 18,
                       DESC_DSPSIFT = 19,
                       DESC_MEGNLESSSIFT = 20,
+                      DESC_CLI_DESCRIPTOR = 21,
                       DESC_UNKNOWN = 1000};
 
 
@@ -102,7 +104,7 @@ const std::string _DescriptorNames [] = {"SIFT", "RootSIFT",
                                      "InvSIFT",  "ORB", "FREAK",
                                       "SURF", "Pixels", "LIOP",
                                          "BRISK","KAZE", "MROGH","BICE"
-                                        "CAFFE", "DALI", "SMSLD", "DAISY", "SSIM", "DSPSIFT", "MagnLessSIFT"};
+                                        "CAFFE", "DALI", "SMSLD", "DAISY", "SSIM", "DSPSIFT", "MagnLessSIFT", "CLIDescriptor"};
 
 const std::vector<std::string> DescriptorNames (_DescriptorNames,_DescriptorNames +
                                               sizeof(_DescriptorNames)/sizeof(*_DescriptorNames));

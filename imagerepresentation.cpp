@@ -97,9 +97,17 @@ void saveAR(AffineRegion &ar, std::ostream &s) {
       s << ar.desc.vec[i] << " ";
     }
 }
-void saveARBench(AffineRegion &ar, std::ostream &s, std::ostream &s2) {
-  saveKPBench(ar.det_kp,s2);
-  saveKPBench(ar.reproj_kp,s);
+void saveARBench(AffineRegion &ar, std::ostream &det_s, std::ostream &reproject_s) {
+  saveKPBench(ar.det_kp,det_s);
+  det_s << " " << ar.desc.vec.size() << " ";
+  for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {
+      det_s << ar.desc.vec[i] << " ";
+    }
+  saveKPBench(ar.reproj_kp,reproject_s);
+  reproject_s << " " << ar.desc.vec.size() << " ";
+  for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {
+      reproject_s << ar.desc.vec[i] << " ";
+    }
 }
 void saveARMichal(AffineRegion &ar, std::ostream &s) {
   // s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
@@ -873,6 +881,55 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               rm_command = "rm " + img_fname;
               system(rm_command.c_str());
             }
+          else if (curr_det.compare("CLIDetector")==0)
+            {
+              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+              std::string img_fname = "CLI_DET_"+std::to_string(synth+rnd1)+".png";
+              cv::imwrite(img_fname,temp_img1.pixels);
+              std::string command = det_par.CLIDetParam.path_to  + " " + det_par.CLIDetParam.input_image_key + " " + img_fname;
+              command += " " + det_par.CLIDetParam.other_keylayers;
+              std::string txt_fname =  img_fname + ".CLIDET";
+              command += " " + det_par.CLIDetParam.output_file_key + " " +  txt_fname;
+
+              std::cerr << command <<std::endl;
+              system(command.c_str());
+              std::ifstream focikp(txt_fname);
+
+              if (focikp.is_open()) {
+                  if (det_par.CLIDetParam.keypoints_format == "Mik" ) {
+                      ReadKPsMik(temp_kp1, focikp);
+                    } else { //"AffineKP"
+                      int kp_size;
+                      focikp >> kp_size;
+
+                      temp_kp1.reserve(kp_size);
+                      for (int kp_num=0; kp_num < kp_size; kp_num++)
+                        {
+                          AffineRegion temp_region;
+                          temp_region.det_kp.pyramid_scale = -1;
+                          temp_region.det_kp.octave_number = -1;
+                          temp_region.det_kp.sub_type = 55;
+                          focikp >> temp_region.det_kp.x;
+                          focikp >> temp_region.det_kp.y;
+                          focikp >> temp_region.det_kp.s;
+                          focikp >> temp_region.det_kp.a11;
+                          focikp >> temp_region.det_kp.a12;
+                          focikp >> temp_region.det_kp.a21;
+                          focikp >> temp_region.det_kp.a22;
+                          temp_region.type = DET_CLI_DETECTOR;
+                          temp_kp1.push_back(temp_region);
+
+                        }
+                    }
+
+                }
+              focikp.close();
+              std::string rm_command = "rm " + txt_fname;
+              system(rm_command.c_str());
+              rm_command = "rm " + img_fname;
+              system(rm_command.c_str());
+
+            }
           else if (curr_det.compare("WASH")==0)
             {
               doExternalAffineAdaptation = det_par.WASHParam.doBaumberg;
@@ -1607,6 +1664,54 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   desc_par.MagnLessSIFTParam.PEParam.photoNorm);
                 }
 
+              else if (curr_desc.compare("CLIDescriptor") == 0)
+                {
+                  int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+                  std::string img_fname = "CLI_DESC_"+std::to_string(synth+rnd1)+".png";
+                  cv::imwrite(img_fname,temp_img1.pixels);
+                  std::string command = desc_par.CLIDescParam.path_to  + " " + desc_par.CLIDescParam.input_image_key + " " + img_fname;
+                  command += " " + desc_par.CLIDescParam.other_keylayers;
+                  std::string txt_fname =  img_fname + ".CLIDESC";
+                  command += " " + det_par.CLIDetParam.output_file_key + " " +  txt_fname;
+
+                  std::cerr << command <<std::endl;
+                  system(command.c_str());
+                  std::ifstream focikp(txt_fname);
+
+                  if (focikp.is_open()) {
+                      if (det_par.CLIDetParam.keypoints_format == "Mik" ) {
+                          ReadKPsMik(temp_kp1, focikp);
+                        } else { //"AffineKP"
+                          int kp_size;
+                          focikp >> kp_size;
+
+                          temp_kp1.reserve(kp_size);
+                          for (int kp_num=0; kp_num < kp_size; kp_num++)
+                            {
+                              AffineRegion temp_region;
+                              temp_region.det_kp.pyramid_scale = -1;
+                              temp_region.det_kp.octave_number = -1;
+                              temp_region.det_kp.sub_type = 55;
+                              focikp >> temp_region.det_kp.x;
+                              focikp >> temp_region.det_kp.y;
+                              focikp >> temp_region.det_kp.s;
+                              focikp >> temp_region.det_kp.a11;
+                              focikp >> temp_region.det_kp.a12;
+                              focikp >> temp_region.det_kp.a21;
+                              focikp >> temp_region.det_kp.a22;
+                              temp_region.type = DET_CLI_DETECTOR;
+                              temp_kp1.push_back(temp_region);
+
+                            }
+                        }
+
+                    }
+                  focikp.close();
+                  std::string rm_command = "rm " + txt_fname;
+                  system(rm_command.c_str());
+                  rm_command = "rm " + img_fname;
+                  system(rm_command.c_str());
+                }
               else if (curr_desc.compare("BICE") == 0)
                 {
                   BICEDescriptor BICEdesc(desc_par.BICEParam);
@@ -2254,52 +2359,54 @@ void ImageRepresentation::SaveDescriptorsBenchmark(std::string fname1) {
     }
   kpfile.close();
 }
-void ImageRepresentation::SaveRegionsBenchmark(std::string fname1, std::string fname2) {
+void ImageRepresentation::SaveRegionsBenchmark(std::string det_kps_fname, std::string reproject_kps_fname) {
   std::vector<std::string> desc_names;
 
-  std::ofstream kpfile(fname1);
-  std::ofstream kpfile2(fname2);
+  std::ofstream det_kpfile(det_kps_fname);
+  std::ofstream reproject_kpfile(reproject_kps_fname);
   int num_keys = 0;
-  if (kpfile.is_open() && kpfile2.is_open() ) {
+  if (det_kpfile.is_open() && reproject_kpfile.is_open() ) {
+//      for (std::map<std::string, AffineRegionVectorMap>::const_iterator
+//           reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
+//          for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
+//               desc_it != reg_it->second.end(); ++desc_it) {
+
+////              if (desc_it->first != "None") {
+//              if (desc_it->first == "None") {
+//                  continue;
+//                }
+//              num_keys += desc_it->second.size();
+//            }
+//        }
+   //   det_kpfile << num_keys << std::endl;
+   //   reproject_kpfile << num_keys << std::endl;
+
       for (std::map<std::string, AffineRegionVectorMap>::const_iterator
            reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
           for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
                desc_it != reg_it->second.end(); ++desc_it) {
-
-              if (desc_it->first != "None") {
-                  continue;
-                }
-              num_keys += desc_it->second.size();
-            }
-        }
-      kpfile << num_keys << std::endl;
-      kpfile2 << num_keys << std::endl;
-
-      for (std::map<std::string, AffineRegionVectorMap>::const_iterator
-           reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
-          for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
-               desc_it != reg_it->second.end(); ++desc_it) {
-
-              if (desc_it->first != "None") {
+              if (desc_it->first == "None") {
+            //  if (desc_it->first != "None") {
                   continue;
                 }
               int num_keys1 = desc_it->second.size();
 
               for (int i = 0; i < num_keys1 ; i++ ) {
                   AffineRegion ar = desc_it->second[i];
-                  saveARBench(ar, kpfile,kpfile2);
-                  kpfile << std::endl;
-                  kpfile2 << std::endl;
+                  saveARBench(ar, det_kpfile,reproject_kpfile);
+                  det_kpfile << std::endl;
+                  reproject_kpfile << std::endl;
                 }
             }
 
         }
-    }
+}
   else {
-      std::cerr << "Cannot open file " << fname1 << " to save keypoints" << endl;
+      std::cerr << "Cannot open file " << det_kps_fname << " to save keypoints" << endl;
     }
-  kpfile.close();
-  kpfile2.close();
+
+  det_kpfile.close();
+  reproject_kpfile.close();
 
 }
 //}
