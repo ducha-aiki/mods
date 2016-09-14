@@ -91,7 +91,7 @@ void saveAR(AffineRegion &ar, std::ostream &s) {
   s << ar.parent_id <<  " ";
   saveKP(ar.det_kp,s);
   saveKP(ar.reproj_kp,s);
-//  s << ar.desc.type <<
+  //  s << ar.desc.type <<
   s << " " << ar.desc.vec.size() << " ";
   for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {
       s << ar.desc.vec[i] << " ";
@@ -713,8 +713,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   HalfSIFT_like_desc = true;
                 }
               if (curr_desc.find("SIFT") != std::string::npos) {
-//              if ((curr_desc.find("ORB") != std::string::npos) || (curr_desc.find("FREAK") != std::string::npos)
-//                  || (curr_desc.find("KAZE") != std::string::npos)) {
+                  //              if ((curr_desc.find("ORB") != std::string::npos) || (curr_desc.find("FREAK") != std::string::npos)
+                  //                  || (curr_desc.find("KAZE") != std::string::npos)) {
                   SIFT_like_desc = true;
                 } else {
                   SIFT_like_desc = false;
@@ -951,7 +951,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               rm_command = "rm " + img_fname;
               system(rm_command.c_str());
             }
-       /*   else if (curr_det.compare("Saddle")==0)
+          /*   else if (curr_det.compare("Saddle")==0)
             {
 
               doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
@@ -1137,14 +1137,14 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               doExternalAffineAdaptation = det_par.ORBParam.doBaumberg;
               //cv::OrbFeatureDetector CurrentDetector(det_par.ORBParam.nfeatures,
               cv::ORB CurrentDetector(det_par.ORBParam.nfeatures,
-                                                     det_par.ORBParam.scaleFactor,
-                                                     det_par.ORBParam.nlevels,
-                                                     det_par.ORBParam.edgeThreshold,
-                                                     det_par.ORBParam.firstLevel,
-                                                     det_par.ORBParam.WTA_K,
-                                                     ORB::HARRIS_SCORE,
-                                                     det_par.ORBParam.PEParam.patchSize);//,
-                                               //      det_par.ORBParam.doNMS);
+                                      det_par.ORBParam.scaleFactor,
+                                      det_par.ORBParam.nlevels,
+                                      det_par.ORBParam.edgeThreshold,
+                                      det_par.ORBParam.firstLevel,
+                                      det_par.ORBParam.WTA_K,
+                                      ORB::HARRIS_SCORE,
+                                      det_par.ORBParam.PEParam.patchSize);//,
+              //      det_par.ORBParam.doNMS);
               temp_img1.pixels.convertTo(CharImage,CV_8U);
               CurrentDetector.detect(CharImage, keypoints_1);
               int kp_size = keypoints_1.size();
@@ -1671,245 +1671,276 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   cv::imwrite(img_fname,temp_img1.pixels);
                   std::string command = desc_par.CLIDescParam.path_to  + " " + desc_par.CLIDescParam.input_image_key + " " + img_fname;
                   command += " " + desc_par.CLIDescParam.other_keylayers;
-                  std::string txt_fname =  img_fname + ".CLIDESC";
-                  command += " " + det_par.CLIDetParam.output_file_key + " " +  txt_fname;
 
-                  std::cerr << command <<std::endl;
-                  system(command.c_str());
-                  std::ifstream focikp(txt_fname);
+                  std::string keys_fname = img_fname + ".KPTS";
+                  command += " " + desc_par.CLIDescParam.input_keypoints_file_key + " " + keys_fname;
+
+                  std::ofstream focikp(keys_fname);
 
                   if (focikp.is_open()) {
-                      if (det_par.CLIDetParam.keypoints_format == "Mik" ) {
-                          ReadKPsMik(temp_kp1, focikp);
-                        } else { //"AffineKP"
-                          int kp_size;
-                          focikp >> kp_size;
 
-                          temp_kp1.reserve(kp_size);
-                          for (int kp_num=0; kp_num < kp_size; kp_num++)
-                            {
-                              AffineRegion temp_region;
-                              temp_region.det_kp.pyramid_scale = -1;
-                              temp_region.det_kp.octave_number = -1;
-                              temp_region.det_kp.sub_type = 55;
-                              focikp >> temp_region.det_kp.x;
-                              focikp >> temp_region.det_kp.y;
-                              focikp >> temp_region.det_kp.s;
-                              focikp >> temp_region.det_kp.a11;
-                              focikp >> temp_region.det_kp.a12;
-                              focikp >> temp_region.det_kp.a21;
-                              focikp >> temp_region.det_kp.a22;
-                              temp_region.type = DET_CLI_DETECTOR;
-                              temp_kp1.push_back(temp_region);
+                      focikp << temp_kp1_desc.size() << std::endl;
 
-                            }
+                      for (int kp_num=0; kp_num < temp_kp1_desc.size(); kp_num++)
+                        {
+                          AffineRegion temp_region = temp_kp1_desc[kp_num];
+
+                          focikp << temp_region.det_kp.x << " ";
+                          focikp << temp_region.det_kp.y << " ";
+                          focikp << temp_region.det_kp.s << " ";
+                          focikp << temp_region.det_kp.a11 << " ";
+                          focikp << temp_region.det_kp.a12 << " ";
+                          focikp << temp_region.det_kp.a21 << " ";
+                          focikp << temp_region.det_kp.a22 << std::endl;
+
+
                         }
 
                     }
                   focikp.close();
-                  std::string rm_command = "rm " + txt_fname;
-                  system(rm_command.c_str());
-                  rm_command = "rm " + img_fname;
-                  system(rm_command.c_str());
-                }
-              else if (curr_desc.compare("BICE") == 0)
-                {
-                  BICEDescriptor BICEdesc(desc_par.BICEParam);
-                  BICEdesc(temp_img1.pixels,temp_kp1_desc);
-                }
-              else if (curr_desc.compare("LIOP") == 0) //LIOP
-                {
-                  LIOPDescriptor LIOPDesc(desc_par.LIOPParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, LIOPDesc,
-                                  desc_par.LIOPParam.PEParam.mrSize,
-                                  desc_par.LIOPParam.PEParam.patchSize,
-                                  desc_par.LIOPParam.PEParam.FastPatchExtraction,
-                                  desc_par.LIOPParam.PEParam.photoNorm);
-                }
-              else if (curr_desc.compare("Pixels") == 0) //Raw Pixels
-                {
-                  PIXELSDescriptor PixelDesc(desc_par.PixelsParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, PixelDesc,
-                                  desc_par.PixelsParam.PEParam.mrSize,
-                                  desc_par.PixelsParam.PEParam.patchSize,
-                                  desc_par.PixelsParam.PEParam.FastPatchExtraction,
-                                  desc_par.PixelsParam.PEParam.photoNorm);
-                }
-              else if (curr_desc.compare("MROGH") == 0) //MROGH
-                {
-                  MROGHDescriptor MROGHdesc(desc_par.MROGHParam);
-                  MROGHdesc(temp_img1.pixels,temp_kp1,temp_kp1_desc);
+                  std::string txt_fname =  img_fname + ".CLIDESC";
+                  command += " " + desc_par.CLIDescParam.output_file_key + " " +  txt_fname;
 
-                }
-              else if (curr_desc.compare("ORB") == 0) //ORB
-                {
-                  //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
-                  //                    {
-                  std::cout << "ORB desc" << std::endl;
-                  const double mrSizeORB = 3.0;
-                  cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
-                                                           det_par.ORBParam.scaleFactor,
-                                                           det_par.ORBParam.nlevels,
-                                                           det_par.ORBParam.edgeThreshold,
-                                                           det_par.ORBParam.firstLevel,
-                                                           det_par.ORBParam.WTA_K,
-                                                           ORB::HARRIS_SCORE,
-                                                           det_par.ORBParam.PEParam.patchSize);
-                  if (OpenCV_det) //no data conversion needed
-                    {
+                  std::cerr << command <<std::endl;
+                  system(command.c_str());
+                  std::ifstream focikp1(txt_fname);
 
-                      if (curr_det == "ORB") {
-                          unsigned int kp_size = temp_kp1.size();
-                   //       keypoints_1.clear();
-                          keypoints_1.resize(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  det_par.ORBParam.PEParam.mrSize; //?mrSizeORB;
-                              keypoints_1[kp_num]=temp_pt;
-                            }
+
+                  if (focikp1.is_open()) {
+                      int desc_dim = 0;
+                      int num_kpts = 0;
+                      focikp1 >> desc_dim;
+                      focikp1 >> num_kpts;
+                      if (num_kpts != temp_kp1_desc.size()){
+                          std::cerr << "Warning, number of descriptors" << num_kpts << " != " << temp_kp1_desc.size() << " number of keypoints" << std::endl;
                         }
-                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
+                      float x,y;
+                      focikp1 >> x ;
+                      focikp1 >> y;
+                      for (int kp_num=0; kp_num < num_kpts; kp_num++)
+                        {
+                          AffineRegion temp_region = temp_kp1_desc[kp_num];
+                          if ((fabs(x - temp_region.det_kp.x) > 0.0001) || (fabs(y - temp_region.det_kp.y) > 0.0001)) continue;
+
+
+                          temp_region.desc.vec.resize(desc_dim);
+
+                          for (int dd_idx = 0; dd_idx < desc_dim; dd_idx++) {
+                              focikp1 >> temp_region.desc.vec[dd_idx];
+                            }
+                          if (num_kpts < num_kpts - 1) {
+                              focikp1 >> x ;
+                              focikp1 >> y;
+                            }
+                          temp_kp1_desc[kp_num] =  temp_region;
+                        }
                     }
-                  else {
+
+
+
+              std::string rm_command = "rm " + txt_fname;
+              system(rm_command.c_str());
+              rm_command = "rm " + img_fname;
+              system(rm_command.c_str());
+            }
+          else if (curr_desc.compare("BICE") == 0)
+            {
+              BICEDescriptor BICEdesc(desc_par.BICEParam);
+              BICEdesc(temp_img1.pixels,temp_kp1_desc);
+            }
+          else if (curr_desc.compare("LIOP") == 0) //LIOP
+            {
+              LIOPDescriptor LIOPDesc(desc_par.LIOPParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, LIOPDesc,
+                              desc_par.LIOPParam.PEParam.mrSize,
+                              desc_par.LIOPParam.PEParam.patchSize,
+                              desc_par.LIOPParam.PEParam.FastPatchExtraction,
+                              desc_par.LIOPParam.PEParam.photoNorm);
+            }
+          else if (curr_desc.compare("Pixels") == 0) //Raw Pixels
+            {
+              PIXELSDescriptor PixelDesc(desc_par.PixelsParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, PixelDesc,
+                              desc_par.PixelsParam.PEParam.mrSize,
+                              desc_par.PixelsParam.PEParam.patchSize,
+                              desc_par.PixelsParam.PEParam.FastPatchExtraction,
+                              desc_par.PixelsParam.PEParam.photoNorm);
+            }
+          else if (curr_desc.compare("MROGH") == 0) //MROGH
+            {
+              MROGHDescriptor MROGHdesc(desc_par.MROGHParam);
+              MROGHdesc(temp_img1.pixels,temp_kp1,temp_kp1_desc);
+
+            }
+          else if (curr_desc.compare("ORB") == 0) //ORB
+            {
+              //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
+              //                    {
+              std::cout << "ORB desc" << std::endl;
+              const double mrSizeORB = 3.0;
+              cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
+                                                       det_par.ORBParam.scaleFactor,
+                                                       det_par.ORBParam.nlevels,
+                                                       det_par.ORBParam.edgeThreshold,
+                                                       det_par.ORBParam.firstLevel,
+                                                       det_par.ORBParam.WTA_K,
+                                                       ORB::HARRIS_SCORE,
+                                                       det_par.ORBParam.PEParam.patchSize);
+              if (OpenCV_det) //no data conversion needed
+                {
+
+                  if (curr_det == "ORB") {
                       unsigned int kp_size = temp_kp1.size();
-                      keypoints_1.reserve(kp_size);
+                      //       keypoints_1.clear();
+                      keypoints_1.resize(kp_size);
                       for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
                           cv::KeyPoint temp_pt;
                           temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
                           temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                          temp_pt.angle = 0;
-                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s;
-                          keypoints_1.push_back(temp_pt);
+                          temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
+                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  det_par.ORBParam.PEParam.mrSize; //?mrSizeORB;
+                          keypoints_1[kp_num]=temp_pt;
                         }
-                      temp_img1.pixels.convertTo(CharImage, CV_8U);
-                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                     }
-                  int kp_size = keypoints_1.size();
-                  int desc_size = descriptors_1.cols;
-
-                  temp_kp1_desc.resize(kp_size);
-
-                  for (int kp_num = 0; kp_num < kp_size; kp_num++) {
-                      temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                      temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                      temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size /  det_par.ORBParam.PEParam.mrSize;
-                      temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                      temp_kp1_desc[kp_num].type = temp_kp1[0].type;
-                      temp_kp1_desc[kp_num].desc.type = DESC_ORB;
-                      temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
-
-                      unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
-                      for (int jj = 0; jj < desc_size; jj++, descPtr++)
-                        temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
-                    }
-                  //ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, mrSizeORB);
-                  //          std::cout << "new size=" << temp_kp1_desc.size() << std::endl;
+                  CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                 }
-              //                  ORBDescriptor ORBDesc(det_par.ORBParam);
-              //                  DescribeRegions(temp_kp1_desc,
-              //                                  temp_img1, ORBDesc,
-              //                                  det_par.ORBParam.PEParam.mrSize,
-              //                                  det_par.ORBParam.PEParam.patchSize,
-              //                                  det_par.ORBParam.PEParam.FastPatchExtraction,
-              //                                  det_par.ORBParam.PEParam.photoNorm);
-
-              //                }
-//              else if (curr_desc.compare("KAZE") == 0) //KAZE
-//                {
-//                  KAZEDescriptor KAZEDesc(desc_par.KAZEParam);
-//                  DescribeRegions(temp_kp1_desc,
-//                                  temp_img1, KAZEDesc,
-//                                  desc_par.KAZEParam.PEParam.mrSize,
-//                                  desc_par.KAZEParam.PEParam.patchSize,
-//                                  desc_par.KAZEParam.PEParam.FastPatchExtraction,
-//                                  desc_par.KAZEParam.PEParam.photoNorm);
-
-//                }
-              else if (curr_desc.compare("KAZE") == 0) //KAZE
-              {
-
-                  if (OpenCV_det) //no data conversion needed
-                    {
-                      if (curr_det == "Saddle") {
-                          unsigned int kp_size = temp_kp1_desc.size();
-                          keypoints_1.clear();
-                          keypoints_1.reserve(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                         //      std::cout << temp_pt.pt.x << " ";
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
-                              temp_pt.class_id = 1;
-                              temp_pt.octave = 1;
-                              temp_pt.response = 1;
-                              keypoints_1.push_back(temp_pt);
-                            }
-                        }
-                      if (curr_det == "ORB") {
-                          unsigned int kp_size = temp_kp1_desc.size();
-                          keypoints_1.clear();
-                          keypoints_1.reserve(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                           //    std::cout << temp_pt.pt.x << " ";
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.octave = 1;
-                              temp_pt.response = 1;
-                              temp_pt.class_id = 1;
-
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
-                              keypoints_1.push_back(temp_pt);
-                            }
-                        }
-                      std::cout << "creating scalespace" << std::endl;
-
-                      evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
-
-                      std::cout << "computing descs" << keypoints_1.size() << " " << descriptors_1.size() <<  std::endl;
-                      evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
+              else {
+                  unsigned int kp_size = temp_kp1.size();
+                  keypoints_1.reserve(kp_size);
+                  for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
+                      cv::KeyPoint temp_pt;
+                      temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
+                      temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
+                      temp_pt.angle = 0;
+                      temp_pt.size = temp_kp1_desc[kp_num].det_kp.s;
+                      keypoints_1.push_back(temp_pt);
                     }
-                  else {
+                  temp_img1.pixels.convertTo(CharImage, CV_8U);
+                  CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
+                }
+              int kp_size = keypoints_1.size();
+              int desc_size = descriptors_1.cols;
+
+              temp_kp1_desc.resize(kp_size);
+
+              for (int kp_num = 0; kp_num < kp_size; kp_num++) {
+                  temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
+                  temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
+                  temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size /  det_par.ORBParam.PEParam.mrSize;
+                  temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
+                  temp_kp1_desc[kp_num].type = temp_kp1[0].type;
+                  temp_kp1_desc[kp_num].desc.type = DESC_ORB;
+                  temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
+
+                  unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
+                  for (int jj = 0; jj < desc_size; jj++, descPtr++)
+                    temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
+                }
+              //ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, mrSizeORB);
+              //          std::cout << "new size=" << temp_kp1_desc.size() << std::endl;
+            }
+          //                  ORBDescriptor ORBDesc(det_par.ORBParam);
+          //                  DescribeRegions(temp_kp1_desc,
+          //                                  temp_img1, ORBDesc,
+          //                                  det_par.ORBParam.PEParam.mrSize,
+          //                                  det_par.ORBParam.PEParam.patchSize,
+          //                                  det_par.ORBParam.PEParam.FastPatchExtraction,
+          //                                  det_par.ORBParam.PEParam.photoNorm);
+
+          //                }
+          //              else if (curr_desc.compare("KAZE") == 0) //KAZE
+          //                {
+          //                  KAZEDescriptor KAZEDesc(desc_par.KAZEParam);
+          //                  DescribeRegions(temp_kp1_desc,
+          //                                  temp_img1, KAZEDesc,
+          //                                  desc_par.KAZEParam.PEParam.mrSize,
+          //                                  desc_par.KAZEParam.PEParam.patchSize,
+          //                                  desc_par.KAZEParam.PEParam.FastPatchExtraction,
+          //                                  desc_par.KAZEParam.PEParam.photoNorm);
+
+          //                }
+          else if (curr_desc.compare("KAZE") == 0) //KAZE
+            {
+
+              if (OpenCV_det) //no data conversion needed
+                {
+                  if (curr_det == "Saddle") {
                       unsigned int kp_size = temp_kp1_desc.size();
                       keypoints_1.clear();
                       keypoints_1.reserve(kp_size);
                       for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
                           cv::KeyPoint temp_pt;
                           temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                        //  std::cout << temp_pt.pt.x << " ";
+                          //      std::cout << temp_pt.pt.x << " ";
                           temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
+                          temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
+                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
                           temp_pt.class_id = 1;
+                          temp_pt.octave = 1;
+                          temp_pt.response = 1;
+                          keypoints_1.push_back(temp_pt);
+                        }
+                    }
+                  if (curr_det == "ORB") {
+                      unsigned int kp_size = temp_kp1_desc.size();
+                      keypoints_1.clear();
+                      keypoints_1.reserve(kp_size);
+                      for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
+                          cv::KeyPoint temp_pt;
+                          temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
+                          //    std::cout << temp_pt.pt.x << " ";
+                          temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
+                          temp_pt.octave = 1;
+                          temp_pt.response = 1;
+                          temp_pt.class_id = 1;
+
                           temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
                           temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
                           keypoints_1.push_back(temp_pt);
                         }
-                      //temp_img1.pixels.convertTo(CharImage, CV_8U);
-                      std::cout << "creating scalespace" << std::endl;
-
-                      evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
-                      std::cout << "computing descs" << std::endl;
-                      evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
                     }
-                  std::cout << "akaze ok" << std::endl;
+                  std::cout << "creating scalespace" << std::endl;
 
-                int kp_size = keypoints_1.size();
-                int desc_size = descriptors_1.cols;
+                  evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
 
-                temp_kp1_desc.resize(kp_size);
+                  std::cout << "computing descs" << keypoints_1.size() << " " << descriptors_1.size() <<  std::endl;
+                  evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
+                }
+              else {
+                  unsigned int kp_size = temp_kp1_desc.size();
+                  keypoints_1.clear();
+                  keypoints_1.reserve(kp_size);
+                  for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
+                      cv::KeyPoint temp_pt;
+                      temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
+                      //  std::cout << temp_pt.pt.x << " ";
+                      temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
+                      temp_pt.class_id = 1;
+                      temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
+                      temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
+                      keypoints_1.push_back(temp_pt);
+                    }
+                  //temp_img1.pixels.convertTo(CharImage, CV_8U);
+                  std::cout << "creating scalespace" << std::endl;
 
-                for (int kp_num = 0; kp_num < kp_size; kp_num++) {
+                  evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
+                  std::cout << "computing descs" << std::endl;
+                  evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
+                }
+              std::cout << "akaze ok" << std::endl;
+
+              int kp_size = keypoints_1.size();
+              int desc_size = descriptors_1.cols;
+
+              temp_kp1_desc.resize(kp_size);
+
+              for (int kp_num = 0; kp_num < kp_size; kp_num++) {
                   temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
                   temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
                   temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
@@ -1924,231 +1955,231 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
                   unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
                   for (int jj = 0; jj < desc_size; jj++, descPtr++) {
-                    temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
-                 //   std::cout << (float) *descPtr << " ";
+                      temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
+                      //   std::cout << (float) *descPtr << " ";
                     }
-                //  std::cout << std::endl;
+                  //  std::cout << std::endl;
                 }
-                ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-              }
-              else if (curr_desc.compare("SURF") == 0) //SURF
+              ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
+            }
+          else if (curr_desc.compare("SURF") == 0) //SURF
+            {
+              SURFDescriptor SURFDesc(desc_par.SURFDescParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, SURFDesc,
+                              desc_par.SURFDescParam.PEParam.mrSize,
+                              desc_par.SURFDescParam.PEParam.patchSize,
+                              desc_par.SURFDescParam.PEParam.FastPatchExtraction,
+                              desc_par.SURFDescParam.PEParam.photoNorm);
+
+
+            }
+          //              else if (curr_desc.compare("DALI") == 0)
+          //                {
+          //                  DALIDescriptor DALIDesc(desc_par.DALIDescParam);
+          //                  DescribeRegions(temp_kp1_desc,
+          //                                  temp_img1, DALIDesc,
+          //                                  desc_par.DALIDescParam.PEParam.mrSize,
+          //                                  desc_par.DALIDescParam.PEParam.patchSize,
+          //                                  desc_par.DALIDescParam.PEParam.FastPatchExtraction,
+          //                                  desc_par.DALIDescParam.PEParam.photoNorm);
+
+
+          //                }
+          else if (curr_desc.compare("SMSLD") == 0)
+            {
+              SMSLDDescriptor SMSLDDesc(desc_par.SMSLDDescParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, SMSLDDesc,
+                              desc_par.SMSLDDescParam.PEParam.mrSize,
+                              desc_par.SMSLDDescParam.PEParam.patchSize,
+                              desc_par.SMSLDDescParam.PEParam.FastPatchExtraction,
+                              desc_par.SMSLDDescParam.PEParam.photoNorm);
+
+
+            }
+          //              else if (curr_desc.compare("FREAK") == 0) //FREAK
+          //                {
+          //                  FREAKDescriptor FREAKDesc(desc_par.FREAKParam);
+          //                  DescribeRegions(temp_kp1_desc,
+          //                                  temp_img1, FREAKDesc,
+          //                                  desc_par.FREAKParam.PEParam.mrSize,
+          //                                  desc_par.FREAKParam.PEParam.patchSize,
+          //                                  desc_par.FREAKParam.PEParam.FastPatchExtraction,
+          //                                  desc_par.FREAKParam.PEParam.photoNorm);
+
+          //                }
+          else if (curr_desc.compare("FREAK") == 0) //FREAK
+            {
+              //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
+              //                    {
+              std::cout << "FREAK desc" << std::endl;
+              //  const double mrSizeORB = 3.0;
+              cv::FREAK CurrentDescriptor(desc_par.FREAKParam.orientationNormalized,
+                                          desc_par.FREAKParam.scaleNormalized,
+                                          desc_par.FREAKParam.patternScale,
+                                          desc_par.FREAKParam.nOctaves);
+
+              //                  cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
+              //                                                           det_par.ORBParam.scaleFactor,
+              //                                                           det_par.ORBParam.nlevels,
+              //                                                           det_par.ORBParam.edgeThreshold,
+              //                                                           det_par.ORBParam.firstLevel,
+              //                                                           det_par.ORBParam.WTA_K,
+              //                                                           ORB::HARRIS_SCORE,
+              //                                                           det_par.ORBParam.PEParam.patchSize);
+              if (OpenCV_det) //no data conversion needed
                 {
-                  SURFDescriptor SURFDesc(desc_par.SURFDescParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SURFDesc,
-                                  desc_par.SURFDescParam.PEParam.mrSize,
-                                  desc_par.SURFDescParam.PEParam.patchSize,
-                                  desc_par.SURFDescParam.PEParam.FastPatchExtraction,
-                                  desc_par.SURFDescParam.PEParam.photoNorm);
 
-
-                }
-//              else if (curr_desc.compare("DALI") == 0)
-//                {
-//                  DALIDescriptor DALIDesc(desc_par.DALIDescParam);
-//                  DescribeRegions(temp_kp1_desc,
-//                                  temp_img1, DALIDesc,
-//                                  desc_par.DALIDescParam.PEParam.mrSize,
-//                                  desc_par.DALIDescParam.PEParam.patchSize,
-//                                  desc_par.DALIDescParam.PEParam.FastPatchExtraction,
-//                                  desc_par.DALIDescParam.PEParam.photoNorm);
-
-
-//                }
-              else if (curr_desc.compare("SMSLD") == 0)
-                {
-                  SMSLDDescriptor SMSLDDesc(desc_par.SMSLDDescParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SMSLDDesc,
-                                  desc_par.SMSLDDescParam.PEParam.mrSize,
-                                  desc_par.SMSLDDescParam.PEParam.patchSize,
-                                  desc_par.SMSLDDescParam.PEParam.FastPatchExtraction,
-                                  desc_par.SMSLDDescParam.PEParam.photoNorm);
-
-
-                }
-//              else if (curr_desc.compare("FREAK") == 0) //FREAK
-//                {
-//                  FREAKDescriptor FREAKDesc(desc_par.FREAKParam);
-//                  DescribeRegions(temp_kp1_desc,
-//                                  temp_img1, FREAKDesc,
-//                                  desc_par.FREAKParam.PEParam.mrSize,
-//                                  desc_par.FREAKParam.PEParam.patchSize,
-//                                  desc_par.FREAKParam.PEParam.FastPatchExtraction,
-//                                  desc_par.FREAKParam.PEParam.photoNorm);
-
-//                }
-              else if (curr_desc.compare("FREAK") == 0) //FREAK
-                {
-                  //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
-                  //                    {
-                  std::cout << "FREAK desc" << std::endl;
-                //  const double mrSizeORB = 3.0;
-                  cv::FREAK CurrentDescriptor(desc_par.FREAKParam.orientationNormalized,
-                          desc_par.FREAKParam.scaleNormalized,
-                          desc_par.FREAKParam.patternScale,
-                          desc_par.FREAKParam.nOctaves);
-
-//                  cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
-//                                                           det_par.ORBParam.scaleFactor,
-//                                                           det_par.ORBParam.nlevels,
-//                                                           det_par.ORBParam.edgeThreshold,
-//                                                           det_par.ORBParam.firstLevel,
-//                                                           det_par.ORBParam.WTA_K,
-//                                                           ORB::HARRIS_SCORE,
-//                                                           det_par.ORBParam.PEParam.patchSize);
-                  if (OpenCV_det) //no data conversion needed
-                    {
-
-                      if (curr_det == "ORB") {
-                          unsigned int kp_size = temp_kp1.size();
-                          keypoints_1.clear();
-                          keypoints_1.reserve(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  desc_par.FREAKParam.PEParam.mrSize; //?mrSizeORB;
-                              keypoints_1.push_back(temp_pt);
-                            }
-                        }
-                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
-                    }
-                  else {
+                  if (curr_det == "ORB") {
                       unsigned int kp_size = temp_kp1.size();
+                      keypoints_1.clear();
                       keypoints_1.reserve(kp_size);
                       for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
                           cv::KeyPoint temp_pt;
                           temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
                           temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                          temp_pt.angle = 0;
-                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s;
+
+                          temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
+                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  desc_par.FREAKParam.PEParam.mrSize; //?mrSizeORB;
                           keypoints_1.push_back(temp_pt);
                         }
-                      temp_img1.pixels.convertTo(CharImage, CV_8U);
-                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                     }
-                  int kp_size = keypoints_1.size();
-                  int desc_size = descriptors_1.cols;
-
-                  temp_kp1_desc.resize(kp_size);
-
-                  for (int kp_num = 0; kp_num < kp_size; kp_num++) {
-                      temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                      temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                      temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                      temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size *  desc_par.FREAKParam.PEParam.mrSize;
-                      temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                      temp_kp1_desc[kp_num].type = temp_kp1[0].type;
-                      temp_kp1_desc[kp_num].desc.type = DESC_FREAK;
-                      temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
-
-                      unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
-                      for (int jj = 0; jj < desc_size; jj++, descPtr++)
-                        temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
+                  CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
+                }
+              else {
+                  unsigned int kp_size = temp_kp1.size();
+                  keypoints_1.reserve(kp_size);
+                  for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
+                      cv::KeyPoint temp_pt;
+                      temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
+                      temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
+                      temp_pt.angle = 0;
+                      temp_pt.size = temp_kp1_desc[kp_num].det_kp.s;
+                      keypoints_1.push_back(temp_pt);
                     }
-                  //ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, mrSizeORB);
-                  //          std::cout << "new size=" << temp_kp1_desc.size() << std::endl;
+                  temp_img1.pixels.convertTo(CharImage, CV_8U);
+                  CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                 }
+              int kp_size = keypoints_1.size();
+              int desc_size = descriptors_1.cols;
 
-              else if (curr_desc.compare("DAISY") == 0) //DAISY
-                {
-                  DAISYDescriptor DAISYDesc(desc_par.DAISYParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, DAISYDesc,
-                                  desc_par.DAISYParam.PEParam.mrSize,
-                                  desc_par.DAISYParam.PEParam.patchSize,
-                                  desc_par.DAISYParam.PEParam.FastPatchExtraction,
-                                  desc_par.DAISYParam.PEParam.photoNorm);
+              temp_kp1_desc.resize(kp_size);
 
+              for (int kp_num = 0; kp_num < kp_size; kp_num++) {
+                  temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
+                  temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
+                  temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+                  temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size *  desc_par.FREAKParam.PEParam.mrSize;
+                  temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
+                  temp_kp1_desc[kp_num].type = temp_kp1[0].type;
+                  temp_kp1_desc[kp_num].desc.type = DESC_FREAK;
+                  temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
+
+                  unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
+                  for (int jj = 0; jj < desc_size; jj++, descPtr++)
+                    temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
                 }
-              else if (curr_desc.compare("SSIM") == 0) //DAISY
-                {
-                  SSIMDescriptor SSIMDesc(desc_par.SSIMParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SSIMDesc,
-                                  desc_par.SSIMParam.PEParam.mrSize,
-                                  desc_par.SSIMParam.PEParam.patchSize,
-                                  desc_par.SSIMParam.PEParam.FastPatchExtraction,
-                                  desc_par.SSIMParam.PEParam.photoNorm);
-
-                }
-              else if (curr_desc.compare("BRISK") == 0) //BRISK
-                {
-                  BRISKDescriptor BRISKDesc(det_par.BRISKParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, BRISKDesc,
-                                  det_par.BRISKParam.PEParam.mrSize,
-                                  det_par.BRISKParam.PEParam.patchSize,
-                                  det_par.BRISKParam.PEParam.FastPatchExtraction,
-                                  desc_par.BRISKParam.PEParam.photoNorm);
-                  //                  cv::BRISK CurrentDescriptor(det_par.BRISKParam.thresh,
-                  //                                              det_par.BRISKParam.octaves,
-                  //                                              det_par.BRISKParam.patternScale);
-                  //                  if (OpenCV_det) //no data conversion needed
-                  //                    {
-                  //                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
-                  //                    }
-                  //                  else {
-                  //                      int kp_size = temp_kp1.size();
-                  //                      keypoints_1.reserve(kp_size);
-                  //                      for (int kp_num = 0; kp_num < kp_size; kp_num++) {
-                  //                          cv::KeyPoint temp_pt;
-                  //                          temp_pt.pt.x = temp_kp1[kp_num].det_kp.x;
-                  //                          temp_pt.pt.y = temp_kp1[kp_num].det_kp.y;
-                  //                          temp_pt.angle = 0;
-                  //                          temp_pt.size = temp_kp1[kp_num].det_kp.s;
-                  //                          keypoints_1.push_back(temp_pt);
-                  //                        }
-                  //                      temp_img1.pixels.convertTo(CharImage, CV_8U);
-                  //                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
-                  //                    }
-                  //                  int kp_size = keypoints_1.size();
-                  //                  int desc_size = descriptors_1.cols;
-
-                  //                  temp_kp1_desc.resize(kp_size);
-
-                  //                  for (int kp_num = 0; kp_num < kp_size; kp_num++) {
-                  //                      temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  //                      temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  //                      temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  //                      temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  //                      temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  //                      temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  //                      temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size / 3.0; //?
-                  //                      temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  //                      temp_kp1_desc[kp_num].type = temp_kp1[0].type;
-                  //                      temp_kp1_desc[kp_num].desc.type = DESC_BRISK;
-                  //                      temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
-
-                  //                      unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
-                  //                      for (int jj = 0; jj < desc_size; jj++, descPtr++)
-                  //                        temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
-                  //                    }
-                  //                  ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-                }
-
-
-              temp_kp_map[curr_desc] = temp_kp1_desc;
-
-              time1 = ((double)(getMilliSecs1() - s_time)) / 1000;
-              TimeSpent.DescTime += time1;
-              s_time = getMilliSecs1();
-
-              // Deallocate the integral image
-              if (curr_det.compare("SURF")==0 )
-                cvReleaseImage(&int_img);
+              //ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, mrSizeORB);
+              //          std::cout << "new size=" << temp_kp1_desc.size() << std::endl;
             }
-          OneDetectorKeypointsMapVector[synth] = temp_kp_map;
+
+          else if (curr_desc.compare("DAISY") == 0) //DAISY
+            {
+              DAISYDescriptor DAISYDesc(desc_par.DAISYParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, DAISYDesc,
+                              desc_par.DAISYParam.PEParam.mrSize,
+                              desc_par.DAISYParam.PEParam.patchSize,
+                              desc_par.DAISYParam.PEParam.FastPatchExtraction,
+                              desc_par.DAISYParam.PEParam.photoNorm);
+
+            }
+          else if (curr_desc.compare("SSIM") == 0) //DAISY
+            {
+              SSIMDescriptor SSIMDesc(desc_par.SSIMParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, SSIMDesc,
+                              desc_par.SSIMParam.PEParam.mrSize,
+                              desc_par.SSIMParam.PEParam.patchSize,
+                              desc_par.SSIMParam.PEParam.FastPatchExtraction,
+                              desc_par.SSIMParam.PEParam.photoNorm);
+
+            }
+          else if (curr_desc.compare("BRISK") == 0) //BRISK
+            {
+              BRISKDescriptor BRISKDesc(det_par.BRISKParam);
+              DescribeRegions(temp_kp1_desc,
+                              temp_img1, BRISKDesc,
+                              det_par.BRISKParam.PEParam.mrSize,
+                              det_par.BRISKParam.PEParam.patchSize,
+                              det_par.BRISKParam.PEParam.FastPatchExtraction,
+                              desc_par.BRISKParam.PEParam.photoNorm);
+              //                  cv::BRISK CurrentDescriptor(det_par.BRISKParam.thresh,
+              //                                              det_par.BRISKParam.octaves,
+              //                                              det_par.BRISKParam.patternScale);
+              //                  if (OpenCV_det) //no data conversion needed
+              //                    {
+              //                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
+              //                    }
+              //                  else {
+              //                      int kp_size = temp_kp1.size();
+              //                      keypoints_1.reserve(kp_size);
+              //                      for (int kp_num = 0; kp_num < kp_size; kp_num++) {
+              //                          cv::KeyPoint temp_pt;
+              //                          temp_pt.pt.x = temp_kp1[kp_num].det_kp.x;
+              //                          temp_pt.pt.y = temp_kp1[kp_num].det_kp.y;
+              //                          temp_pt.angle = 0;
+              //                          temp_pt.size = temp_kp1[kp_num].det_kp.s;
+              //                          keypoints_1.push_back(temp_pt);
+              //                        }
+              //                      temp_img1.pixels.convertTo(CharImage, CV_8U);
+              //                      CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
+              //                    }
+              //                  int kp_size = keypoints_1.size();
+              //                  int desc_size = descriptors_1.cols;
+
+              //                  temp_kp1_desc.resize(kp_size);
+
+              //                  for (int kp_num = 0; kp_num < kp_size; kp_num++) {
+              //                      temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
+              //                      temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
+              //                      temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+              //                      temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+              //                      temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
+              //                      temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
+              //                      temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size / 3.0; //?
+              //                      temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
+              //                      temp_kp1_desc[kp_num].type = temp_kp1[0].type;
+              //                      temp_kp1_desc[kp_num].desc.type = DESC_BRISK;
+              //                      temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
+
+              //                      unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
+              //                      for (int jj = 0; jj < desc_size; jj++, descPtr++)
+              //                        temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
+              //                    }
+              //                  ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
+            }
+
+
+          temp_kp_map[curr_desc] = temp_kp1_desc;
+
+          time1 = ((double)(getMilliSecs1() - s_time)) / 1000;
+          TimeSpent.DescTime += time1;
+          s_time = getMilliSecs1();
+
+          // Deallocate the integral image
+          if (curr_det.compare("SURF")==0 )
+            cvReleaseImage(&int_img);
         }
-      for (unsigned int synth=0; synth<n_synths; synth++)
-        AddRegions(OneDetectorKeypointsMapVector[synth],curr_det);
+      OneDetectorKeypointsMapVector[synth] = temp_kp_map;
     }
+  for (unsigned int synth=0; synth<n_synths; synth++)
+    AddRegions(OneDetectorKeypointsMapVector[synth],curr_det);
+}
 }
 
 void ImageRepresentation::SaveRegionsMichal(std::string fname, int mode) {
@@ -2285,15 +2316,15 @@ void ImageRepresentation::LoadRegions(std::string fname) {
   if (kpfile.is_open()) {
       int numberOfDetectors = 0;
       kpfile >> numberOfDetectors;
-          std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
+      std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
       for (int det = 0; det < numberOfDetectors; det++) {
           std::string det_name;
           int num_of_descs = 0;
           kpfile >> det_name;
           kpfile >> num_of_descs;
-                std::cerr << det_name << " " << num_of_descs << std::endl;
+          std::cerr << det_name << " " << num_of_descs << std::endl;
 
-       //   reg_it->first << " " << reg_it->second.size() << std::endl;
+          //   reg_it->first << " " << reg_it->second.size() << std::endl;
           for (int desc = 0; desc < num_of_descs; desc++)  {
               AffineRegionVector desc_regions;
               std::string desc_name;
@@ -2303,7 +2334,7 @@ void ImageRepresentation::LoadRegions(std::string fname) {
               kpfile >> num_of_kp;
               int desc_size;
               kpfile >> desc_size;
-                      std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
+              std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
               for (int kp = 0; kp < num_of_kp; kp++)  {
                   AffineRegion ar;
                   loadAR(ar, kpfile);
@@ -2366,27 +2397,27 @@ void ImageRepresentation::SaveRegionsBenchmark(std::string det_kps_fname, std::s
   std::ofstream reproject_kpfile(reproject_kps_fname);
   int num_keys = 0;
   if (det_kpfile.is_open() && reproject_kpfile.is_open() ) {
-//      for (std::map<std::string, AffineRegionVectorMap>::const_iterator
-//           reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
-//          for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
-//               desc_it != reg_it->second.end(); ++desc_it) {
+      //      for (std::map<std::string, AffineRegionVectorMap>::const_iterator
+      //           reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
+      //          for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
+      //               desc_it != reg_it->second.end(); ++desc_it) {
 
-////              if (desc_it->first != "None") {
-//              if (desc_it->first == "None") {
-//                  continue;
-//                }
-//              num_keys += desc_it->second.size();
-//            }
-//        }
-   //   det_kpfile << num_keys << std::endl;
-   //   reproject_kpfile << num_keys << std::endl;
+      ////              if (desc_it->first != "None") {
+      //              if (desc_it->first == "None") {
+      //                  continue;
+      //                }
+      //              num_keys += desc_it->second.size();
+      //            }
+      //        }
+      //   det_kpfile << num_keys << std::endl;
+      //   reproject_kpfile << num_keys << std::endl;
 
       for (std::map<std::string, AffineRegionVectorMap>::const_iterator
            reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
           for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
                desc_it != reg_it->second.end(); ++desc_it) {
               if (desc_it->first == "None") {
-            //  if (desc_it->first != "None") {
+                  //  if (desc_it->first != "None") {
                   continue;
                 }
               int num_keys1 = desc_it->second.size();
@@ -2400,7 +2431,7 @@ void ImageRepresentation::SaveRegionsBenchmark(std::string det_kps_fname, std::s
             }
 
         }
-}
+    }
   else {
       std::cerr << "Cannot open file " << det_kps_fname << " to save keypoints" << endl;
     }
