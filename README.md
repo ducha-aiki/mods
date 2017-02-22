@@ -5,23 +5,23 @@ MODS depends on OpenCV version 2.4.9 and LAPACK
 
 ## How to compile MODS on clean ubuntu 14.04 (tested on amazon AWS instance)
 
-sudo apt-get install git cmake gfortran libblas-dev liblapack-dev build-essential gcc-multilib libopencv-dev python-opencv
+    sudo apt-get install git cmake gfortran libblas-dev liblapack-dev build-essential gcc-multilib libopencv-dev python-opencv
 
-sudo add-apt-repository --yes ppa:xqms/opencv-nonfree
-sudo apt-get update
-sudo apt-get install libopencv-nonfree-dev
+    sudo add-apt-repository --yes ppa:xqms/opencv-nonfree
+    sudo apt-get update
+    sudo apt-get install libopencv-nonfree-dev
 
 if you want to use edge foci detector and bice descriptor from Microsoft, you will need to install wine as well:
-sudo apt-get install wine
-git clone
-cd mods
+    sudo apt-get install wine
+    git clone
+    cd mods
 
-cd vlfeat
-make
+    cd vlfeat
+    make
 
-cd ../build
-cmake ..
-make
+    cd ../build
+    cmake ..
+    make
 
 ## how to compile MODS on clean Windows 10
 install cmake 
@@ -43,19 +43,19 @@ Add opencv install root/bin to your path environmental variable
 Put opencv install root CMakeLists.txt to 
 SET (OpenCV_DIR "c:/opencv-2.4.8/opencv/sources/build/install")
 
-cd build
-cmake ..
+    cd build
+    cmake ..
 
 Make sure, that CMake generates mingw32 make files, not Visual Studio.
 
-mingw32-make
+    mingw32-make
 
 ## Example of use:
 Linux:
-./mods examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 1 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
+    ./mods examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
 
 Windows:
-./mods.exe examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 1 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
+    ./mods.exe examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
 
 
 ## Configurations:
@@ -76,11 +76,11 @@ If use, please cite corresponding papers.
 ## How to save detectors\descriptors and use them for matching
 Note that exctract features takes only one step, so you may need to edit iters*.ini file to be able to extract features from next steps. See an example in iters_mods_cviu_onestep.ini
 
-./extract_features examples/cat.png  cat1.txt config_iter_cviu.ini iters_mods_cviu_onestep.ini
-./extract_features examples/cat2.png  cat2.txt config_iter_cviu.ini iters_mods_cviu_onestep.ini
+    ./extract_features examples/cat.png  cat1.txt config_iter_cviu.ini iters_mods_cviu_onestep.ini
+    ./extract_features examples/cat2.png  cat2.txt config_iter_cviu.ini iters_mods_cviu_onestep.ini
 
 Now loading and matching
-./mods examples/cat.png examples/cat2.png out1.png out2.png cat1.txt cat2.txt m.txt l.txt 0 1 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu_onestep.ini 1
+    ./mods examples/cat.png examples/cat2.png out1.png out2.png cat1.txt cat2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu_onestep.ini 1
 
 
     
