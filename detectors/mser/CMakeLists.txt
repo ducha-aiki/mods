@@ -37,9 +37,9 @@ include_directories(.
 ./LL)
 
 add_library(mser ${mser_srcs})
-IF(MODS_BUILD_SHARED)
+#IF(MODS_BUILD_SHARED)
 TARGET_LINK_LIBRARIES(mser ${OpenCV_LIBS} rt)
-ELSE(MODS_BUILD_SHARED)
-TARGET_LINK_LIBRARIES(mser libopencv_imgproc.a libopencv_core.a rt)
-ENDIF(MODS_BUILD_SHARED)
+#ELSE(MODS_BUILD_SHARED)
+#TARGET_LINK_LIBRARIES(mser libopencv_imgproc.a libopencv_core.a rt)
+#ENDIF(MODS_BUILD_SHARED)
 
