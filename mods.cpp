@@ -30,12 +30,6 @@
 #include "correspondencebank.h"
 
 
-//#define SCV
-
-#ifdef SCV
-#include "scv/scv_entrypoint.hpp"
-#endif
-
 #ifdef WITH_ORSA
 #include "orsa.h"
 #endif
@@ -281,10 +275,11 @@ if (Config1.read_pre_extracted)
     }
     /// Preparation for matching
     double curr_start = getMilliSecs();
-    Tentatives.MatchImgReps(ImgRep1,ImgRep2,Config1.ItersParam[step],Config1.Matchparam.IterWhatToMatch[step],
-                            Config1.Matchparam,Config1.DescriptorPars);
     if (step == 2)
       Tentatives.ClearCorrespondences("ORB", "ORB");
+    Tentatives.MatchImgReps(ImgRep1,ImgRep2,Config1.ItersParam[step],Config1.Matchparam.IterWhatToMatch[step],
+                            Config1.Matchparam,Config1.DescriptorPars);
+
     time1 = ((double)(getMilliSecs() - curr_start))/1000;
     TimingLog.MatchingTime +=time1;
 
@@ -474,6 +469,7 @@ if (Config1.read_pre_extracted)
     }
     if (Config1.DrawParam.writeImages)
     {
+        std::cerr << " Writing images with matches..." ;
       cv::Mat img_out1s, img_out2s;
 
       cv::Mat h1cv(3,3,CV_64F,verified_coors["All"].H);
@@ -487,6 +483,43 @@ if (Config1.read_pre_extracted)
                   0);
       cv::imwrite(Config1.CLIparams.out1_fname,img_out1s);
       cv::imwrite(Config1.CLIparams.out2_fname,img_out2s);
+      std::cerr << " done" << std::endl;
+
+    }
+    if (Config1.DrawParam.drawDetectedRegions) {
+        std::cerr << " Writing image with detected regions..." ;
+
+       cv::Mat img_out1s, img_out2s;
+       img_out1s = DrawRegions(ImgRep1.OriginalImg,
+                   ImgRep1.GetAffineRegionVector("None", "All"),2,cv::Scalar(255,255,160));
+
+       cv::imwrite(Config1.CLIparams.out1_fname+"_reg.png",img_out1s);
+
+      img_out2s = DrawRegions(ImgRep2.OriginalImg,
+                   ImgRep2.GetAffineRegionVector("None", "All"),2,cv::Scalar(255,255,160));
+       cv::imwrite(Config1.CLIparams.out2_fname+"_reg.png",img_out2s);
+       {
+      cv::Mat img_out1s, img_out2s,img_out1sm, img_out2sm;
+
+      cv::Mat h1cv(3,3,CV_64F,verified_coors["All"].H);
+      cv::Mat h1inv(3,3,CV_64F);
+      cv::invert(h1cv,h1inv,DECOMP_LU);
+
+      img_out1s = DrawRegions(ImgRep1.OriginalImg,
+                  ImgRep1.GetAffineRegionVector("None", "All"),1,cv::Scalar(255,255,160));
+      img_out2s = DrawRegions(ImgRep2.OriginalImg,
+                   ImgRep2.GetAffineRegionVector("None", "All"),1,cv::Scalar(255,255,160));
+
+      DrawMatches(img_out1s,img_out2s,img_out1sm,img_out2sm,h1cv,verified_coors["All"],
+                  Config1.DrawParam.drawOnlyCenters,
+                  (!Config1.RANSACParam.useF && Config1.DrawParam.drawReprojected),3,2,
+                  (Config1.RANSACParam.useF && Config1.DrawParam.drawEpipolarLines),0,
+                  0);
+      cv::imwrite(Config1.CLIparams.out1_fname +".png",img_out1sm);
+      cv::imwrite(Config1.CLIparams.out2_fname +".png",img_out2sm);
+      std::cerr << " done" << std::endl;
+
+    }
     }
   }
   /// Console output, quite ugly :(
@@ -521,7 +554,7 @@ if (Config1.read_pre_extracted)
     WriteTimeLog(TimingLog, std::cerr,1,1,1);
     ofstream file_log1("time.log");
     if (file_log1.is_open())
-      WriteTimeLog(TimingLog, file_log1,1,0,0);
+      WriteTimeLog(TimingLog, file_log1,0,1,0);
     file_log1.close();
   }
 

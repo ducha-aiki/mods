@@ -6,6 +6,7 @@
 #define CONFIGURATION_HPP
 
 #include <vector>
+#include <string>
 
 #define WITH_ORSA
 
@@ -42,12 +43,14 @@ struct drawingParams
     int drawEpipolarLines;
     int drawOnlyCenters;
     int drawReprojected;
+    bool drawDetectedRegions;
     drawingParams()
     {
         writeImages = 1;
         drawOnlyCenters = 1;
         drawEpipolarLines = 0;
         drawReprojected = 1;
+        drawDetectedRegions = false;
     }
 };
 
@@ -89,17 +92,17 @@ struct filteringParams
 
 struct parameters
 {
-    char* img1_fname;
-    char* img2_fname;
-    char* out1_fname;
-    char* out2_fname;
-    char* k1_fname;
-    char* k2_fname;
-    char* matchings_fname;
-    char* log_fname;
-    char* ground_truth_fname;
-    char* config_fname;
-    char* iters_fname;
+    std::string img1_fname;
+    std::string img2_fname;
+    std::string out1_fname;
+    std::string out2_fname;
+    std::string k1_fname;
+    std::string k2_fname;
+    std::string matchings_fname;
+    std::string log_fname;
+    std::string ground_truth_fname;
+    std::string config_fname;
+    std::string iters_fname;
     int doCLAHE;
     int det_type;
     RANSAC_mode_t ver_type;

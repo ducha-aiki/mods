@@ -4,24 +4,9 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_STATIC_ASSERT_H
 #define EIGEN_STATIC_ASSERT_H
@@ -41,12 +26,14 @@
 
 #ifndef EIGEN_NO_STATIC_ASSERT
 
-  #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
+  #if EIGEN_MAX_CPP_VER>=11 && (__has_feature(cxx_static_assert) || (defined(__cplusplus) && __cplusplus >= 201103L) || (EIGEN_COMP_MSVC >= 1600))
 
     // if native static_assert is enabled, let's use it
     #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG);
 
   #else // not CXX0X
+
+    namespace Eigen {
 
     namespace internal {
 
@@ -63,6 +50,7 @@
         THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE,
         THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE,
         THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE,
+        OUT_OF_RANGE_ACCESS,
         YOU_MADE_A_PROGRAMMING_MISTAKE,
         EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT,
         EIGEN_INTERNAL_COMPILATION_ERROR_OR_YOU_MADE_A_PROGRAMMING_MISTAKE,
@@ -70,6 +58,7 @@
         YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR,
         UNALIGNED_LOAD_AND_STORE_OPERATIONS_UNIMPLEMENTED_ON_ALTIVEC,
         THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES,
+        FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED,
         NUMERIC_TYPE_MUST_BE_REAL,
         COEFFICIENT_WRITE_ACCESS_TO_SELFADJOINT_NOT_SUPPORTED,
         WRITING_TO_TRIANGULAR_PART_WITH_UNIT_DIAGONAL_IS_NOT_SUPPORTED,
@@ -95,24 +84,43 @@
         YOU_PERFORMED_AN_INVALID_TRANSFORMATION_CONVERSION,
         THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY,
         YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT,
-        THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS
+        THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS,
+        THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS,
+        THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL,
+        THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES,
+        YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED,
+        YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED,
+        THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE,
+        THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH,
+        OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG,
+        IMPLICIT_CONVERSION_TO_SCALAR_IS_FOR_INNER_PRODUCT_ONLY,
+        STORAGE_LAYOUT_DOES_NOT_MATCH,
+        EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE,
+        THIS_COEFFICIENT_ACCESSOR_TAKING_ONE_ACCESS_IS_ONLY_FOR_EXPRESSIONS_ALLOWING_LINEAR_ACCESS,
+        MATRIX_FREE_CONJUGATE_GRADIENT_IS_COMPATIBLE_WITH_UPPER_UNION_LOWER_MODE_ONLY,
+        THIS_TYPE_IS_NOT_SUPPORTED,
+        STORAGE_KIND_MUST_MATCH,
+        STORAGE_INDEX_MUST_MATCH,
+        CHOLMOD_SUPPORTS_DOUBLE_PRECISION_ONLY
       };
     };
 
     } // end namespace internal
 
+    } // end namespace Eigen
+
     // Specialized implementation for MSVC to avoid "conditional
     // expression is constant" warnings.  This implementation doesn't
     // appear to work under GCC, hence the multiple implementations.
-    #ifdef _MSC_VER
+    #if EIGEN_COMP_MSVC
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
         {Eigen::internal::static_assertion<bool(CONDITION)>::MSG;}
 
     #else
-
+      // In some cases clang interprets bool(CONDITION) as function declaration
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        if (Eigen::internal::static_assertion<bool(CONDITION)>::MSG) {}
+        if (Eigen::internal::static_assertion<static_cast<bool>(CONDITION)>::MSG) {}
 
     #endif
 
@@ -160,7 +168,7 @@
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
      ( \
-        (int(TYPE0::SizeAtCompileTime)==0 && int(TYPE1::SizeAtCompileTime)==0) \
+        (int(Eigen::internal::size_of_xpr_at_compile_time<TYPE0>::ret)==0 && int(Eigen::internal::size_of_xpr_at_compile_time<TYPE1>::ret)==0) \
     || (\
           (int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
         || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \
@@ -171,13 +179,8 @@
        ) \
      )
 
-#ifdef EIGEN2_SUPPORT
-  #define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
-    eigen_assert(!NumTraits<Scalar>::IsInteger);
-#else
-  #define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
+#define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
     EIGEN_STATIC_ASSERT(!NumTraits<TYPE>::IsInteger, THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
-#endif
 
 
 // static assertion failing if it is guaranteed at compile-time that the two matrix expression types have different sizes
@@ -192,7 +195,22 @@
                           THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS)
 
 #define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
-      EIGEN_STATIC_ASSERT(internal::is_lvalue<Derived>::value, \
+      EIGEN_STATIC_ASSERT(Eigen::internal::is_lvalue<Derived>::value, \
                           THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY)
+
+#define EIGEN_STATIC_ASSERT_ARRAYXPR(Derived) \
+      EIGEN_STATIC_ASSERT((Eigen::internal::is_same<typename Eigen::internal::traits<Derived>::XprKind, ArrayXpr>::value), \
+                          THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES)
+
+#define EIGEN_STATIC_ASSERT_SAME_XPR_KIND(Derived1, Derived2) \
+      EIGEN_STATIC_ASSERT((Eigen::internal::is_same<typename Eigen::internal::traits<Derived1>::XprKind, \
+                                             typename Eigen::internal::traits<Derived2>::XprKind \
+                                            >::value), \
+                          YOU_CANNOT_MIX_ARRAYS_AND_MATRICES)
+
+// Check that a cost value is positive, and that is stay within a reasonable range
+// TODO this check could be enabled for internal debugging only
+#define EIGEN_INTERNAL_CHECK_COST_VALUE(C) \
+      EIGEN_STATIC_ASSERT((C)>=0 && (C)<=HugeCost*HugeCost, EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE);
 
 #endif // EIGEN_STATIC_ASSERT_H

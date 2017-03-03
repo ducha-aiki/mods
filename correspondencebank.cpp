@@ -284,7 +284,7 @@ int CorrespondenceBank::MatchImgReps(ImageRepresentation &imgrep1, ImageRepresen
 
     }
   ///Individual detectors
-#pragma omp parallel for schedule (dynamic,1)
+//#pragma omp parallel for schedule (dynamic,1)
   for (unsigned int sdet = 0; sdet < n_sep_det; sdet++)
     {
       std::string curr_det = WhatToMatchNow.separate_detectors[sdet];
@@ -295,7 +295,7 @@ int CorrespondenceBank::MatchImgReps(ImageRepresentation &imgrep1, ImageRepresen
       if (thresh_it != synth_par.end() && (thresh_it->second.size() > 0))
         {
           current_VS_params = thresh_it->second[0];
-#pragma omp parallel for schedule (dynamic,1)
+//#pragma omp parallel for schedule (dynamic,1)
           for (unsigned int s_desc = 0; s_desc < WhatToMatchNow.separate_descriptors.size(); s_desc++)
             {
               std::string curr_desc = WhatToMatchNow.separate_descriptors[s_desc];

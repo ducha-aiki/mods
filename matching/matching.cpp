@@ -1200,6 +1200,60 @@ int NaiveHCheck(TentativeCorrespListExt &corresp,double *H,const double error)
 }
 
 
+cv::Mat DrawRegions(const cv::Mat &in_img,
+                         const AffineRegionList kps,
+                         const int r1,
+                         const cv::Scalar color1) {
+  cv::Mat out_img;
+  double k_scale = 3.0;//3 sigma
+  if (in_img.channels() == 1)
+    cv::cvtColor(in_img,out_img,CV_GRAY2RGB);
+  else
+    out_img=in_img.clone();
+
+  double cosine_sine_table[44];
+  double cosine_sine_table3d[66];
+//  cosine_sine_table[21]=0;
+//  cosine_sine_table[43]=0;
+  for (int l=0; l<22; l++) {
+      cosine_sine_table[l]=cos(l*M_PI/10);
+      cosine_sine_table[22+l]=sin(l*M_PI/10);
+    }
+  for (int l=0; l<44; l++)
+    cosine_sine_table3d[l]=cosine_sine_table[l];
+  for (int l=44; l<66; l++)
+    cosine_sine_table3d[l]=1.0;
+
+  cv::Mat cs_table(2,22,CV_64F, cosine_sine_table);
+ // cv::Mat cs_table3d(3,22,CV_64F, cosine_sine_table3d);
+
+  /// Image 1
+  AffineRegionList::const_iterator ptrOut = kps.begin();
+  for(unsigned int i=0; i < kps.size(); i++, ptrOut++)
+    {
+
+      double A[4]= {k_scale*ptrOut->reproj_kp.s*ptrOut->reproj_kp.a11, k_scale*ptrOut->reproj_kp.s*ptrOut->reproj_kp.a12,
+                    k_scale*ptrOut->reproj_kp.s*ptrOut->reproj_kp.a21, k_scale*ptrOut->reproj_kp.s*ptrOut->reproj_kp.a22
+                   };
+      cv::Mat A1(2,2,CV_64F, A);
+      cv::Mat X;
+      cv::gemm(A1,cs_table,1,A1,0,X);
+      vector<cv::Point> contour;
+      for (int k=0; k<22; k++)
+        contour.push_back(cv::Point(floor(X.at<double>(0,k)+ptrOut->reproj_kp.x),floor(X.at<double>(1,k)+ptrOut->reproj_kp.y)));
+
+      const cv::Point *pts = (const cv::Point*) cv::Mat(contour).data;
+      int npts = cv::Mat(contour).rows;
+      polylines(out_img, &pts,&npts, 1,
+                false, 			// draw closed contour (i.e. joint end to start)
+                color1,// colour RGB ordering (here = green)
+                r1, 		        // line thickness
+                CV_AA, 0);
+
+   }
+  return out_img;
+}
+
 void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img1, cv::Mat &out_img2,const cv::Mat &H1,
                  TentativeCorrespListExt matchings,
                  const int DrawCentersOnly,
@@ -2868,13 +2922,15 @@ void DrawChangedMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv
 
 void WriteMatchings(TentativeCorrespListExt &match, std::ostream &out1, int writeWithRatios)
 {
-  out1 << (int) match.TCList.size() << std::endl;
+//  out1 << (int) match.TCList.size() << std::endl;
   std::vector<TentativeCorrespExt>::iterator ptr = match.TCList.begin();
-  if (writeWithRatios)
+    if (writeWithRatios)
     {
+        out1 << "x1,y1,x2,y2,FGINN_ratio,SNN_ratio,detector,descriptor,is_correct " << std::endl;
+
       for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
-        out1 << ptr->first.reproj_kp.x << " " << ptr->first.reproj_kp.y << " " << ptr->second.reproj_kp.x << " " << ptr->second.reproj_kp.y << " "
-             << sqrt(ptr->d1 / ptr->d2) << " " << sqrt(ptr->d1 / ptr->d2by2ndcl) << " " << ptr->isTrue << std::endl;
+        out1 << ptr->first.reproj_kp.x << "," << ptr->first.reproj_kp.y << "," << ptr->second.reproj_kp.x << "," << ptr->second.reproj_kp.y << ","
+             << sqrt(ptr->d1 / ptr->d2) << "," << sqrt(ptr->d1 / ptr->d2by2ndcl) << "," << DetectorNames[ptr->first.type] << "," << DescriptorNames[ptr->first.desc.type] << "," << ptr->isTrue << std::endl;
     }
   else
     {

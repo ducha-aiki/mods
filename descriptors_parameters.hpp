@@ -9,14 +9,13 @@
 #include "descriptors/freakdescriptor.hpp"
 #include "descriptors/kazedescriptor.hpp"
 #include "descriptors/bicedescriptor.hpp"
-#include "descriptors/dalidescriptor.hpp"
+//#include "descriptors/dalidescriptor.hpp"
 #include "descriptors/smslddescriptor.hpp"
 #include "descriptors/orbdescriptor.hpp"
 #include "descriptors/briskdescriptor.hpp"
 #include "descriptors/daisydescriptor.hpp"
 #include "descriptors/ssimdescriptor.hpp"
 #include "matching/liopdesc.hpp"
-
 
 struct DominantOrientationParams {
 
@@ -80,7 +79,7 @@ struct DescriptorsParameters {
   PIXELSDescriptorParams PixelsParam;
   KAZEParams KAZEParam;
   SURFParams SURFDescParam;
-  DALIParams DALIDescParam;
+ // DALIParams DALIDescParam;
   SMSLDParams SMSLDDescParam;
   DAISYParams DAISYParam;
   SSIMParams SSIMParam;
