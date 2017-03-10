@@ -306,19 +306,24 @@ if (Config1.read_pre_extracted)
                                               Hready,Config1.OutputParam.outputAllTentatives,
                                               Config1.RANSACParam);
         log1.InlierRatio1st = (double) log1.TrueMatch1st / (double) log1.Tentatives1st;
-        if (VERB) std::cerr << verified_coors["All"].TCList.size() << " true matches got" << endl;
+         if (VERB) std::cerr << log1.TrueMatch1st << " true matches got with error threshold = " << Config1.RANSACParam.err_threshold << endl;
+       // if (VERB) std::cerr << verified_coors["All"].TCList.size() << " true matches got" << endl;
         if (Config1.Matchparam.doBothRANSACgroundTruth)
         {
+          if (VERB) std::cerr << "Now RANSAC" << endl;
+
           //tentatives["AllRANSAC"] = tentatives["All"];
           log1.Tentatives1stRANSAC = LORANSACFiltering(tentatives["All"], tentatives["AllRANSAC"],
                                                        tentatives["AllRANSAC"].H,Config1.RANSACParam);
+          if (VERB) std::cerr << log1.Tentatives1stRANSAC << " RANSAC matches are identified in "
+                    << time1<< " seconds" << endl;
+
           log1.TrueMatch1stRANSAC = HMatrixFiltering(tentatives["AllRANSAC"], tentatives["AllRANSACverified"],
                                                      Hready,Config1.OutputParam.outputAllTentatives,
                                                      Config1.RANSACParam);
           log1.InlierRatio1stRANSAC = (double) log1.TrueMatch1stRANSAC / (double) log1.Tentatives1stRANSAC;
           time1 = ((double)(getMilliSecs() - curr_start)) / 1000;
-          if (VERB) std::cerr << log1.Tentatives1stRANSAC << " RANSAC matches are identified in "
-                    << time1<< " seconds" << endl;
+
           if (VERB) std::cerr << log1.TrueMatch1stRANSAC << " RANSAC true matches are identified in "
                     << time1<< " seconds" << endl;
         }

@@ -65,7 +65,8 @@ struct CaffeDescriptorParams
 };
 
 struct DescriptorsParameters {
-  SIFTDescriptorParams SIFTParam;
+  SIFTDescriptorParams SIFTParam;  
+  SIFTDescriptorParams ResSIFTParam;
   SIFTDescriptorParams MagnLessSIFTParam;
   SIFTDescriptorParams RootSIFTParam;
   SIFTDescriptorParams HalfSIFTParam;

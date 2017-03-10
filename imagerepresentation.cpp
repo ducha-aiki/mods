@@ -1558,6 +1558,17 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   desc_par.SIFTParam.PEParam.FastPatchExtraction,
                                   desc_par.SIFTParam.PEParam.photoNorm);
                 }
+              else if (curr_desc.compare("ResSIFT") == 0) //ResSIFT
+                {
+                  SIFTDescriptor ResSIFTdesc(desc_par.ResSIFTParam);
+                  DescribeRegions(temp_kp1_desc,
+                                  temp_img1, ResSIFTdesc,
+                                  desc_par.ResSIFTParam.PEParam.mrSize,
+                                  desc_par.ResSIFTParam.PEParam.patchSize,
+                                  desc_par.ResSIFTParam.PEParam.FastPatchExtraction,
+                                  desc_par.ResSIFTParam.PEParam.photoNorm,
+                                  true);
+                }
 
               else if (curr_desc.compare("DSPSIFT") == 0)
                 {

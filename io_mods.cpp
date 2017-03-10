@@ -1017,6 +1017,10 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   conf1.DescriptorPars.RootSIFTParam = conf1.DescriptorPars.SIFTParam;
   conf1.DescriptorPars.RootSIFTParam.useRootSIFT = 1;
 
+  conf1.DescriptorPars.ResSIFTParam = conf1.DescriptorPars.SIFTParam;
+  conf1.DescriptorPars.ResSIFTParam.useRootSIFT = 0;
+
+
   conf1.DescriptorPars.HalfRootSIFTParam =  conf1.DescriptorPars.RootSIFTParam;
   conf1.DescriptorPars.HalfRootSIFTParam.doHalfSIFT = 1;
 
@@ -1183,6 +1187,8 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   conf1.DescriptorPars.RootSIFTParam = conf1.DescriptorPars.SIFTParam;
   conf1.DescriptorPars.RootSIFTParam.useRootSIFT = 1;
   conf1.LoadColor = ConfigIni.GetInteger("Computing", "LoadColor", conf1.LoadColor);
+  conf1.DescriptorPars.ResSIFTParam = conf1.DescriptorPars.SIFTParam;
+  conf1.DescriptorPars.ResSIFTParam.useRootSIFT = 0;
 
   conf1.DescriptorPars.HalfRootSIFTParam =  conf1.DescriptorPars.RootSIFTParam;
   conf1.DescriptorPars.HalfRootSIFTParam.doHalfSIFT = 1;

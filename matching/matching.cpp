@@ -808,6 +808,7 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
   int do_lo = pars.localOptimization;
   unsigned int i;
   unsigned int tent_size = in_corresp.TCList.size();
+  int  true_size = 0;
   ransac_corresp.TCList.clear();
   int max_samples = pars.max_samples;
   if (tent_size <=20) max_samples = 1000;
@@ -899,8 +900,10 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
           for(i=0; i < tent_size; i++, ptr2++)
             {
               ptr2->isTrue=inl2[i];
-              if (inl2[i])
+              if (inl2[i])  {
+                  true_size++;
                 ransac_corresp.TCList.push_back(*ptr2);
+                }
             };
         }
       else
@@ -908,6 +911,9 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
           for(i=0; i < tent_size; i++, ptr2++)
             {
               ptr2->isTrue=inl2[i];
+              if (inl2[i])  {
+                true_size++;
+                }
               ransac_corresp.TCList.push_back(*ptr2);
             };
 
@@ -976,7 +982,7 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
       ransac_corresp.TCList.clear();
       return 0;
     }
-  return ransac_corresp.TCList.size();
+  return true_size;
 }
 #ifdef WITH_ORSA
 int ORSAFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListExt &ransac_corresp,double *F, const RANSACPars pars, int w, int h)
@@ -1345,7 +1351,7 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
           ptrOut = matchings.TCList.begin();
           for(unsigned int i=0; i < matchings.TCList.size(); i++, ptrOut++)
             {
-
+              if (!(ptrOut->isTrue)) continue;
               double A[4]= {k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a11, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a12,
                             k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a21, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a22
                            };
@@ -1388,6 +1394,7 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
           ptrOut = matchings.TCList.begin();
           for(unsigned int i=0; i < matchings.TCList.size(); i++, ptrOut++)
             {
+              if (!(ptrOut->isTrue)) continue;
               double A[4]= {k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a11, k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a12,
                             k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a21, k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a22
                            };
@@ -1432,6 +1439,7 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
       //Image1
       for(unsigned int i=0; i < matchings.TCList.size(); i++, ptrOut++)
         {
+          if (!(ptrOut->isTrue)) continue;
           cv::circle(out_tmp1, cv::Point(int(ptrOut->first.reproj_kp.x),int(ptrOut->first.reproj_kp.y)),r1+2,color1,-1); //draw original points
           double xa,ya;
           xa = (Hinv[0]*ptrOut->second.reproj_kp.x+Hinv[1]*ptrOut->second.reproj_kp.y+Hinv[2])/(Hinv[6]*ptrOut->second.reproj_kp.x+Hinv[7]*ptrOut->second.reproj_kp.y+Hinv[8]);
@@ -1443,6 +1451,8 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
       ptrOut = matchings.TCList.begin();
       for(unsigned int i=0; i < matchings.TCList.size(); i++, ptrOut++)
         {
+          if (!(ptrOut->isTrue)) continue;
+
           cv::circle(out_tmp2, cv::Point(int(ptrOut->second.reproj_kp.x),int(ptrOut->second.reproj_kp.y)),r1+2,color1,-1); //draw original points
           double xa,ya;
           xa = (H[0]*ptrOut->first.reproj_kp.x+H[1]*ptrOut->first.reproj_kp.y+H[2])/(H[6]*ptrOut->first.reproj_kp.x+H[7]*ptrOut->first.reproj_kp.y+H[8]);
@@ -1652,6 +1662,8 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
           std::vector<TentativeCorrespExt>::iterator ptrOut = matchings.TCList.begin();
           for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
             {
+              if (!(ptrOut->isTrue)) continue;
+
               if (!good_pts[i])
                 {
                   color_corr = cv::Scalar(0,0,255);
@@ -1700,6 +1712,8 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
           ptrOut = matchings.TCList.begin();
           for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
             {
+              if (!(ptrOut->isTrue)) continue;
+
               if (!good_pts[i]) color_corr = cv::Scalar(0,0,255);
               else color_corr = color2;
 
@@ -1745,6 +1759,8 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
 
       for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
         {
+          if (!(ptrOut->isTrue)) continue;
+
           double xa,ya;
           xa = in_img1.cols+sep + ptrOut->second.reproj_kp.x;
           ya = ptrOut->second.reproj_kp.y;
@@ -2390,6 +2406,8 @@ void DrawMatchingsSimple(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &
   if (order)
     for(i=0; i < matchings.size(); i++, ptrOut++)
       {
+      //  if (!(ptrOut->isTrue)) continue;
+
         cv::circle(out_img, cv::Point(int(ptrOut->first.x),int(ptrOut->first.y)),r1,color1,-1); //draw original points
         double xa,ya;
         xa = (H[0]*ptrOut->second.x+H[1]*ptrOut->second.y+H[2])/(H[6]*ptrOut->second.x+H[7]*ptrOut->second.y+H[8]);
@@ -2453,6 +2471,8 @@ void DrawMatchingRegions3D(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Ma
       //int count = 0;
       for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
         {
+          if (!(ptrOut->isTrue)) continue;
+
 #ifdef USE_SECOND_BAD
           if ((ptrOut->secondbad.id == ptrOut->secondbadby2ndcl.id)/* || (count > 2)*/) continue;
 #endif
@@ -2575,6 +2595,7 @@ void DrawMatchingRegions3D(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Ma
           //                           if (!good_pts[i]) color_corr = cv::Scalar(0,0,255);
           //                   else color_corr = color2;
 
+          if (!(ptrOut->isTrue)) continue;
 
           double xa,ya;
           xa = ptrOut->second.reproj_kp.x;
@@ -2625,7 +2646,7 @@ void DrawMatchingRegions3D(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Ma
   out_img=tmpimage1.clone();
 
 }
-void DrawMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &H1, TentativeCorrespList matchings, const int order, const int r1,
+void DrawMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &H1, TentativeCorrespListExt matchings, const int order, const int r1,
                          const int r2,const cv::Scalar color1,const cv::Scalar color2)
 {
   double k_scale=3.0;
@@ -2643,7 +2664,7 @@ void DrawMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &
 
   tmpimage1=cv::Scalar(255, 255,255);
   cv::addWeighted(out_img,1.0,tmpimage1,-0.15,0.,out_img); //make darker
-  std::vector<TentativeCorresp>::iterator ptrOut = matchings.TCList.begin();
+  std::vector<TentativeCorrespExt>::iterator ptrOut = matchings.TCList.begin();
   double cosine_sine_table[44];
   double cosine_sine_table3d[66];
 
@@ -2667,6 +2688,8 @@ void DrawMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &
   if (order)
     for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
       {
+        if (!(ptrOut->isTrue)) continue;
+
         double A[4]= {k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a11, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a12,
                       k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a21, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a22
                      };
@@ -2730,6 +2753,8 @@ void DrawMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &
 
       for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
         {
+          if (!(ptrOut->isTrue)) continue;
+
           double A[4]= {k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a11, k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a12,
                         k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a21, k_scale*ptrOut->second.reproj_kp.s*ptrOut->second.reproj_kp.a22
                        };
@@ -2824,6 +2849,8 @@ void DrawChangedMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv
   for(unsigned int f=0; f < matchings.TCList.size(); f++, ptrOut++)
     if (matchings.TCList[f].secondbad.id != matchings.TCList[f].secondbadby2ndcl.id && count < 2)
       {
+        if (!(ptrOut->isTrue)) continue;
+
         double A[4]= {k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a11, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a12,
                       k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a21, k_scale*ptrOut->first.reproj_kp.s*ptrOut->first.reproj_kp.a22
                      };

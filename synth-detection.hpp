@@ -108,20 +108,20 @@ int DetectAffineRegions(SynthImage &img, AffineRegionList &keypoints, params par
   AffRegTmp.type= det_type;
 
   for (int i = 0; i < RegionsNumber; i++, ptr++)
-  {
-    AffRegTmp.id = i;
-    AffRegTmp.det_kp.s=ptr->s * sqrt(fabs(ptr->a11 * ptr->a22 - ptr->a12 * ptr->a21));
-    rectifyTransformation(ptr->a11,ptr->a12,ptr->a21,ptr->a22);
-    AffRegTmp.det_kp.x = ptr->x;
-    AffRegTmp.det_kp.y = ptr->y;
-    AffRegTmp.det_kp.a11 = ptr->a11;
-    AffRegTmp.det_kp.a12 = ptr->a12;
-    AffRegTmp.det_kp.a21 = ptr->a21;
-    AffRegTmp.det_kp.a22 = ptr->a22;
-    AffRegTmp.det_kp.response = ptr->response;
-    AffRegTmp.det_kp.sub_type = ptr->sub_type;
-    keypoints.push_back(AffRegTmp);
-  }
+    {
+      AffRegTmp.id = i;
+      AffRegTmp.det_kp.s=ptr->s * sqrt(fabs(ptr->a11 * ptr->a22 - ptr->a12 * ptr->a21));
+      rectifyTransformation(ptr->a11,ptr->a12,ptr->a21,ptr->a22);
+      AffRegTmp.det_kp.x = ptr->x;
+      AffRegTmp.det_kp.y = ptr->y;
+      AffRegTmp.det_kp.a11 = ptr->a11;
+      AffRegTmp.det_kp.a12 = ptr->a12;
+      AffRegTmp.det_kp.a21 = ptr->a21;
+      AffRegTmp.det_kp.a22 = ptr->a22;
+      AffRegTmp.det_kp.response = ptr->response;
+      AffRegTmp.det_kp.sub_type = ptr->sub_type;
+      keypoints.push_back(AffRegTmp);
+    }
   return RegionsNumber;
 }
 
@@ -169,10 +169,10 @@ int DetectAffineShape(AffineRegionList &in_kp_list,
 template <typename FuncType>
 void DescribeRegions(AffineRegionList &in_kp_list,
                      SynthImage &img, FuncType descriptor,
-                     double mrSize = 3.0*sqrt(3.0), int patchSize = 41, bool fast_extraction = false, bool photoNorm = false)
+                     double mrSize = 3.0*sqrt(3.0), int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool residualSIFT = false)
 //Describes region with SIFT or other descriptor
 {
- // std::cerr << "photonorm=" << photoNorm << std::endl;
+  // std::cerr << "photonorm=" << photoNorm << std::endl;
   std::vector<unsigned char> workspace;
   unsigned int i;
   // patch size in the image / patch size -> amount of down/up sampling
@@ -180,78 +180,103 @@ void DescribeRegions(AffineRegionList &in_kp_list,
   unsigned int n_descs = in_kp_list.size();
   cv::Mat mask(patchSize,patchSize,CV_32F);
   computeCircularGaussMask(mask);
+  cv::Mat all_patches;
+  if (residualSIFT) {
+      all_patches = cv::Mat::zeros(patchSize * n_descs, patchSize, CV_32FC1);
+    }
   if ( !fast_extraction) {
-    for (i = 0; i < n_descs; i++) {
-      float mrScale = ceil(in_kp_list[i].det_kp.s * mrSize); // half patch size in pixels of image
+      for (i = 0; i < n_descs; i++) {
+          float mrScale = ceil(in_kp_list[i].det_kp.s * mrSize); // half patch size in pixels of image
 
-      int patchImageSize = 2 * int(mrScale) + 1; // odd size
-      float imageToPatchScale = float(patchImageSize) / float(patchSize);  // patch size in the image / patch size -> amount of down/up sampling
-      // is patch touching boundary? if yes, ignore this feature
-      if (imageToPatchScale > 0.4) {
-        // the pixels in the image are 0.4 apart + the affine deformation
-        // leave +1 border for the bilinear interpolation
-        patchImageSize += 2;
-        size_t wss = patchImageSize * patchImageSize * sizeof(float);
-        if (wss >= workspace.size())
-          workspace.resize(wss);
+          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          float imageToPatchScale = float(patchImageSize) / float(patchSize);  // patch size in the image / patch size -> amount of down/up sampling
+          // is patch touching boundary? if yes, ignore this feature
+          if (imageToPatchScale > 0.4) {
+              // the pixels in the image are 0.4 apart + the affine deformation
+              // leave +1 border for the bilinear interpolation
+              patchImageSize += 2;
+              size_t wss = patchImageSize * patchImageSize * sizeof(float);
+              if (wss >= workspace.size())
+                workspace.resize(wss);
 
-        Mat smoothed(patchImageSize, patchImageSize, CV_32FC1, (void *) &workspace.front());
-        // interpolate with det == 1
-        interpolate(img.pixels,
-                    (float) in_kp_list[i].det_kp.x,
-                    (float) in_kp_list[i].det_kp.y,
-                    (float) in_kp_list[i].det_kp.a11,
-                    (float) in_kp_list[i].det_kp.a12,
-                    (float) in_kp_list[i].det_kp.a21,
-                    (float) in_kp_list[i].det_kp.a22,
-                    smoothed);
+              Mat smoothed(patchImageSize, patchImageSize, CV_32FC1, (void *) &workspace.front());
+              // interpolate with det == 1
+              interpolate(img.pixels,
+                          (float) in_kp_list[i].det_kp.x,
+                          (float) in_kp_list[i].det_kp.y,
+                          (float) in_kp_list[i].det_kp.a11,
+                          (float) in_kp_list[i].det_kp.a12,
+                          (float) in_kp_list[i].det_kp.a21,
+                          (float) in_kp_list[i].det_kp.a22,
+                          smoothed);
 
-        gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
-        // subsample with corresponding scale
-        interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
-                    imageToPatchScale, 0, 0, imageToPatchScale, patch);
-      } else {
-        // if imageToPatchScale is small (i.e. lot of oversampling), affine normalize without smoothing
-        interpolate(img.pixels,
-                    (float) in_kp_list[i].det_kp.x,
-                    (float) in_kp_list[i].det_kp.y,
-                    (float) in_kp_list[i].det_kp.a11 * imageToPatchScale,
-                    (float) in_kp_list[i].det_kp.a12 * imageToPatchScale,
-                    (float) in_kp_list[i].det_kp.a21 * imageToPatchScale,
-                    (float) in_kp_list[i].det_kp.a22 * imageToPatchScale,
-                    patch);
+              gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
+              // subsample with corresponding scale
+              interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
+                          imageToPatchScale, 0, 0, imageToPatchScale, patch);
+            } else {
+              // if imageToPatchScale is small (i.e. lot of oversampling), affine normalize without smoothing
+              interpolate(img.pixels,
+                          (float) in_kp_list[i].det_kp.x,
+                          (float) in_kp_list[i].det_kp.y,
+                          (float) in_kp_list[i].det_kp.a11 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a12 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a21 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a22 * imageToPatchScale,
+                          patch);
 
-      }
-      if (photoNorm) {
-          float mean, var;
-          photometricallyNormalize(patch, mask, mean, var);
+            }
+          if (residualSIFT) {
+              patch.copyTo(all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)));
+            }
+          if (photoNorm) {
+              float mean, var;
+              photometricallyNormalize(patch, mask, mean, var);
+            }
+          descriptor(patch, in_kp_list[i].desc.vec);
+          ///
+          in_kp_list[i].desc.type = descriptor.type;
+
         }
-      descriptor(patch, in_kp_list[i].desc.vec);
-      in_kp_list[i].desc.type = descriptor.type;
-    }
-  } else {
-    for (i = 0; i < n_descs; i++) {
-      double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
-      int patchImageSize = 2 * int(mrScale) + 1; // odd size
-      double imageToPatchScale = double(patchImageSize) / (double) patchSize;
-      float curr_sc = imageToPatchScale;
-
-      interpolate(img.pixels,
-                  (float) in_kp_list[i].det_kp.x,
-                  (float) in_kp_list[i].det_kp.y,
-                  (float) in_kp_list[i].det_kp.a11 * curr_sc,
-                  (float) in_kp_list[i].det_kp.a12 * curr_sc,
-                  (float) in_kp_list[i].det_kp.a21 * curr_sc,
-                  (float) in_kp_list[i].det_kp.a22 * curr_sc,
-                  patch);
-      if (photoNorm) {
-          float mean, var;
-          photometricallyNormalize(patch, mask, mean, var);
+      if (residualSIFT) {
+          cv::imwrite("all_patches.png", all_patches);
+          std::string command = "./get_cnn_descriptor.py";
+          std::cerr << command << std::endl;
+          system(command.c_str());
+          std::ifstream focikp("decsrip.txt");
+          if (focikp.is_open()) {
+              for (i = 0; i < n_descs; i++) {
+                  in_kp_list[i].desc.vec.resize(256);
+                  for (int dd = 0; dd < 256; dd++) {
+                      focikp >> in_kp_list[i].desc.vec[dd];
+                    }
+                }
+            }
+          focikp.close();
         }
-      descriptor(patch, in_kp_list[i].desc.vec);
-      in_kp_list[i].desc.type = descriptor.type;
+    } else {
+      for (i = 0; i < n_descs; i++) {
+          double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
+          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          double imageToPatchScale = double(patchImageSize) / (double) patchSize;
+          float curr_sc = imageToPatchScale;
+
+          interpolate(img.pixels,
+                      (float) in_kp_list[i].det_kp.x,
+                      (float) in_kp_list[i].det_kp.y,
+                      (float) in_kp_list[i].det_kp.a11 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a12 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a21 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a22 * curr_sc,
+                      patch);
+          if (photoNorm) {
+              float mean, var;
+              photometricallyNormalize(patch, mask, mean, var);
+            }
+          descriptor(patch, in_kp_list[i].desc.vec);
+          in_kp_list[i].desc.type = descriptor.type;
+        }
     }
-  }
 }
 void AddRegionsToList(AffineRegionList &kp_list, AffineRegionList& new_kps);
 //Function for getting new regions ID right (original IDs are changed to new ones to ensure no collisions in kp_list)
@@ -280,58 +305,58 @@ void GetAXRegionsTime (const SynthImage &orig_img,std::vector<ViewSynthParameter
   params_det det_par_current;
 #pragma omp parallel for reduction (+:UnOrient1) schedule (dynamic,1)
   for (unsigned int i=0; i < synth_par.size(); i++)
-  {
-    AffineRegionList temp_kp1;
-    SynthImage temp_img1;
-    long s_time = getMilliSecs1();
-    GenerateSynthImageCorr(orig_img.pixels,temp_img1,orig_img.OrigImgName,synth_par[i].tilt,
-                           synth_par[i].phi,synth_par[i].zoom,synth_par[i].InitSigma,
-                           synth_par[i].doBlur, i+orig_img.id);
-
-    time1 = ((double)(getMilliSecs1() - s_time))/1000;
-    times1.SynthTime += time1;
-    s_time = getMilliSecs1();
-
-    DetectAffineRegions(temp_img1, temp_kp1, det_par, detector);
-    UnOrient1 +=ReprojectRegions(temp_kp1, temp_img1.H, orig_img.pixels.cols, orig_img.pixels.rows);
-
-    time1 = ((double)(getMilliSecs1() - s_time))/1000;
-    times1.DetectTime += time1;
-    s_time = getMilliSecs1();
-
-    AffineRegionList temp_kpHalfSIFT,temp_kpSIFT;
-
-    DetectOrientation(temp_kp1,temp_kpSIFT, temp_kpHalfSIFT,temp_img1, 0, desc_par.PEParam.mrSizeOri,desc_par.PEParam.patchSize,
-                      desc_par.doOnWLD,desc_par.WLDPars, desc_par.doSIFT, desc_par.doHalfSIFT);
-    time1 = ((double)(getMilliSecs1() - s_time))/1000;
-    times1.OrientTime += time1;
-    s_time = getMilliSecs1();
-
-    if (desc_par.doSIFT)
     {
-      params_desc curr_desc_par = desc_par;
-      curr_desc_par.doHalfSIFT = 0;
-      FuncType Desc(curr_desc_par);
-      DescribeRegions(temp_kpSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
-                      curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+      AffineRegionList temp_kp1;
+      SynthImage temp_img1;
+      long s_time = getMilliSecs1();
+      GenerateSynthImageCorr(orig_img.pixels,temp_img1,orig_img.OrigImgName,synth_par[i].tilt,
+                             synth_par[i].phi,synth_par[i].zoom,synth_par[i].InitSigma,
+                             synth_par[i].doBlur, i+orig_img.id);
+
       time1 = ((double)(getMilliSecs1() - s_time))/1000;
-      times1.DescTime += time1;
+      times1.SynthTime += time1;
       s_time = getMilliSecs1();
-    }
-    if (desc_par.doHalfSIFT)
-    {
-      params_desc curr_desc_par = desc_par;
-      curr_desc_par.doSIFT = 0;
-      FuncType Desc(curr_desc_par);
-      DescribeRegions(temp_kpHalfSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
-                      curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+
+      DetectAffineRegions(temp_img1, temp_kp1, det_par, detector);
+      UnOrient1 +=ReprojectRegions(temp_kp1, temp_img1.H, orig_img.pixels.cols, orig_img.pixels.rows);
+
       time1 = ((double)(getMilliSecs1() - s_time))/1000;
-      times1.DescTime += time1;
+      times1.DetectTime += time1;
       s_time = getMilliSecs1();
+
+      AffineRegionList temp_kpHalfSIFT,temp_kpSIFT;
+
+      DetectOrientation(temp_kp1,temp_kpSIFT, temp_kpHalfSIFT,temp_img1, 0, desc_par.PEParam.mrSizeOri,desc_par.PEParam.patchSize,
+                        desc_par.doOnWLD,desc_par.WLDPars, desc_par.doSIFT, desc_par.doHalfSIFT);
+      time1 = ((double)(getMilliSecs1() - s_time))/1000;
+      times1.OrientTime += time1;
+      s_time = getMilliSecs1();
+
+      if (desc_par.doSIFT)
+        {
+          params_desc curr_desc_par = desc_par;
+          curr_desc_par.doHalfSIFT = 0;
+          FuncType Desc(curr_desc_par);
+          DescribeRegions(temp_kpSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
+                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+          time1 = ((double)(getMilliSecs1() - s_time))/1000;
+          times1.DescTime += time1;
+          s_time = getMilliSecs1();
+        }
+      if (desc_par.doHalfSIFT)
+        {
+          params_desc curr_desc_par = desc_par;
+          curr_desc_par.doSIFT = 0;
+          FuncType Desc(curr_desc_par);
+          DescribeRegions(temp_kpHalfSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
+                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+          time1 = ((double)(getMilliSecs1() - s_time))/1000;
+          times1.DescTime += time1;
+          s_time = getMilliSecs1();
+        }
+      reg_list1[i] = temp_kpSIFT;
+      half_reg_list1[i] = temp_kpHalfSIFT;
     }
-    reg_list1[i] = temp_kpSIFT;
-    half_reg_list1[i] = temp_kpHalfSIFT;
-  }
   for (unsigned int i=0 ; i < synth_par.size(); i++)
     AddRegionsToList(flat_list,reg_list1[i]);
 

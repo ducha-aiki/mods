@@ -8,7 +8,7 @@ set(PROJECT_NAME "TILDE")
 project(${PROJECT_NAME})
 
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV )
 
 FIND_PACKAGE( OpenMP QUIET)
 if(OPENMP_FOUND)
