@@ -233,21 +233,25 @@ void DescribeRegions(AffineRegionList &in_kp_list,
               float mean, var;
               photometricallyNormalize(patch, mask, mean, var);
             }
-          descriptor(patch, in_kp_list[i].desc.vec);
+            if (!residualSIFT) {
+                descriptor(patch, in_kp_list[i].desc.vec);
+              }
           ///
           in_kp_list[i].desc.type = descriptor.type;
 
         }
       if (residualSIFT) {
-          cv::imwrite("all_patches.png", all_patches);
+          cv::imwrite("all_patches.bmp", all_patches);
           std::string command = "./get_cnn_descriptor.py";
           std::cerr << command << std::endl;
           system(command.c_str());
-          std::ifstream focikp("decsrip.txt");
+          std::ifstream focikp("res_sift_descriptor.txt");
           if (focikp.is_open()) {
+              int dim1 = 0;
+              focikp >> dim1;
               for (i = 0; i < n_descs; i++) {
-                  in_kp_list[i].desc.vec.resize(256);
-                  for (int dd = 0; dd < 256; dd++) {
+                  in_kp_list[i].desc.vec.resize(dim1);
+                  for (int dd = 0; dd < dim1; dd++) {
                       focikp >> in_kp_list[i].desc.vec[dd];
                     }
                 }
@@ -285,88 +289,88 @@ void AddRegionsToListByType(AffineRegionList &kp_list, AffineRegionList& new_kps
 //Function for getting new regions ID right AND only given type
 
 
-template<typename T, typename params_det, typename FuncType, typename params_desc>
-void GetAXRegionsTime (const SynthImage &orig_img,std::vector<ViewSynthParameters> &synth_par,
-                       AffineRegionList &regs, AffineRegionList &halfregs, params_det det_par,
-                       int (*detector)(cv::Mat &input, std::vector<T> &out,const params_det det_par, ScalePyramid &scale_pyramid, const double scale, const double tilt),
-                       FuncType descriptor, params_desc desc_par, int &unOrientedRegs, TimeLog &times1)
-//Function detects interest point and describes them using given detector and descriptor.
-{
-  AffineRegionList flat_list;
-  std::vector<AffineRegionList> reg_list1;
-  reg_list1.resize(synth_par.size());
-  //
-  AffineRegionList half_flat_list;
-  std::vector<AffineRegionList> half_reg_list1; //for Half-SIFTs
-  half_reg_list1.resize(synth_par.size());
-  //
-  int UnOrient1=0;
-  double time1 = 0;
-  params_det det_par_current;
-#pragma omp parallel for reduction (+:UnOrient1) schedule (dynamic,1)
-  for (unsigned int i=0; i < synth_par.size(); i++)
-    {
-      AffineRegionList temp_kp1;
-      SynthImage temp_img1;
-      long s_time = getMilliSecs1();
-      GenerateSynthImageCorr(orig_img.pixels,temp_img1,orig_img.OrigImgName,synth_par[i].tilt,
-                             synth_par[i].phi,synth_par[i].zoom,synth_par[i].InitSigma,
-                             synth_par[i].doBlur, i+orig_img.id);
+//template<typename T, typename params_det, typename FuncType, typename params_desc>
+//void GetAXRegionsTime (const SynthImage &orig_img,std::vector<ViewSynthParameters> &synth_par,
+//                       AffineRegionList &regs, AffineRegionList &halfregs, params_det det_par,
+//                       int (*detector)(cv::Mat &input, std::vector<T> &out,const params_det det_par, ScalePyramid &scale_pyramid, const double scale, const double tilt),
+//                       FuncType descriptor, params_desc desc_par, int &unOrientedRegs, TimeLog &times1)
+////Function detects interest point and describes them using given detector and descriptor.
+//{
+//  AffineRegionList flat_list;
+//  std::vector<AffineRegionList> reg_list1;
+//  reg_list1.resize(synth_par.size());
+//  //
+//  AffineRegionList half_flat_list;
+//  std::vector<AffineRegionList> half_reg_list1; //for Half-SIFTs
+//  half_reg_list1.resize(synth_par.size());
+//  //
+//  int UnOrient1=0;
+//  double time1 = 0;
+//  params_det det_par_current;
+//#pragma omp parallel for reduction (+:UnOrient1) schedule (dynamic,1)
+//  for (unsigned int i=0; i < synth_par.size(); i++)
+//    {
+//      AffineRegionList temp_kp1;
+//      SynthImage temp_img1;
+//      long s_time = getMilliSecs1();
+//      GenerateSynthImageCorr(orig_img.pixels,temp_img1,orig_img.OrigImgName,synth_par[i].tilt,
+//                             synth_par[i].phi,synth_par[i].zoom,synth_par[i].InitSigma,
+//                             synth_par[i].doBlur, i+orig_img.id);
 
-      time1 = ((double)(getMilliSecs1() - s_time))/1000;
-      times1.SynthTime += time1;
-      s_time = getMilliSecs1();
+//      time1 = ((double)(getMilliSecs1() - s_time))/1000;
+//      times1.SynthTime += time1;
+//      s_time = getMilliSecs1();
 
-      DetectAffineRegions(temp_img1, temp_kp1, det_par, detector);
-      UnOrient1 +=ReprojectRegions(temp_kp1, temp_img1.H, orig_img.pixels.cols, orig_img.pixels.rows);
+//      DetectAffineRegions(temp_img1, temp_kp1, det_par, detector);
+//      UnOrient1 +=ReprojectRegions(temp_kp1, temp_img1.H, orig_img.pixels.cols, orig_img.pixels.rows);
 
-      time1 = ((double)(getMilliSecs1() - s_time))/1000;
-      times1.DetectTime += time1;
-      s_time = getMilliSecs1();
+//      time1 = ((double)(getMilliSecs1() - s_time))/1000;
+//      times1.DetectTime += time1;
+//      s_time = getMilliSecs1();
 
-      AffineRegionList temp_kpHalfSIFT,temp_kpSIFT;
+//      AffineRegionList temp_kpHalfSIFT,temp_kpSIFT;
 
-      DetectOrientation(temp_kp1,temp_kpSIFT, temp_kpHalfSIFT,temp_img1, 0, desc_par.PEParam.mrSizeOri,desc_par.PEParam.patchSize,
-                        desc_par.doOnWLD,desc_par.WLDPars, desc_par.doSIFT, desc_par.doHalfSIFT);
-      time1 = ((double)(getMilliSecs1() - s_time))/1000;
-      times1.OrientTime += time1;
-      s_time = getMilliSecs1();
+//      DetectOrientation(temp_kp1,temp_kpSIFT, temp_kpHalfSIFT,temp_img1, 0, desc_par.PEParam.mrSizeOri,desc_par.PEParam.patchSize,
+//                        desc_par.doOnWLD,desc_par.WLDPars, desc_par.doSIFT, desc_par.doHalfSIFT);
+//      time1 = ((double)(getMilliSecs1() - s_time))/1000;
+//      times1.OrientTime += time1;
+//      s_time = getMilliSecs1();
 
-      if (desc_par.doSIFT)
-        {
-          params_desc curr_desc_par = desc_par;
-          curr_desc_par.doHalfSIFT = 0;
-          FuncType Desc(curr_desc_par);
-          DescribeRegions(temp_kpSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
-                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
-          time1 = ((double)(getMilliSecs1() - s_time))/1000;
-          times1.DescTime += time1;
-          s_time = getMilliSecs1();
-        }
-      if (desc_par.doHalfSIFT)
-        {
-          params_desc curr_desc_par = desc_par;
-          curr_desc_par.doSIFT = 0;
-          FuncType Desc(curr_desc_par);
-          DescribeRegions(temp_kpHalfSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
-                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
-          time1 = ((double)(getMilliSecs1() - s_time))/1000;
-          times1.DescTime += time1;
-          s_time = getMilliSecs1();
-        }
-      reg_list1[i] = temp_kpSIFT;
-      half_reg_list1[i] = temp_kpHalfSIFT;
-    }
-  for (unsigned int i=0 ; i < synth_par.size(); i++)
-    AddRegionsToList(flat_list,reg_list1[i]);
+//      if (desc_par.doSIFT)
+//        {
+//          params_desc curr_desc_par = desc_par;
+//          curr_desc_par.doHalfSIFT = 0;
+//          FuncType Desc(curr_desc_par);
+//          DescribeRegions(temp_kpSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
+//                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+//          time1 = ((double)(getMilliSecs1() - s_time))/1000;
+//          times1.DescTime += time1;
+//          s_time = getMilliSecs1();
+//        }
+//      if (desc_par.doHalfSIFT)
+//        {
+//          params_desc curr_desc_par = desc_par;
+//          curr_desc_par.doSIFT = 0;
+//          FuncType Desc(curr_desc_par);
+//          DescribeRegions(temp_kpHalfSIFT, temp_img1, Desc,0,curr_desc_par.PEParam.mrSize,curr_desc_par.PEParam.patchSize,
+//                          curr_desc_par.doOnWLD,curr_desc_par.WLDPars);
+//          time1 = ((double)(getMilliSecs1() - s_time))/1000;
+//          times1.DescTime += time1;
+//          s_time = getMilliSecs1();
+//        }
+//      reg_list1[i] = temp_kpSIFT;
+//      half_reg_list1[i] = temp_kpHalfSIFT;
+//    }
+//  for (unsigned int i=0 ; i < synth_par.size(); i++)
+//    AddRegionsToList(flat_list,reg_list1[i]);
 
-  for (unsigned int i=0 ; i < synth_par.size(); i++)
-    AddRegionsToList(half_flat_list,half_reg_list1[i]);
+//  for (unsigned int i=0 ; i < synth_par.size(); i++)
+//    AddRegionsToList(half_flat_list,half_reg_list1[i]);
 
-  regs = flat_list;
-  halfregs = half_flat_list;
-  unOrientedRegs += UnOrient1;
-}
+//  regs = flat_list;
+//  halfregs = half_flat_list;
+//  unOrientedRegs += UnOrient1;
+//}
 
 
 #ifdef WITH_OPENCV_DETECTORS
