@@ -83,6 +83,18 @@ Now loading and matching
     ./mods examples/cat.png examples/cat2.png out1.png out2.png cat1.txt cat2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu_onestep.ini 1
 
 
-    
+ ## Citation
+
+Please cite us if you use this code:
+
+    @article{Mishkin2015MODS,
+          title = "MODS: Fast and robust method for two-view matching ",
+          journal = "Computer Vision and Image Understanding ",
+          year = "2015",
+          issn = "1077-3142",
+          doi = "http://dx.doi.org/10.1016/j.cviu.2015.08.005",
+          url = "http://www.sciencedirect.com/science/article/pii/S1077314215001800",
+          author = "Dmytro Mishkin and Jiri Matas and Michal Perdoch"
+          }
     
     
