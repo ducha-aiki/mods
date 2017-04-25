@@ -11,8 +11,8 @@
 
 //
 #include <opencv2/features2d/features2d.hpp>
-#include <opencv2/nonfree/nonfree.hpp>
-#include <opencv2/nonfree/features2d.hpp>
+//#include <opencv2/nonfree/nonfree.hpp>
+//#include <opencv2/nonfree/features2d.hpp>
 #include "opensurf/surflib.h"
 
 //
@@ -60,7 +60,7 @@ bool HIsEye(double* H) {
 
 }
 
-int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize) {
+int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize, const bool dontRemove) {
 int old_size = keypoints.size();
   cv::Mat H1(3, 3, CV_64F, H);
   cv::Mat Hinv(3, 3, CV_64F);
@@ -91,13 +91,13 @@ int old_size = keypoints.size();
                                         ptr->reproj_kp.a11, ptr->reproj_kp.a12,
                                         ptr->reproj_kp.a21, ptr->reproj_kp.a22,
                                         mrSize * ptr->reproj_kp.s,
-                                        mrSize * ptr->reproj_kp.s)) {
+                                        mrSize * ptr->reproj_kp.s) || dontRemove) {
               temp_keypoints.push_back(keypoints[i]);
             }
         }
     }
   keypoints = temp_keypoints;
-  std::cout << old_size << " , become " << keypoints.size() << std::endl;
+//std::cout << old_size << " , become " << keypoints.size() << std::endl;
   return (int)keypoints.size();
 }
 int SetVSPars(const std::vector <double> &scale_set,

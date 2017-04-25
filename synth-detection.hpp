@@ -65,7 +65,7 @@ int SetVSPars (const std::vector <double> &scale_set,
 //Function generates parameters for view synthesis based on gived scale, tilt and rotation sets, avoiding duplicates with previous synthesis.
 
 //void GenerateSynthImage(const cv::Mat &in_img, SynthImage &out_img,const char* in_img_name, const double tilt,const double phi, const double zoom, const double InitSigma=0.5,const int doBlur=1, const int img_id = 0);
-int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize = 3.0*sqrt(3.0));
+int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize = 3.0*sqrt(3.0), const bool dontRemove = false) ;
 //Function reprojects detected regions to other image ("original") using H matrix (H is from original to tilted).
 //Then all regions that are outside original image (fully or partially) are deleted.
 bool HIsEye(double* H);

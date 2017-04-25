@@ -2,8 +2,8 @@
 #include "synth-detection.hpp"
 #include "detectors/mser/extrema/extrema.h"
 #include <opencv2/features2d/features2d.hpp>
-#include <opencv2/nonfree/nonfree.hpp>
-#include <opencv2/nonfree/features2d.hpp>
+//#include <opencv2/nonfree/nonfree.hpp>
+//#include <opencv2/nonfree/features2d.hpp>
 #include "opensurf/surflib.h"
 #include "matching/liopdesc.hpp"
 #include "akaze/src/lib/AKAZE.h"
@@ -895,6 +895,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("Saddle")==0)
             {
               if ((synth_par[curr_det][synth].descriptors.size() == 1) && (synth_par[curr_det][synth].descriptors[0] == "ORB")) {
+                  std::cout << "Det and desc at once saddle" << std::endl
                   ;// Will detect and describe at once
                 } else  {
 
@@ -1086,6 +1087,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("ORB")==0)
             {
               if ((synth_par[curr_det][synth].descriptors.size() == 1) && (synth_par[curr_det][synth].descriptors[0] == "ORB")) {
+                  std::cout << "det and desc at once " << std::endl;
                   ;// Will detect and describe at once
                 } else  {
                   OpenCV_det = true;
@@ -1283,7 +1285,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                     false, 0, 1.0, true);
                 }
             }
-          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
+          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0, true);
           temp_kp_map["None"] = temp_kp1;
 
           for (unsigned int i_desc=0; i_desc < synth_par[curr_det][synth].descriptors.size();i_desc++) {
@@ -1706,7 +1708,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           //cmp::SORB detector(responseThr, scaleFactor, nlevels, edgeThreshold, epsilon, 2, cmp::SORB::DELTA_SCORE , 31,
                           //                   doNMS, descSize, deltaThr, nfeatures, allC1feats, strictMaximum, subPixPrecision, gravityCenter, innerTstType);
 
-                          Mat dcts, mask;
+                          Mat mask;
 
                           printf("Detecting SADDLE points... \n");
                           temp_img1.pixels.convertTo(CharImage,CV_8U);
@@ -1755,8 +1757,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                 temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
 
                             }
-                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
+                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
+                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
                           temp_kp_map["None"] = temp_kp1;
 
 
@@ -1784,7 +1786,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
                           temp_img1.pixels.convertTo(CharImage,CV_8U);
                           //CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
-                          Mat dcts, mask;
+                          Mat  mask;
 
                           CurrentDescriptor(CharImage, mask, keypoints_1, descriptors_1, false);//, dcts, false );
                           printf("Done \n");
@@ -1831,8 +1833,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                 temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
 
                             }
-                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
+                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
+                          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
                           temp_kp_map["None"] = temp_kp1;
 
 
