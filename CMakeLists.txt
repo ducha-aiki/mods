@@ -5,7 +5,7 @@ PROJECT(MODS_NEW)
 add_definitions(-DA64)
 add_definitions(-std=c++11)
 
-SET(WITH_CAFFE FALSE)
+SET(WITH_CAFFE TRUE)
 
 message("Looking for OpenCV")
 #SET (OpenCV_DIR "/usr/local/opencv-2.4.9/")
@@ -50,10 +50,16 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
 if(WITH_CAFFE)
-add_definitions(-DCPU_ONLY) #caffe cpu_only
-include_directories(/home/old-ufo/caffe-clear/include)
-include_directories(/home/old-ufo/caffe-clear/build/src/)
-link_directories(/home/old-ufo/caffe-clear/build/lib)
+add_definitions(-DWITH_CAFFE) #caffe cpu_only
+include_directories(/home/old-ufo/dev/caffe/include)
+include_directories(/home/old-ufo/dev/caffe/build/src/)
+include_directories(/opt/OpenBLAS/include)
+include_directories(/usr/local/cuda/include)
+
+
+
+link_directories(/home/old-ufo/dev/caffe/build/lib)
+link_directories(/opt/OpenBLAS/lib)
 endif(WITH_CAFFE)
 
 link_directories(/home/old-ufo/dev/mods/wxbs-journal/vlfeat/bin/glnxa64)
@@ -130,7 +136,7 @@ add_library(synth-detection ${synth-detection_srcs})
 
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(synth-detection matching opensurf
-mser AKAZE affinedetectors ${OpenCV_LIBS} helpers vl caffe glog protobuf lmdb blas)
+mser AKAZE affinedetectors ${OpenCV_LIBS} helpers vl caffe glog boost_system  protobuf lmdb blas)
 else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(synth-detection matching opensurf
 mser affinedetectors AKAZE helpers vl ${OpenCV_LIBS})
@@ -145,17 +151,19 @@ add_executable(mods mods.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc)#smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog protobuf leveldb openblas saddlepts ${OpenCV_LIBS} vl m daisy z)
+AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} vl m daisy z)
 else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
 ${OpenCV_LIBS} z vl m daisy)
 endif(WITH_CAFFE)
 
+set (TT FALSE)
+if (TT)
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE saddlepts caffe glog protobuf leveldb openblas ${OpenCV_LIBS} ceigs fftw3 arpack  m cxsparse umfpack daisy z)
+AKAZE vl mrogh TILDE saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} blas m daisy z)
 else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
 ${OpenCV_LIBS} m daisy z)
@@ -165,7 +173,7 @@ add_executable(extract_regions_for_benchmark extract_regions_for_benchmark corre
 imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_regions_for_benchmark inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE saddlepts caffe glog protobuf leveldb openblas ${OpenCV_LIBS} ceigs fftw3 arpack  m cxsparse umfpack daisy z)
+AKAZE vl mrogh TILDE saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} m daisy z blas)
 else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_regions_for_benchmark inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
 ${OpenCV_LIBS} m daisy z)
@@ -175,7 +183,7 @@ add_executable(export_descriptors export_descriptors correspondencebank.cpp
 imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(export_descriptors inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog protobuf leveldb openblas saddlepts ${OpenCV_LIBS} ceigs fftw3 arpack  m cxsparse umfpack daisy z)
+AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m daisy z)
 else(WITH_CAFFE )
 TARGET_LINK_LIBRARIES(export_descriptors inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
  opencv_core m daisy z)
@@ -185,9 +193,10 @@ add_executable(mods_multi mods_multi.cpp correspondencebank.cpp
 imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods_multi inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog protobuf leveldb openblas saddlepts ${OpenCV_LIBS} ceigs fftw3 arpack  m cxsparse umfpack daisy z)
+AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m daisy z)
 else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods_multi inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
 ${OpenCV_LIBS} m daisy z)
 endif(WITH_CAFFE)
 
+endif(TT)
