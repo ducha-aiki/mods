@@ -42,6 +42,109 @@ const int MAX_WIDTH = 10000;
 const double COS_PI_2 = cos(M_PI/2);
 const double SIN_PI_2 = sin(M_PI/2);
 
+void DescribeRegionsExt(const AffineRegionList &in_kp_list,
+                   const  SynthImage &img,  cv::Mat &patches,  double mrSize  ,
+                           int patchSize , bool fast_extraction , bool photoNorm , bool export_and_read)
+//Describes region with SIFT or other descriptor
+{
+  // std::cerr << "photonorm=" << photoNorm << std::endl;
+  std::vector<unsigned char> workspace;
+  // patch size in the image / patch size -> amount of down/up sampling
+   unsigned int n_descs = in_kp_list.size();
+  cv::Mat mask(patchSize,patchSize,CV_32F);
+  computeCircularGaussMask(mask);
+  cv::Mat all_patches =  cv::Mat::zeros(patchSize * n_descs, patchSize, CV_32FC1);
+  cv::Mat patch(patchSize,patchSize,CV_32F);
+
+
+  if ( !fast_extraction) {
+      for (unsigned int i = 0; i < n_descs; i++) {
+          cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
+
+
+          float mrScale = ceil(in_kp_list[i].det_kp.s * mrSize); // half patch size in pixels of image
+
+          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          float imageToPatchScale = float(patchImageSize) / float(patchSize);  // patch size in the image / patch size -> amount of down/up sampling
+          // is patch touching boundary? if yes, ignore this feature
+          if (imageToPatchScale > 0.4) {
+              // the pixels in the image are 0.4 apart + the affine deformation
+              // leave +1 border for the bilinear interpolation
+              patchImageSize += 2;
+              size_t wss = patchImageSize * patchImageSize * sizeof(float);
+              if (wss >= workspace.size())
+                workspace.resize(wss);
+
+              Mat smoothed(patchImageSize, patchImageSize, CV_32FC1, (void *) &workspace.front());
+              // interpolate with det == 1
+              interpolate(img.pixels,
+                          (float) in_kp_list[i].det_kp.x,
+                          (float) in_kp_list[i].det_kp.y,
+                          (float) in_kp_list[i].det_kp.a11,
+                          (float) in_kp_list[i].det_kp.a12,
+                          (float) in_kp_list[i].det_kp.a21,
+                          (float) in_kp_list[i].det_kp.a22,
+                          smoothed);
+
+              gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
+              // subsample with corresponding scale
+             int res =  interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
+                          imageToPatchScale, 0, 0, imageToPatchScale, currentROI);
+
+            } else {
+              // if imageToPatchScale is small (i.e. lot of oversampling), affine normalize without smoothing
+              interpolate(img.pixels,
+                          (float) in_kp_list[i].det_kp.x,
+                          (float) in_kp_list[i].det_kp.y,
+                          (float) in_kp_list[i].det_kp.a11 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a12 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a21 * imageToPatchScale,
+                          (float) in_kp_list[i].det_kp.a22 * imageToPatchScale,
+                          currentROI);
+
+            }
+          if (photoNorm) {
+              float mean, var;
+              photometricallyNormalize(currentROI, mask, mean, var);
+            }
+
+
+ //  all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)) = patch.clone();
+
+        }
+    } else {
+
+      for (unsigned int i = 0; i < n_descs; i++) {
+          cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
+
+          cv::Mat patch(patchSize, patchSize, CV_32FC1);
+
+          double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
+          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          double imageToPatchScale = double(patchImageSize) / (double) patchSize;
+          float curr_sc = imageToPatchScale;
+
+          interpolate(img.pixels,
+                      (float) in_kp_list[i].det_kp.x,
+                      (float) in_kp_list[i].det_kp.y,
+                      (float) in_kp_list[i].det_kp.a11 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a12 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a21 * curr_sc,
+                      (float) in_kp_list[i].det_kp.a22 * curr_sc,
+                      currentROI);
+          if (photoNorm) {
+              float mean, var;
+              photometricallyNormalize(currentROI, mask, mean, var);
+            }
+     //    patch.copyTo(all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)));
+
+        }
+
+    }
+  patches = all_patches.clone();
+
+
+}
 
 void rectifyTransformation(double &a11, double &a12, double &a21, double &a22)
 {

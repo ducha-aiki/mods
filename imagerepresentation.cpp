@@ -28,7 +28,6 @@
 #define VERBOSE 1
 //
 
-
 void saveKP(AffineKeypoint &ak, std::ostream &s) {
   s << ak.x << " " << ak.y << " " << ak.a11 << " " << ak.a12 << " " << ak.a21 << " " << ak.a22 << " ";
   s << ak.pyramid_scale << " " << ak.octave_number << " " << ak.s << " " << ak.sub_type << " ";
@@ -181,9 +180,9 @@ void L2normalize(const float* input_arr, int size, std::vector<float> &output_ve
   for (int i = 0; i < size; ++i) {
       norm+=input_arr[i] * input_arr[i];
     }
-  const double norm_coef = 1.0/sqrt(norm);
+  const double norm_coef = 1.0/sqrt(norm + 1e-10);
   for (int i = 0; i < size; ++i) {
-      const float v1 = floor(512.0*norm_coef*input_arr[i]);
+      const float v1 = norm_coef*input_arr[i] ;
       output_vect[i] = v1;
     }
 }
@@ -195,7 +194,7 @@ void L1normalize(const float* input_arr, int size, std::vector<float> &output_ve
     }
   const double norm_coef = 1.0/norm;
   for (int i = 0; i < size; ++i) {
-      const float v1 = floor(512.0*norm_coef*input_arr[i]);
+      const float v1 = floor(norm_coef*input_arr[i]);
       output_vect[i] = v1;
     }
 }
@@ -208,7 +207,7 @@ void RootNormalize(const float* input_arr, int size, std::vector<float> &output_
     }
   const double norm_coef = 1.0/norm;
   for (int i = 0; i < size; ++i) {
-      const float v1 = sqrt(512.0*norm_coef*input_arr[i]);
+      const float v1 = sqrt(norm_coef*input_arr[i]);
       output_vect[i] = v1;
     }
 }
@@ -228,7 +227,7 @@ ImageRepresentation::ImageRepresentation()
 
 }
 #ifdef WITH_CAFFE
-void ImageRepresentation::InitCaffe(caffe::Net<float>* net_ptr)
+void ImageRepresentation::InitCaffe(std::shared_ptr<caffe::Net<float> > net_ptr)
 {
   caffe_net_ptr = net_ptr;
 }
@@ -709,6 +708,13 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                 } else {
                   SIFT_like_desc = false;
                 }
+              if (curr_desc.find("CLI") != std::string::npos) {
+                  SIFT_like_desc = true;
+                }
+              if (curr_desc.find("CAFFE") != std::string::npos) {
+                  SIFT_like_desc = true;
+                }
+
             }
           /// Detection
           s_time = getMilliSecs1();
@@ -896,11 +902,11 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
             {
               if ((synth_par[curr_det][synth].descriptors.size() == 1) && (synth_par[curr_det][synth].descriptors[0] == "ORB")) {
                   std::cout << "Det and desc at once saddle" << std::endl
-                  ;// Will detect and describe at once
+                               ;// Will detect and describe at once
                 } else  {
 
 
-               //   std::string curr_desc = synth_par[curr_det][synth].descriptors[i_desc];
+                  //   std::string curr_desc = synth_par[curr_det][synth].descriptors[i_desc];
 
                   doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
 
@@ -1262,6 +1268,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           AffineRegionVector temp_kp1_SIFT_like_desc;
           AffineRegionVector temp_kp1_HalfSIFT_like_desc;
           AffineRegionVector temp_kp1_upright;
+          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, desc_par.RootSIFTParam.PEParam.mrSize + 0.01 , true);
 
           if (curr_det.compare("ReadAffs") == 0){
 
@@ -1285,7 +1292,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                     false, 0, 1.0, true);
                 }
             }
-          ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0, true);
           temp_kp_map["None"] = temp_kp1;
 
           for (unsigned int i_desc=0; i_desc < synth_par[curr_det][synth].descriptors.size();i_desc++) {
@@ -1360,94 +1366,23 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               else if (curr_desc.compare("CAFFE")==0)
                 {
 #ifdef WITH_CAFFE
-                  /// Orientation
-                  if (desc_par.CaffeDescParam.DoSIFTLikeOrientation)
-                    {
-                      DetectOrientation(temp_kp1,temp_kp1_desc,temp_img1,
-                                        desc_par.CaffeDescParam.mrSize,
-                                        desc_par.CaffeDescParam.patchSize,
-                                        desc_par.RootSIFTParam.doHalfSIFT,
-                                        desc_par.CaffeDescParam.maxOrientations,
-                                        desc_par.CaffeDescParam.orientTh);
+                  cv::Mat patches;
+                  int odd_patch_size = desc_par.CaffeDescParam.patchSize;
+                  if  (desc_par.CaffeDescParam.patchSize % 2 == 0) {
+                    odd_patch_size++;
+                  }
+                  if (temp_kp1_desc.size() > 0){
+                      DescribeRegionsExt(temp_kp1_desc,temp_img1,patches,
+                                         desc_par.CaffeDescParam.mrSize,
+                                         odd_patch_size,
+                                         false,
+                                         false,
+                                         true);
 
-                    }
-                  else
-                    {
-                      temp_kp1_desc = temp_kp1;
-                    }
-                  ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-
-                  time1 = ((double)(getMilliSecs1() - s_time))/1000;
-                  TimeSpent.OrientTime += time1;
-                  s_time = getMilliSecs1();
-                  ///Description
-                  unsigned int i;
-                  double mrScale = (double)desc_par.CaffeDescParam.mrSize; // half patch size in pixels of image
-                  int patchImageSize = 2*int(mrScale)+1; // odd size
-                  double imageToPatchScale = double(patchImageSize) / (double)desc_par.CaffeDescParam.patchSize;
-                  // patch size in the image / patch size -> amount of down/up sampling
-
-                  unsigned int n_descs = temp_kp1_desc.size();
-
-                  /// CNN loading
-
-                  std::vector<int> mean_px(3);
-                  mean_px[0]=desc_par.CaffeDescParam.MeanB;
-                  mean_px[1]=desc_par.CaffeDescParam.MeanG;
-                  mean_px[2]=desc_par.CaffeDescParam.MeanR;
-                  std::vector<cv::Mat> imgs_to_describe;
-                  ///
-                  std::vector<cv::Mat> BGR(3);
-                  std::vector<cv::Mat> BGR_res(3);
-                  if (OriginalImg.channels() == 3) {
-                      cv::split(OriginalImg,BGR);
-                      for (int cc=0;cc<3;cc++)
-                        {
-                          BGR[cc].convertTo(BGR[cc],CV_32F);
-                        }
-                    }
-                  for (i = 0; i < n_descs; i++)
-                    {
-                      cv::Mat patch(desc_par.CaffeDescParam.patchSize,desc_par.CaffeDescParam.patchSize,CV_32FC1);
-                      float curr_sc = imageToPatchScale * temp_kp1_desc[i].reproj_kp.s;
-                      cv::Mat colorPatch;
-                      if (OriginalImg.channels() == 3) {
-                          for (int cc=0;cc<3;cc++)
-                            {
-                              interpolate(BGR[cc],
-                                          (float)temp_kp1_desc[i].reproj_kp.x,
-                                          (float)temp_kp1_desc[i].reproj_kp.y,
-                                          (float)temp_kp1_desc[i].reproj_kp.a11*curr_sc,
-                                          (float)temp_kp1_desc[i].reproj_kp.a12*curr_sc,
-                                          (float)temp_kp1_desc[i].reproj_kp.a21*curr_sc,
-                                          (float)temp_kp1_desc[i].reproj_kp.a22*curr_sc,
-                                          patch);
-                              BGR_res[cc] = patch.clone();
-                            }
-                          cv::Mat patch_temp;
-                          cv::merge(BGR_res, patch_temp);
-                          patch_temp.convertTo(colorPatch,CV_8UC3);
-
-                        } else {
-                          interpolate(OriginalImg,
-                                      (float)temp_kp1_desc[i].reproj_kp.x,
-                                      (float)temp_kp1_desc[i].reproj_kp.y,
-                                      (float)temp_kp1_desc[i].reproj_kp.a11*curr_sc,
-                                      (float)temp_kp1_desc[i].reproj_kp.a12*curr_sc,
-                                      (float)temp_kp1_desc[i].reproj_kp.a21*curr_sc,
-                                      (float)temp_kp1_desc[i].reproj_kp.a22*curr_sc,
-                                      patch);
-
-                          patch.convertTo(colorPatch,CV_8U);
-                          cv::cvtColor(colorPatch.clone(), colorPatch,  CV_GRAY2BGR);
-                        }
-
-                      //     cv::imwrite(std::to_string(i)+".jpg",colorPatch);
-                      imgs_to_describe.push_back(colorPatch);
                     }
 
                   //get the blob
-                  const int dat_channels = 3;
+                  const int dat_channels = 1;
                   const int dat_height = desc_par.CaffeDescParam.patchSize;
                   const int dat_width = desc_par.CaffeDescParam.patchSize;
                   const int batch_size = desc_par.CaffeDescParam.batchSize;
@@ -1461,7 +1396,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   blob_proto.set_width(dat_width);
                   /// Blob init
                   Datum datum;
-                  if (!cvMatToDatum(imgs_to_describe[0], 0,&datum)) {
+                  cv::Mat currentROI1 = patches(Rect(0, 0 * odd_patch_size, dat_height, dat_width));
+                  if (!cvMatToDatum(currentROI1, 0,&datum)) {
                       std::cerr << "Cannot transform image to datum" << std::endl;
                     }
                   int size_in_datum = std::max<int>(datum.data().size(),
@@ -1474,36 +1410,28 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                         }
                     }
                   /// Blob init done
-                  int n_batches = ceil((double)imgs_to_describe.size() / (double)batch_size);
+                  int n_batches = ceil((double)temp_kp1_desc.size() / (double)batch_size);
                   for (int b = 0; b < n_batches; b++) {
                       int start_img = b * batch_size;
-                      int finish_img = min((b+1)*batch_size, (int)imgs_to_describe.size());
+                      int finish_img = min((b+1)*batch_size, (int)temp_kp1_desc.size());
 
                       for (int img_num=start_img; img_num<finish_img; img_num++)
                         {
-                          Datum datum;
-                          if (!cvMatToDatum(imgs_to_describe[img_num], 0,&datum)) {
-                              std::cerr << "Cannot transform image to datum" << std::endl;
-                            }
-                          const string& data = datum.data();
-                          int offset_datum = (img_num - start_img)*size_in_datum;
-                          if (data.size() != 0) {
-                              for (int i = 0; i < size_in_datum; ++i) {
-                                  blob_proto.set_data(i+offset_datum, blob_proto.data(i+offset_datum) + (float)((uint8_t)(data[i])));
+                          cv::Mat currentROI = patches(Rect(0, img_num * odd_patch_size, dat_height, dat_width));
+                          cv::Mat mean_patch, std_patch;
+                          cv::meanStdDev(currentROI, mean_patch, std_patch);
+                          currentROI = (currentROI -  mean_patch) / (std_patch + 1e-7);
+
+                          int i = 0;
+                          int offset = (img_num - start_img) * dat_height * dat_width;
+                          for (int h = 0; h < dat_height; ++h) {
+                              for (int w = 0; w < dat_width; ++w) {
+                                  blob_proto.set_data(i+offset, currentROI.at<float>(h,w));
+                                  i++;
                                 }
                             }
                         }
                       blob->FromProto(blob_proto);
-                      float* data_vec = blob->mutable_cpu_data();
-                      for (int nn = 0; nn < batch_size; ++nn) {
-                          for (int c = 0; c < dat_channels; ++c) {
-                              for (int h = 0; h < dat_height; ++h) {
-                                  for (int w = 0; w < dat_width; ++w) {
-                                      data_vec[nn*dat_width*dat_height*dat_channels + (c*dat_height + h)*dat_width +w] -= mean_px[c];
-                                    }
-                                }
-                            }
-                        }
                       vector<Blob<float>*> bottom;
                       bottom.push_back(blob);
                       //fill the vector
@@ -1516,6 +1444,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                             const boost::shared_ptr<Blob<float> > feature_blob = caffe_net_ptr->blob_by_name(desc_par.CaffeDescParam.LayerName);
                             const float* feature_blob_data = feature_blob->cpu_data();
                             const int desc_size = feature_blob->width()* feature_blob->height()*feature_blob->channels();
+
                             for (int img_num=start_img; img_num<finish_img; img_num++)
                               {
                                 temp_kp1_desc[img_num].desc.vec.resize(desc_size);
@@ -1572,6 +1501,84 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   true);
                 }
 
+              else if (curr_desc.compare("CLIDescriptor") == 0) //ResSIFT
+                {
+                  cv::Mat patches;
+                  if (temp_kp1_desc.size() > 0){
+                      DescribeRegionsExt(temp_kp1_desc,temp_img1,patches,
+                                         desc_par.CLIDescParam.PEParam.mrSize,
+                                         desc_par.CLIDescParam.PEParam.patchSize,
+                                         desc_par.CLIDescParam.PEParam.FastPatchExtraction,
+                                         desc_par.CLIDescParam.PEParam.photoNorm,
+                                         true);
+                    }
+                  std::cerr << patches.rows << " " <<   patches.cols << std::endl;
+                  if (patches.cols > 0) {
+                      int n_descs = patches.rows / patches.cols;
+                      if ( desc_par.CLIDescParam.hardcoded_run_string) {
+
+                          cv::imwrite( desc_par.CLIDescParam.hardcoded_input_fname, patches);
+                          std::string command =  desc_par.CLIDescParam.runfile;
+                          std::cerr << command << std::endl;
+                          system(command.c_str());
+                          std::ifstream focikp( desc_par.CLIDescParam.hardcoded_output_fname);
+                          if (focikp.is_open()) {
+                              int dim1 = 0;
+                              focikp >> dim1;
+                              std::cerr << dim1 << " " << n_descs << " " << temp_kp1_desc.size() << std::endl;
+
+                              for (int i = 0; i < n_descs; i++) {
+                                  temp_kp1_desc[i].desc.vec.resize(dim1);
+                                  for (int dd = 0; dd < dim1; dd++) {
+                                      focikp >> temp_kp1_desc[i].desc.vec[dd];
+                                    }
+                                  temp_kp1_desc[i].desc.type = DESC_CLI;
+                                }
+                            }
+                          focikp.close();
+                          std::string rm_command = "rm " +  desc_par.CLIDescParam.hardcoded_input_fname;
+                          system(rm_command.c_str());
+                          rm_command = "rm " +  desc_par.CLIDescParam.hardcoded_output_fname;
+                          system(rm_command.c_str());
+                        } else {
+
+                          int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+                          std::string img_fname = "CLIDESC"+std::to_string(rnd1)+".bmp";
+                          cv::imwrite(img_fname,patches );
+                          std::string desc_fname = "CLIDESC"+std::to_string(rnd1)+".txt";
+
+                          std::string command = desc_par.CLIDescParam.runfile + " " + img_fname + " " +desc_fname;
+
+                          system(command.c_str());
+                          std::ifstream focikp(desc_fname);
+                          if (focikp.is_open()) {
+                              int dim1 = 0;
+                              focikp >> dim1;
+                              std::cerr << dim1 << " " << n_descs << " " << temp_kp1_desc.size() << std::endl;
+
+                              for (int i = 0; i < n_descs; i++) {
+                                  temp_kp1_desc[i].desc.vec.resize(dim1);
+                                  for (int dd = 0; dd < dim1; dd++) {
+                                      focikp >> temp_kp1_desc[i].desc.vec[dd];
+                                    }
+                                  temp_kp1_desc[i].desc.type = DESC_CLI;
+                                }
+                            }
+                          focikp.close();
+                          std::string rm_command = "rm " + img_fname;
+                          system(rm_command.c_str());
+                          rm_command = "rm " + desc_fname;
+                          system(rm_command.c_str());
+                          std::cerr << "desc done" <<std::endl;
+                        }
+                    } else {
+
+                      for (int i = 0; i < temp_kp1_desc.size(); i++) {
+                          temp_kp1_desc[i].desc.vec.resize(128);
+                        }
+
+                    };
+                }
               else if (curr_desc.compare("DSPSIFT") == 0)
                 {
                   SIFTDescriptorParams dspsiftparams = desc_par.SIFTParam;
@@ -2240,6 +2247,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               if (curr_det.compare("SURF")==0 )
                 cvReleaseImage(&int_img);
             }
+          std::cerr << "storing" << std::endl;
           OneDetectorKeypointsMapVector[synth] = temp_kp_map;
         }
       for (unsigned int synth=0; synth<n_synths; synth++)

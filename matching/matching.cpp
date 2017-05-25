@@ -935,6 +935,7 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
           if (!HIsNotZeros)
             {
               ransac_corresp.TCList.clear();
+              true_size = 0;
               return 0;
             }
           for (i=0; i<9; i++)
@@ -951,14 +952,15 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
           if (checked_numb < MIN_POINTS) {
               //     cerr << "Can`t get enough good points after naive check" << std::endl
               //                   <<  checked_numb << " good points out of " << ransac_corresp.TCList.size() <<std::endl;
-
+true_size = 0;
               ransac_corresp.TCList.clear();
             }
 #endif
           H_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,3.0*pars.HLAFCoef*pars.err_threshold,&HDsSymMax);
-          if (checked_corresp.TCList.size() < MIN_POINTS)
+          if (checked_corresp.TCList.size() < MIN_POINTS) {
             checked_corresp.TCList.clear();
-
+            true_size = 0;
+}
           // std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after H-LAF-check" << std::endl;
           ransac_corresp.TCList = checked_corresp.TCList;
 
@@ -967,9 +969,10 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
         {
           TentativeCorrespListExt checked_corresp;
           F_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,pars.LAFCoef*pars.err_threshold,FDS1);
-          if (checked_corresp.TCList.size() < MIN_POINTS)
+          if (checked_corresp.TCList.size() < MIN_POINTS) {
             checked_corresp.TCList.clear();
-
+            true_size = 0;
+}
           std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after LAF-check" << std::endl;
           ransac_corresp.TCList = checked_corresp.TCList;
           for (i=0; i<9; i++)
@@ -980,6 +983,7 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
     {
       if (VERB)  cout << tent_size << " points is not enought points to do RANSAC" << endl;
       ransac_corresp.TCList.clear();
+      true_size = 0;
       return 0;
     }
   return true_size;

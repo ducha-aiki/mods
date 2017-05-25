@@ -30,6 +30,7 @@
 #include "correspondencebank.h"
 
 
+
 #ifdef WITH_ORSA
 #include "orsa.h"
 #endif
@@ -188,13 +189,16 @@ int main(int argc, char **argv)
     ImgRep2 = ImageRepresentation(img2,Config1.CLIparams.img2_fname);
   }
 #ifdef WITH_CAFFE
-  caffe::Caffe::set_phase(caffe::Caffe::TEST);
-  caffe::Caffe::set_mode(caffe::Caffe::CPU);
-  caffe::Net<float> caffe_net(Config1.DescriptorPars.CaffeDescParam.ProtoTxt);
-  caffe_net.CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
+  //caffe::Caffe::set_phase(caffe::Caffe::TEST);
+  caffe::Caffe::set_mode(caffe::Caffe::GPU);
+   std::shared_ptr<caffe::Net<float> > caffe_net;
+   std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
+  caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
+  caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
 
-  ImgRep1.InitCaffe(&caffe_net);
-  ImgRep2.InitCaffe(&caffe_net);
+  ImgRep1.InitCaffe(caffe_net);
+  ImgRep2.InitCaffe(caffe_net);
+  std::cerr << "Net init ok" << std::endl;
 #endif
   CorrespondenceBank Tentatives;
   std::map<std::string, TentativeCorrespListExt> tentatives, verified_coors;
@@ -337,7 +341,7 @@ if (Config1.read_pre_extracted)
                                                verified_coors["All"].H,
                                                Config1.RANSACParam);
         log1.InlierRatio1st = (double) log1.TrueMatch1st / (double) log1.Tentatives1st;
-        if (VERB) std::cerr << log1.TrueMatch1st  << " RANSAC correspondences got" << endl;
+        if (VERB) std::cerr << log1.TrueMatch1st << " " << verified_coors["All"].TCList.size()  << " RANSAC correspondences got" << endl;
         break;
       }
       case LORANSACF:

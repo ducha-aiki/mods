@@ -32,6 +32,18 @@ struct DominantOrientationParams {
   }
 };
 
+struct CLIDescriptorParams {
+    PatchExtractionParams PEParam;
+    std::string runfile;
+    std::string hardcoded_input_fname;
+    std::string hardcoded_output_fname;
+    bool hardcoded_run_string;
+    CLIDescriptorParams() {
+     hardcoded_run_string = true;
+    }
+
+
+};
 
 struct CaffeDescriptorParams
 {
@@ -41,6 +53,8 @@ struct CaffeDescriptorParams
   double MeanG;
   double MeanR;
   int batchSize;
+  int patchSize;
+  double mrSize;
   std::string LayerName;
   std::string Pooling;
   std::string Normalization;
@@ -54,7 +68,9 @@ struct CaffeDescriptorParams
     MeanB=104;
     MeanG=117;
     MeanR=123;
+    mrSize = 5.192;
     batchSize = 256;
+    patchSize = 32;
     Pooling = "none";
     Normalization = "L2";
     DoSIFTLikeOrientation = true;
@@ -65,6 +81,7 @@ struct CaffeDescriptorParams
 };
 
 struct DescriptorsParameters {
+  CLIDescriptorParams CLIDescParam;
   SIFTDescriptorParams SIFTParam;  
   SIFTDescriptorParams ResSIFTParam;
   SIFTDescriptorParams MagnLessSIFTParam;

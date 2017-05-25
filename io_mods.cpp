@@ -353,6 +353,19 @@ void GetLIOPPars(LIOPDescriptorParams &pars, INIReader &reader,const char* secti
 
 
 }
+
+void GetCLIDescPars(CLIDescriptorParams &pars, INIReader &reader,const char* section)
+{
+  pars.hardcoded_run_string = reader.GetBoolean(section, "hardcoded_run_string", pars.hardcoded_run_string);
+  pars.runfile = reader.GetString(section, "runfile", pars.runfile);
+  pars.hardcoded_input_fname = reader.GetString(section, "hardcoded_input_fname", pars.hardcoded_input_fname);
+  pars.hardcoded_output_fname = reader.GetString(section, "hardcoded_output_fname", pars.hardcoded_output_fname);
+
+  GetPatchExtractionPars(pars.PEParam,reader,section);
+
+
+}
+
 void GetPixelPars(PIXELSDescriptorParams &pars, INIReader &reader,const char* section)
 {
   GetPatchExtractionPars(pars.PEParam,reader,section);
@@ -863,6 +876,8 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
+
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
  /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
@@ -993,6 +1008,10 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
   GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
+
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam, ConfigIni);
+
+
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
@@ -1196,6 +1215,8 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
 
   conf1.DescriptorPars.HalfSIFTParam = conf1.DescriptorPars.HalfRootSIFTParam;
   conf1.DescriptorPars.HalfSIFTParam.useRootSIFT = 0;
+
+  GetCLIDescPars(conf1.DescriptorPars.CLIDescParam, ConfigIni);
 
   conf1.DescriptorPars.MagnLessSIFTParam = conf1.DescriptorPars.SIFTParam;
   conf1.DescriptorPars.MagnLessSIFTParam.useRootSIFT = 1;

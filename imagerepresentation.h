@@ -1,20 +1,26 @@
 #ifndef IMAGEREPRESENTATION_H
 #define IMAGEREPRESENTATION_H
 
+
 #include <vector>
 #include <string>
 #include <map>
-
+#include "synth-detection.hpp"
 #include "detectors/structures.hpp"
 #include "detectors/detectors_parameters.hpp"
 #include "descriptors_parameters.hpp"
 
+//inline long getMilliSecs()
+//{
+//  timeval t;
+//  gettimeofday(&t, NULL);
+//  return t.tv_sec*1000 + t.tv_usec/1000;
+//}
 
 ///
 #ifdef WITH_CAFFE
 #include "caffe/caffe.hpp"
 #endif
-
 class ImageRepresentation
 {
 public:
@@ -22,7 +28,7 @@ public:
   ImageRepresentation(cv::Mat _in_img, std::string _name);
   ~ImageRepresentation();
 #ifdef WITH_CAFFE
-  void InitCaffe(caffe::Net<float>* net_ptr);
+  void InitCaffe(std::shared_ptr<caffe::Net<float> > net_ptr);
 #endif
   std::vector< std::map<std::string, SynthImage> > SynthViews;
 
@@ -63,7 +69,7 @@ protected:
   std::map<std::string, AffineRegionVectorMap> RegionVectorMap;
   std::string Name;
 #ifdef WITH_CAFFE
-  caffe::Net<float>* caffe_net_ptr;
+  std::shared_ptr<caffe::Net<float> > caffe_net_ptr;
   bool NetInUse;
 #endif
 

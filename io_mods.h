@@ -54,7 +54,7 @@ void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section="
 
 void GetWAVEPars(WAVEParams &pars, INIReader &reader,const char* section="WAVE");
 void GetWASHPars(WASHParams &pars, INIReader &reader,const char* section="WASH");
-
+void GetCLIDescPars(CLIDescriptorParams &pars, INIReader &reader,const char* section = "CLIDescriptor");
 void GetSURFPars(SURFParams &pars, INIReader &reader,const char* section="SURF");
 void GetBRISKPars(BRISKParams &pars, INIReader &reader,const char* section="BRISK");
 void GetFREAKPars(FREAKParams &pars, INIReader &reader,const char* section="FREAK");

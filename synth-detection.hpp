@@ -166,10 +166,15 @@ int DetectAffineShape(AffineRegionList &in_kp_list,
 //Detects orientation of the affine region and adds regions with detected orientation to the list.
 //All points that derived from one have the same parent_id
 
+
+void DescribeRegionsExt(const AffineRegionList &in_kp_list,
+                    const  SynthImage &img, cv::Mat& patches,  double mrSize = 3.0*sqrt(3.0),
+                           int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool export_and_read = true);
+
 template <typename FuncType>
 void DescribeRegions(AffineRegionList &in_kp_list,
                      SynthImage &img, FuncType descriptor,
-                     double mrSize = 3.0*sqrt(3.0), int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool residualSIFT = false)
+                     double mrSize = 3.0*sqrt(3.0), int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool export_and_read = false)
 //Describes region with SIFT or other descriptor
 {
   // std::cerr << "photonorm=" << photoNorm << std::endl;
@@ -181,9 +186,6 @@ void DescribeRegions(AffineRegionList &in_kp_list,
   cv::Mat mask(patchSize,patchSize,CV_32F);
   computeCircularGaussMask(mask);
   cv::Mat all_patches;
-  if (residualSIFT) {
-      all_patches = cv::Mat::zeros(patchSize * n_descs, patchSize, CV_32FC1);
-    }
   if ( !fast_extraction) {
       for (i = 0; i < n_descs; i++) {
           float mrScale = ceil(in_kp_list[i].det_kp.s * mrSize); // half patch size in pixels of image
@@ -226,38 +228,19 @@ void DescribeRegions(AffineRegionList &in_kp_list,
                           patch);
 
             }
-          if (residualSIFT) {
-              patch.copyTo(all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)));
-            }
+
           if (photoNorm) {
               float mean, var;
               photometricallyNormalize(patch, mask, mean, var);
             }
-            if (!residualSIFT) {
-                descriptor(patch, in_kp_list[i].desc.vec);
-              }
+
+              descriptor(patch, in_kp_list[i].desc.vec);
+
           ///
           in_kp_list[i].desc.type = descriptor.type;
 
         }
-      if (residualSIFT) {
-          cv::imwrite("all_patches.bmp", all_patches);
-          std::string command = "./get_cnn_descriptor.py";
-          std::cerr << command << std::endl;
-          system(command.c_str());
-          std::ifstream focikp("res_sift_descriptor.txt");
-          if (focikp.is_open()) {
-              int dim1 = 0;
-              focikp >> dim1;
-              for (i = 0; i < n_descs; i++) {
-                  in_kp_list[i].desc.vec.resize(dim1);
-                  for (int dd = 0; dd < dim1; dd++) {
-                      focikp >> in_kp_list[i].desc.vec[dd];
-                    }
-                }
-            }
-          focikp.close();
-        }
+
     } else {
       for (i = 0; i < n_descs; i++) {
           double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
