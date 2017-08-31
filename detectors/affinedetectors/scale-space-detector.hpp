@@ -20,7 +20,6 @@ struct ScaleSpaceDetectorParams
 {
   AffineShapeParams AffineShapePars;
   PyramidParams PyramidPars;
-  TILDEParams TILDEParam;
   ScaleSpaceDetectorParams()
   {
   }
@@ -48,11 +47,9 @@ public:
   void onKeypointDetected(const Mat &blur, float x, float y, float s, float pixelDistance, int type, float response)
   {
     g_numberOfPoints++;
-    if (type == ScaleSpaceDetector::TILDE) {
-        findAffineShape(blur, x, y, s*(scale_coef_tilde), pixelDistance, type, response);
-      } else {
+
         findAffineShape(blur, x, y, s, pixelDistance, type, response);
-      }
+
   }
   void onAffineShapeFound(
       const Mat &blur, float x, float y, float s, float pixelDistance,

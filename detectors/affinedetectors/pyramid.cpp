@@ -13,7 +13,6 @@
 #include "../helpers.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <assert.h>
-#include "../../TILDE/c++/src/libTILDE.hpp"
 //#include <iostream>
 
 #ifdef _MSC_VER
@@ -106,11 +105,6 @@ int getPointType(float *ptr, float value, detector_type det_type)
           return ScaleSpaceDetector::HARRIS_DARK;
         break;
       }
-    case DET_TILDE:
-      {
-         return ScaleSpaceDetector::TILDE;
-        break;
-      }
     default:
       { //Hessian
         if (value < 0)
@@ -162,11 +156,6 @@ Mat ScaleSpaceDetector::Response(const Mat &inputImage, float norm)
           }
         break;
       }
-    case DET_TILDE:
-      {
-        return TILDEResponse(inputImage, norm);
-        break;
-      }
     default:
       {
         return HessianResponse(inputImage, norm);
@@ -178,22 +167,6 @@ Mat ScaleSpaceDetector::dogResponse(const Mat &inputImage, float norm)
   Mat nextBlur = gaussianBlur(inputImage, norm);
   Mat outputImage = inputImage - nextBlur;
   return outputImage;
-}
-Mat ScaleSpaceDetector::TILDEResponse(const Mat &inputImage, float norm)
-{
-//  cv::Mat out_resp =
-//  int rnd1 = (int) getMilliSecs1();
-//  std::string img_fname = "tilde"+std::to_string(norm+rnd1)+".png";
-
-//  double minVal, maxVal;
-//                  cv::minMaxLoc(out_resp, &minVal, &maxVal);
-//                  double range = maxVal;
-//                  out_resp = (out_resp) / range;
-
-//  cv::imwrite(img_fname,255*out_resp);
-
-  return getTILDEResponce(inputImage, filters, false, tilde_only_positive);
-
 }
 
 Mat ScaleSpaceDetector::iidogResponse(const Mat &inputImage, float norm)

@@ -185,13 +185,18 @@ int main(int argc, char **argv) {
     }
   }
 #ifdef WITH_CAFFE
-  caffe::Caffe::set_phase(caffe::Caffe::TEST);
-  caffe::Caffe::set_mode(caffe::Caffe::CPU);
-  caffe::Net<float> caffe_net(Config1.DescriptorPars.CaffeDescParam.ProtoTxt);
-  caffe_net.CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
+  //caffe::Caffe::set_phase(caffe::Caffe::TEST);
+  caffe::Caffe::set_mode(caffe::Caffe::GPU);
+   std::shared_ptr<caffe::Net<float> > caffe_net;
+   std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
+  caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
+  caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
 
-  ImgRep1.InitCaffe(&caffe_net);
-  ImgRep2.InitCaffe(&caffe_net);
+  ImgRep1.InitCaffe(caffe_net);
+  for (int img_idx = 0; img_idx < imgs2.size(); img_idx++) {
+        ImgReps2[img_idx].InitCaffe(caffe_net);
+  }
+  std::cerr << "Net init ok" << std::endl;
 #endif
   std::vector <CorrespondenceBank> TentativesVect;
   std::vector<std::map <std::string, TentativeCorrespListExt> > tentativesVect, verified_coorsVect;

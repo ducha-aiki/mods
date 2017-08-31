@@ -29,8 +29,6 @@ enum detector_type {DET_HESSIAN = 0,
                     DET_WAVE = 13,
                     DET_WASH = 14,
                     DET_SFOP = 15,
-                    DET_TILDE = 16,
-                    DET_TILDE_PLUGIN= 17,
                     DET_SADDLE = 18,
                     DET_TOS_MSER = 19,
                     DET_MIK_MSER = 20,
@@ -42,7 +40,7 @@ const std::string _DetectorNames [] = {"HessianAffine", "DoG",
                                        "ORB", "FAST", "SURF",
                                        "STAR", "BRISK", "KAZE",
                                        "FOCI","CAFFE", "ReadAffs", "WAVE", "WASH", "SFOP",
-                                       "TILDE", "TILDE-plugin", "Saddle", "TOS-MSER", "MIK-MSER"};
+                                        "Saddle", "TOS-MSER", "MIK-MSER"};
 
 
 const std::vector<std::string> DetectorNames (_DetectorNames,_DetectorNames +
@@ -88,10 +86,6 @@ enum descriptor_type {DESC_SIFT = 0,
                       DESC_MROGH = 12,
                       DESC_BICE = 13,
                       DESC_CAFFE = 14,
-                      DESC_DALI = 15,
-                      DESC_SMSLD = 16,
-                      DESC_DAISY = 17,
-                      DESC_SSIM = 18,
                       DESC_DSPSIFT = 19,
                       DESC_MEGNLESSSIFT = 20,
                       DESC_RESSIFT = 21,
@@ -104,7 +98,7 @@ const std::string _DescriptorNames [] = {"SIFT", "RootSIFT",
                                      "InvSIFT",  "ORB", "FREAK",
                                       "SURF", "Pixels", "LIOP",
                                          "BRISK","KAZE", "MROGH","BICE"
-                                        "CAFFE", "DALI", "SMSLD", "DAISY", "SSIM", "DSPSIFT", "MagnLessSIFT", "ResSIFT", "CLIDescriptor"};
+                                        "CAFFE",  "DSPSIFT", "MagnLessSIFT", "ResSIFT", "CLIDescriptor"};
 
 const std::vector<std::string> DescriptorNames (_DescriptorNames,_DescriptorNames +
                                               sizeof(_DescriptorNames)/sizeof(*_DescriptorNames));
@@ -273,22 +267,5 @@ struct WhatToMatch
   std::vector<std::string> separate_descriptors;
 };
 
-struct TILDEParams {
-  bool approx;
-  float scaleKeypoint;
-  float orientationKeypoint;
-  bool doBaumberg;
-  std::string pathFilter;
-  int maxPoints;
-  bool keep_only_positive;
-  TILDEParams() {
-    approx = false;
-    scaleKeypoint = 10.0;
-    orientationKeypoint = 0;
-    maxPoints = 500;
-    doBaumberg = false;
-    keep_only_positive = true;
-  }
-};
 
 #endif // STRUCTURES_HPP

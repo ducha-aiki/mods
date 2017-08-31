@@ -218,18 +218,6 @@ void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section)
   pars.run_mode =  reader.GetInteger(section, "run_mode", pars.run_mode);
 }
 
-void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section)
-{
-  pars.orientationKeypoint = reader.GetDouble(section, "orientationKeypoint", pars.orientationKeypoint);
-  pars.scaleKeypoint = reader.GetDouble(section, "scaleKeypoint", pars.scaleKeypoint);
-  pars.maxPoints = reader.GetInteger(section, "maxPoints", pars.maxPoints);
-
-  pars.approx = reader.GetBoolean(section,"approx",pars.approx);
-  pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
-  pars.pathFilter = reader.GetString(section, "pathFilter", pars.pathFilter);
-  pars.keep_only_positive = reader.GetBoolean(section,"keepOnlyPositive",pars.keep_only_positive);
-}
-
 
 void GetWASHPars(WASHParams &pars, INIReader &reader,const char* section)
 {
@@ -274,30 +262,6 @@ void GetFREAKPars(FREAKParams &pars, INIReader &reader,const char* section)
   pars.scaleNormalized = reader.GetBoolean(section, "scaleNormalized", pars.scaleNormalized);
   GetPatchExtractionPars(pars.PEParam,reader,section);
 }
-void GetDAISYPars(DAISYParams &pars, INIReader &reader,const char* section)
-{
-  GetPatchExtractionPars(pars.PEParam,reader,section);
-  pars.rad = reader.GetInteger(section, "rad", pars.rad);
-  pars.radq = reader.GetInteger(section, "radq", pars.radq);
-  pars.thq = reader.GetInteger(section, "thq", pars.thq);
-  pars.histq = reader.GetInteger(section, "histq", pars.histq);
-  pars.nrm_type = reader.GetInteger(section, "nrm_type", pars.nrm_type);
-}
-void GetSSIMPars(SSIMParams &pars, INIReader &reader,const char* section)
-{
-  GetPatchExtractionPars(pars.PEParam,reader,section);
-  pars.cor_size = reader.GetInteger(section, "cor_size", pars.cor_size);
-  pars.desc_rad = reader.GetInteger(section, "desc_rad", pars.desc_rad);
-  pars.homogeneity_thresh = reader.GetDouble(section, "homogeneity_thresh", pars.homogeneity_thresh);
-  pars.saliency_thresh = reader.GetDouble(section, "saliency_thresh", pars.saliency_thresh);
-  pars.snn_thresh = reader.GetDouble(section, "snn_thresh", pars.snn_thresh);
-  pars.nang = reader.GetInteger(section, "nang", pars.nang);
-  pars.nrad = reader.GetInteger(section, "nrad", pars.nrad);
-  pars.var_noise = reader.GetDouble(section, "var_noise", pars.var_noise);
-  pars.window_size = reader.GetInteger(section, "window_size", pars.window_size);
-  pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
-
-}
 void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section)
 {
   pars.nDir = reader.GetInteger(section, "nDir", pars.nDir);
@@ -305,10 +269,7 @@ void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section)
   pars.nOrder = reader.GetInteger(section, "nOrder", pars.nOrder);
   GetPatchExtractionPars(pars.PEParam,reader,section);
 }
-//void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section)
-//{
-//  GetPatchExtractionPars(pars.PEParam,reader,section);
-//}
+
 
 void GetBaumbergPars(AffineShapeParams &par, INIReader &reader,const char* section) {
   par.maxIterations = reader.GetInteger(section, "max_iter", par.maxIterations);
@@ -325,10 +286,6 @@ void GetBaumbergPars(AffineShapeParams &par, INIReader &reader,const char* secti
   if (method == "Hessian") {
       par.affBmbrgMethod = AFF_BMBRG_HESSIAN;
     }
-}
-void GetSMSLDPars(SMSLDParams &pars, INIReader &reader,const char* section)
-{
-  GetPatchExtractionPars(pars.PEParam,reader,section);
 }
 
 void GetKAZEPars(KAZEParams &pars, INIReader &reader,const char* section)
@@ -777,20 +734,13 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
-  GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE"); conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
- conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
 
-  GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
 
 
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
- /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
-  GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
-  GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
-  GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
 #ifdef WITH_CAFFE
@@ -859,9 +809,6 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
-  GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
-  GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE");
-    conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
   GetDoGPars(conf1.DetectorsPars.DoGParam,ConfigIni);
   GetHessPars(conf1.DetectorsPars.HessParam,ConfigIni);
   GetDomOriPars(conf1.DomOriPars,ConfigIni);
@@ -878,10 +825,6 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   GetCLIDescPars(conf1.DescriptorPars.CLIDescParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
- /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
-  GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
-  GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
-  GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
 
 #ifdef WITH_CAFFE
@@ -1000,12 +943,8 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
   GetFOCIPars(conf1.DetectorsPars.FOCIParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
- /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
-  GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
-  GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
-  GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
 
   GetCLIDescPars(conf1.DescriptorPars.CLIDescParam, ConfigIni);
 
@@ -1018,9 +957,6 @@ int getCLIparam(configs &conf1,int argc, char **argv)
 
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
-  GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
-  GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE"); conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
- conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
 
 
 #ifdef WITH_CAFFE
@@ -1178,22 +1114,13 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetBICEPars(conf1.DescriptorPars.BICEParam, ConfigIni);
   GetKAZEPars(conf1.DescriptorPars.KAZEParam, ConfigIni);
-  GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
- /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
-  GetDAISYPars(conf1.DescriptorPars.DAISYParam, ConfigIni);
-  GetSSIMPars(conf1.DescriptorPars.SSIMParam, ConfigIni);
   GetBaumbergPars(conf1.DetectorsPars.BaumbergParam, ConfigIni);
   GetSaddlePars(conf1.DetectorsPars.SaddleParam,ConfigIni); GetToSMSERPars(conf1.DetectorsPars.ToSMSERParam,ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
   GetWAVEPars(conf1.DetectorsPars.WAVEParam,ConfigIni);
   GetWASHPars(conf1.DetectorsPars.WASHParam,ConfigIni);
-  GetTILDEPars(conf1.DetectorsPars.TILDEScaleSpaceParam.TILDEParam,ConfigIni);
-  GetHessPars(conf1.DetectorsPars.TILDEScaleSpaceParam,ConfigIni,"TILDE_SCALE_SPACE");
-  conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
- conf1.DetectorsPars.TILDEScaleSpaceParam.PyramidPars.DetectorType = DET_TILDE;
-
 
 #ifdef WITH_CAFFE
   GetCaffePars(conf1.DescriptorPars.CaffeDescParam,ConfigIni);

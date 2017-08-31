@@ -37,8 +37,7 @@ struct ScaleSpaceDetector
     DOG_BRIGHT = 11,
     HARRIS_DARK   = 30,
     HARRIS_BRIGHT = 31,
-    CAFFE_GRAD = 40,
-    TILDE = 51
+
   };
 public:
   KeypointCallback *keypointCallback;
@@ -74,8 +73,7 @@ public:
   int localized_points;
   float effectiveThreshold;
   std::string filters;
-  float scale_coef_tilde;
-  bool tilde_only_positive;
+
 
 protected:
   void detectOctaveKeypoints(const Mat &firstLevel, float pixelDistance, Mat &nextOctaveFirstLevel);
@@ -85,9 +83,7 @@ protected:
   Mat iidogResponse(const Mat &inputImage, float norm);
   Mat dogResponse(const Mat &inputImage, float norm);
   Mat HessianResponse(const Mat &inputImage, float norm);
-  Mat TILDEResponse(const Mat &inputImage, float norm);
   Mat HarrisResponse(const Mat &inputImage, float norm);
-  Mat CaffeGradResponse(const Mat &inputImage, float norm);
   const Mat* originalImg;
 
 private:

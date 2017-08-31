@@ -55,26 +55,17 @@ include_directories(/home/old-ufo/dev/caffe/include)
 include_directories(/home/old-ufo/dev/caffe/build/src/)
 include_directories(/opt/OpenBLAS/include)
 include_directories(/usr/local/cuda/include)
-
-
-
 link_directories(/home/old-ufo/dev/caffe/build/lib)
 link_directories(/opt/OpenBLAS/lib)
 endif(WITH_CAFFE)
 
 link_directories(/home/old-ufo/dev/mods/wxbs-journal/vlfeat/bin/glnxa64)
 
-add_subdirectory( ./libdaisy z)
-include_directories(
-.
-./libdaisy/include
-./libdaisy/include/daisy
-)
+
 
 add_subdirectory( ./inih)
 add_subdirectory( ./matutls)
 add_subdirectory( ./detectors)
-#add_subdirectory( ./detectors/saddle-src)
 add_subdirectory(./detectors/new-saddle)
 add_subdirectory( ./detectors/affinedetectors)
 add_subdirectory( ./detectors/mser )
@@ -84,7 +75,6 @@ add_subdirectory( ./libNumerics)
 add_subdirectory( ./scv)
 add_subdirectory( ./akaze)
 add_subdirectory( ./mrogh)
-add_subdirectory( ./TILDE/c++)
 
 ####### DEGENSAC
 include_directories(
@@ -147,56 +137,54 @@ endif(WITH_CAFFE)
 #./smsld)
 
 
-add_executable(mods mods.cpp correspondencebank.cpp imagerepresentation.cpp
-io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc)#smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
+add_executable(mods mods.cpp correspondencebank.cpp imagerepresentation.cpp  io_mods.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} vl m daisy z)
+AKAZE vl mrogh caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} vl m )
 else(WITH_CAFFE)
-TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
-${OpenCV_LIBS} z vl m daisy)
+TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
+${OpenCV_LIBS} z vl m)
 endif(WITH_CAFFE)
 
-set (TT FALSE)
+set (TT TRUE)
 if (TT)
-add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp
-io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
+add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp io_mods.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} blas m daisy z)
+AKAZE vl mrogh saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} blas m z)
 else(WITH_CAFFE)
-TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
-${OpenCV_LIBS} m daisy z)
+TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
+${OpenCV_LIBS} m z)
 endif(WITH_CAFFE)
 
 add_executable(extract_regions_for_benchmark extract_regions_for_benchmark correspondencebank.cpp
-imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
+imagerepresentation.cpp io_mods.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_regions_for_benchmark inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} m daisy z blas)
+AKAZE vl mrogh saddlepts caffe glog boost_system  protobuf leveldb ${OpenCV_LIBS} m z blas)
 else(WITH_CAFFE)
-TARGET_LINK_LIBRARIES(extract_regions_for_benchmark inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
-${OpenCV_LIBS} m daisy z)
+TARGET_LINK_LIBRARIES(extract_regions_for_benchmark inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
+${OpenCV_LIBS} m z)
 endif(WITH_CAFFE)
 
 add_executable(export_descriptors export_descriptors correspondencebank.cpp
-imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
+imagerepresentation.cpp io_mods.cpp )
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(export_descriptors inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m daisy z)
+AKAZE vl mrogh caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m z)
 else(WITH_CAFFE )
-TARGET_LINK_LIBRARIES(export_descriptors inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
- opencv_core m daisy z)
+TARGET_LINK_LIBRARIES(export_descriptors inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
+ opencv_core m  z)
 endif(WITH_CAFFE)
 #${OpenCV_LIBS}
 add_executable(mods_multi mods_multi.cpp correspondencebank.cpp
-imagerepresentation.cpp io_mods.cpp  ssdesc-cpp-1.1.1//ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
+imagerepresentation.cpp io_mods.cpp )
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(mods_multi inih matching synth-detection mser affinedetectors scv
-AKAZE vl mrogh TILDE caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m daisy z)
+AKAZE vl mrogh caffe glog boost_system  protobuf leveldb saddlepts ${OpenCV_LIBS} blas m z)
 else(WITH_CAFFE)
-TARGET_LINK_LIBRARIES(mods_multi inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh TILDE saddlepts
-${OpenCV_LIBS} m daisy z)
+TARGET_LINK_LIBRARIES(mods_multi inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
+${OpenCV_LIBS} m z)
 endif(WITH_CAFFE)
 
 endif(TT)

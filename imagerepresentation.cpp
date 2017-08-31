@@ -2,17 +2,10 @@
 #include "synth-detection.hpp"
 #include "detectors/mser/extrema/extrema.h"
 #include <opencv2/features2d/features2d.hpp>
-//#include <opencv2/nonfree/nonfree.hpp>
-//#include <opencv2/nonfree/features2d.hpp>
 #include "opensurf/surflib.h"
 #include "matching/liopdesc.hpp"
 #include "akaze/src/lib/AKAZE.h"
-#include "TILDE/c++/src/libTILDE.hpp"
 #include "detectors/new-saddle/sorb.h"
-
-//#include "synthviewdet_old.hpp"
-//#include "synthviewdet_old.hpp"
-
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -622,46 +615,13 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           AffineRegionVector temp_kp1;
           AffineRegionVectorMap temp_kp_map;
           SynthImage temp_img1;
-          if ((curr_det != "TILDE") && (curr_det != "TILDE-plugin")) {
-              GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
-                                     synth_par[curr_det][synth].tilt,
-                                     synth_par[curr_det][synth].phi,
-                                     synth_par[curr_det][synth].zoom,
-                                     synth_par[curr_det][synth].InitSigma,
-                                     synth_par[curr_det][synth].doBlur, synth);
-            } else {
-              cv::Mat rgbimg;
+          GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
+                                 synth_par[curr_det][synth].tilt,
+                                 synth_par[curr_det][synth].phi,
+                                 synth_par[curr_det][synth].zoom,
+                                 synth_par[curr_det][synth].InitSigma,
+                                 synth_par[curr_det][synth].doBlur, synth);
 
-              if (OriginalImg.channels() == 3)
-                {
-                  const bool convert_to_gray = false;
-                  GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
-                                         synth_par[curr_det][synth].tilt,
-                                         synth_par[curr_det][synth].phi,
-                                         synth_par[curr_det][synth].zoom,
-                                         synth_par[curr_det][synth].InitSigma,
-                                         synth_par[curr_det][synth].doBlur, synth,convert_to_gray);
-                  temp_img1.rgb_pixels = temp_img1.pixels.clone();
-                  std::vector<cv::Mat> RGB_planes(3);
-                  cv::Mat in_32f;
-                  temp_img1.rgb_pixels.convertTo(in_32f,CV_32FC3);
-                  cv::split(in_32f, RGB_planes);
-                  temp_img1.pixels = (RGB_planes[0] + RGB_planes[1] + RGB_planes[2]) / 3.0 ;
-
-                } else
-                {
-                  std::cerr << "Grayscale input to TILDE!" << std::endl;
-                  GenerateSynthImageCorr(OriginalImg, temp_img1, Name.c_str(),
-                                         synth_par[curr_det][synth].tilt,
-                                         synth_par[curr_det][synth].phi,
-                                         synth_par[curr_det][synth].zoom,
-                                         synth_par[curr_det][synth].InitSigma,
-                                         synth_par[curr_det][synth].doBlur, synth);
-
-                  cv::cvtColor(temp_img1.pixels, rgbimg, CV_GRAY2BGR);
-                  temp_img1.rgb_pixels = rgbimg;
-                }
-            }
           bool doExternalAffineAdaptation = false;
 
           time1 = ((double)(getMilliSecs1() - s_time))/1000;
@@ -1052,13 +1012,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
             {
               DetectAffineRegions(temp_img1, temp_kp1,det_par.MSERParam,DET_MSER,DetectMSERs);
             }
-          else if (curr_det.compare("TILDE")==0)
-            {
-              cv::Mat gray_temp = temp_img1.pixels;
-              temp_img1.pixels = temp_img1.rgb_pixels;
-              DetectAffineRegions(temp_img1, temp_kp1, det_par.TILDEScaleSpaceParam, DET_TILDE, DetectAffineKeypoints);
-              temp_img1.pixels = gray_temp;
-            }
+
           else if (curr_det.compare("SURF")==0)
             {
               doExternalAffineAdaptation = det_par.SURFParam.doBaumberg;
@@ -1129,29 +1083,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                     }
                 }
             }
-          else if (curr_det.compare("TILDE-plugin")==0)
-            {
 
-              doExternalAffineAdaptation = det_par.TILDEScaleSpaceParam.AffineShapePars.doBaumberg;
-              keypoints_1 = getTILDEKeyPoints(temp_img1.rgb_pixels,
-                                              det_par.TILDEScaleSpaceParam.TILDEParam.pathFilter, det_par.TILDEScaleSpaceParam.TILDEParam.approx,true,false);
-
-              int kp_size = keypoints_1.size();
-              temp_kp1.resize(kp_size);
-
-              for (int kp_num=0; kp_num < min(kp_size,det_par.TILDEScaleSpaceParam.TILDEParam.maxPoints); kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
-                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  temp_kp1[kp_num].type = DET_TILDE;
-                }
-            }
           else if (curr_det.compare("KAZE")==0)
             {
               doExternalAffineAdaptation = det_par.FOCIParam.doBaumberg;
@@ -1369,8 +1301,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   cv::Mat patches;
                   int odd_patch_size = desc_par.CaffeDescParam.patchSize;
                   if  (desc_par.CaffeDescParam.patchSize % 2 == 0) {
-                    odd_patch_size++;
-                  }
+                      odd_patch_size++;
+                    }
                   if (temp_kp1_desc.size() > 0){
                       DescribeRegionsExt(temp_kp1_desc,temp_img1,patches,
                                          desc_par.CaffeDescParam.mrSize,
@@ -2045,29 +1977,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
 
               //                }
-              else if (curr_desc.compare("SMSLD") == 0)
-                {
-                  SMSLDDescriptor SMSLDDesc(desc_par.SMSLDDescParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SMSLDDesc,
-                                  desc_par.SMSLDDescParam.PEParam.mrSize,
-                                  desc_par.SMSLDDescParam.PEParam.patchSize,
-                                  desc_par.SMSLDDescParam.PEParam.FastPatchExtraction,
-                                  desc_par.SMSLDDescParam.PEParam.photoNorm);
 
-
-                }
-              //              else if (curr_desc.compare("FREAK") == 0) //FREAK
-              //                {
-              //                  FREAKDescriptor FREAKDesc(desc_par.FREAKParam);
-              //                  DescribeRegions(temp_kp1_desc,
-              //                                  temp_img1, FREAKDesc,
-              //                                  desc_par.FREAKParam.PEParam.mrSize,
-              //                                  desc_par.FREAKParam.PEParam.patchSize,
-              //                                  desc_par.FREAKParam.PEParam.FastPatchExtraction,
-              //                                  desc_par.FREAKParam.PEParam.photoNorm);
-
-              //                }
               else if (curr_desc.compare("FREAK") == 0) //FREAK
                 {
                   //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
@@ -2159,28 +2069,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   //          std::cout << "new size=" << temp_kp1_desc.size() << std::endl;
                 }
 
-              else if (curr_desc.compare("DAISY") == 0) //DAISY
-                {
-                  DAISYDescriptor DAISYDesc(desc_par.DAISYParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, DAISYDesc,
-                                  desc_par.DAISYParam.PEParam.mrSize,
-                                  desc_par.DAISYParam.PEParam.patchSize,
-                                  desc_par.DAISYParam.PEParam.FastPatchExtraction,
-                                  desc_par.DAISYParam.PEParam.photoNorm);
-
-                }
-              else if (curr_desc.compare("SSIM") == 0) //DAISY
-                {
-                  SSIMDescriptor SSIMDesc(desc_par.SSIMParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SSIMDesc,
-                                  desc_par.SSIMParam.PEParam.mrSize,
-                                  desc_par.SSIMParam.PEParam.patchSize,
-                                  desc_par.SSIMParam.PEParam.FastPatchExtraction,
-                                  desc_par.SSIMParam.PEParam.photoNorm);
-
-                }
               else if (curr_desc.compare("BRISK") == 0) //BRISK
                 {
                   BRISKDescriptor BRISKDesc(det_par.BRISKParam);

@@ -245,7 +245,7 @@ struct DetectorsParameters
     ScaleSpaceDetectorParams HessParam;
     ScaleSpaceDetectorParams HarrParam;
     ScaleSpaceDetectorParams DoGParam;
-    ScaleSpaceDetectorParams TILDEScaleSpaceParam;
+
     SURFParams SURFParam;
     SaddleParams SaddleParam;
     ToSMSERParams ToSMSERParam;

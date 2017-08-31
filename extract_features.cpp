@@ -107,12 +107,13 @@ int main(int argc, char **argv)
     ImgRep1 = ImageRepresentation(img1,Config1.CLIparams.img1_fname);
   }
 #ifdef WITH_CAFFE
-  caffe::Caffe::set_phase(caffe::Caffe::TEST);
-  caffe::Caffe::set_mode(caffe::Caffe::CPU);
-  caffe::Net<float> caffe_net(Config1.DescriptorPars.CaffeDescParam.ProtoTxt);
-  caffe_net.CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
+  caffe::Caffe::set_mode(caffe::Caffe::GPU);
+   std::shared_ptr<caffe::Net<float> > caffe_net;
+   std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
+  caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
+  caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
 
-  ImgRep1.InitCaffe(&caffe_net);
+  ImgRep1.InitCaffe(caffe_net);
 #endif
 
   /// Affine regions detection
