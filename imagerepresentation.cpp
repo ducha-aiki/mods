@@ -1919,10 +1919,17 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   //                    {
                   std::cout << "FREAK desc" << std::endl;
                   //  const double mrSizeORB = 3.0;
+                  int  n_octaves = desc_par.FREAKParam.nOctaves;
+                  if (curr_det == "ORB") {
+                      n_octaves = det_par.ORBParam.nlevels;
+                    }
+                  if (curr_det == "Saddle") {
+                      n_octaves = det_par.SaddleParam.pyrLevels;
+                    }
                   cv::FREAK CurrentDescriptor(desc_par.FREAKParam.orientationNormalized,
                                               desc_par.FREAKParam.scaleNormalized,
                                               desc_par.FREAKParam.patternScale,
-                                              desc_par.FREAKParam.nOctaves);
+                                              n_octaves/*desc_par.FREAKParam.nOctaves*/);
 
                   //                  cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
                   //                                                           det_par.ORBParam.scaleFactor,
@@ -1942,8 +1949,10 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                               cv::KeyPoint temp_pt;
                               temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
                               temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.angle = keypoints_Sad[kp_num].angle;
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s;
+                              temp_pt.angle = 0;//atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
+
+                              //temp_pt.angle = keypoints_Sad[kp_num].angle;
+                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  desc_par.FREAKParam.PEParam.mrSize; //?mrSizeORB;
                               keypoints_1[kp_num]=temp_pt;
                             }
                         }
@@ -1956,8 +1965,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                               cv::KeyPoint temp_pt;
                               temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
                               temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
+                              temp_pt.angle = 0;//atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a12);
                               temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  desc_par.FREAKParam.PEParam.mrSize; //?mrSizeORB;
                               keypoints_1.push_back(temp_pt);
                             }
