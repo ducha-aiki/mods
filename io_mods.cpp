@@ -575,7 +575,6 @@ void GetMatchPars(MatchPars &pars, INIReader &reader, INIReader &iter_reader, co
   pars.doDensification =  reader.GetInteger(section, "doDensification", pars.doDensification);
   pars.useDBforFGINN = reader.GetInteger(section, "useDBforFGINN", pars.useDBforFGINN);
   pars.SIFTDBfile = reader.GetString(section, "SIFTDBfile", "100_db.txt");
-  pars.propagate_same_img = reader.GetInteger(section, "propagate_same_img", pars.propagate_same_img);
   pars.FPRate = reader.GetDouble(section, "FPRate", pars.FPRate);
 
 
