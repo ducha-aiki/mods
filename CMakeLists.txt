@@ -132,9 +132,6 @@ TARGET_LINK_LIBRARIES(synth-detection matching opensurf
 mser affinedetectors AKAZE helpers vl ${OpenCV_LIBS})
 endif(WITH_CAFFE)
 
-#include_directories(.
-#./dali)
-#./smsld)
 
 
 add_executable(mods mods.cpp correspondencebank.cpp imagerepresentation.cpp  io_mods.cpp)
@@ -146,7 +143,7 @@ TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors sc
 ${OpenCV_LIBS} z vl m)
 endif(WITH_CAFFE)
 
-set (TT TRUE)
+set (TT FALSE)
 if (TT)
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp io_mods.cpp)
 if(WITH_CAFFE)
