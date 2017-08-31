@@ -341,7 +341,7 @@ if (Config1.read_pre_extracted)
                                                verified_coors["All"].H,
                                                Config1.RANSACParam);
         log1.InlierRatio1st = (double) log1.TrueMatch1st / (double) log1.Tentatives1st;
-        if (VERB) std::cerr << log1.TrueMatch1st << " " << verified_coors["All"].TCList.size()  << " RANSAC correspondences got" << endl;
+        if (VERB) std::cerr << log1.TrueMatch1st << " RANSAC correspondences got" << endl;
         break;
       }
       case LORANSACF:

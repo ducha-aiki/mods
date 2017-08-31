@@ -176,12 +176,11 @@ void GetSaddlePars(SaddleParams &pars, INIReader &reader,const char* section)
 {
   pars.respThreshold = reader.GetDouble(section, "respThreshold", pars.respThreshold);
   pars.epsilon =  reader.GetInteger(section, "epsilon", pars.epsilon);
-  pars.pyrLevels = reader.GetInteger(section, "pyrLevels", pars.pyrLevels);
-  pars.scalefac = reader.GetDouble(section, "scalefac", pars.scalefac);
+  pars.pyrLevels = reader.GetInteger(section, "nlevels", pars.pyrLevels);
+  pars.scalefac = reader.GetDouble(section, "scaleFactor", pars.scalefac);
   pars.doNMS = reader.GetInteger(section, "doNMS", pars.doNMS);
   pars.edgeThreshold = reader.GetInteger(section, "edgeThreshold", pars.edgeThreshold);
   pars.descSize = reader.GetInteger(section, "descSize", pars.descSize);
-
   pars.deltaThr = reader.GetInteger(section, "deltaThr", pars.deltaThr);
   pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
   pars.WTA_K = reader.GetInteger(section, "WTA_K", pars.WTA_K);
@@ -576,7 +575,7 @@ void GetMatchPars(MatchPars &pars, INIReader &reader, INIReader &iter_reader, co
   pars.doDensification =  reader.GetInteger(section, "doDensification", pars.doDensification);
   pars.useDBforFGINN = reader.GetInteger(section, "useDBforFGINN", pars.useDBforFGINN);
   pars.SIFTDBfile = reader.GetString(section, "SIFTDBfile", "100_db.txt");
-
+  pars.propagate_same_img = reader.GetInteger(section, "propagate_same_img", pars.propagate_same_img);
   pars.FPRate = reader.GetDouble(section, "FPRate", pars.FPRate);
 
 
