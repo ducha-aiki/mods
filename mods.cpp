@@ -322,7 +322,7 @@ if (Config1.read_pre_extracted)
           if (VERB) std::cerr << log1.Tentatives1stRANSAC << " RANSAC matches are identified in "
                     << time1<< " seconds" << endl;
 
-          log1.TrueMatch1stRANSAC = HMatrixFiltering(tentatives["AllRANSAC"], tentatives["AllRANSACverified"],
+          log1.TrueMatch1stRANSAC = HMatrixFiltering(tentatives["AllRANSAC"], verified_coors["All"],
                                                      Hready,Config1.OutputParam.outputAllTentatives,
                                                      Config1.RANSACParam);
           log1.InlierRatio1stRANSAC = (double) log1.TrueMatch1stRANSAC / (double) log1.Tentatives1stRANSAC;

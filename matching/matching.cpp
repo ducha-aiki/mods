@@ -848,144 +848,144 @@ int LORANSACFiltering(TentativeCorrespListExt &in_corresp, TentativeCorrespListE
         break;
       }
     }
-  if (tent_size >= MIN_POINTS)
-    {
-      double Hloran[3*3];
-      double *u2Ptr = new double[tent_size*6], *u2;
-      u2=u2Ptr;
-      typedef unsigned char uchar;
-      unsigned char *inl2 = new uchar[tent_size];
-      std::vector<TentativeCorrespExt>::iterator ptr1 = in_corresp.TCList.begin();
-      for(i=0; i < tent_size; i++, ptr1++)
-        {
-          *u2Ptr =  ptr1->first.reproj_kp.x;
-          u2Ptr++;
-
-          *u2Ptr =  ptr1->first.reproj_kp.y;
-          u2Ptr++;
-          *u2Ptr =  1.;
-          u2Ptr++;
-
-          *u2Ptr =  ptr1->second.reproj_kp.x;
-          u2Ptr++;
-
-          *u2Ptr =  ptr1->second.reproj_kp.y;
-          u2Ptr++;
-          *u2Ptr =  1.;
-          u2Ptr++;
-        };
-      if (pars.useF)
-        {
-          int* data_out = (int *) malloc(tent_size * 18 * sizeof(int));
-          double *resids;
-          int I_H = 0;
-          int *Ihptr = &I_H;
-          double HinF [3*3];
-          exp_ransacFcustom(u2,tent_size, pars.err_threshold*pars.err_threshold,pars.confidence,pars.max_samples,Hloran,inl2,data_out,do_lo,0,&resids, HinF,Ihptr,EXFDS1,FDS1, pars.doSymmCheck);
-          free(resids);
-          free(data_out);
-          // if (VERB) std::cout << "Inliers in homography inside = " << I_H << std::endl;
-        }
-      else {
-          int* data_out = (int *) malloc(tent_size * 18 * sizeof(int));
-          double *resids;
-          exp_ransacHcustom(u2, tent_size, pars.err_threshold*pars.err_threshold, pars.confidence, max_samples, Hloran, inl2,4, data_out,oriented_constr ,0,&resids,HDS1,HDSi1,HDSidx1,pars.doSymmCheck);
-          free(resids);
-          free(data_out);
-        }
-      // writing ransac matchings list
-      std::vector<TentativeCorrespExt>::iterator ptr2 = in_corresp.TCList.begin();
-      if (!pars.justMarkOutliers)
-        {
-          for(i=0; i < tent_size; i++, ptr2++)
-            {
-              ptr2->isTrue=inl2[i];
-              if (inl2[i])  {
-                  true_size++;
-                ransac_corresp.TCList.push_back(*ptr2);
-                }
-            };
-        }
-      else
-        {
-          for(i=0; i < tent_size; i++, ptr2++)
-            {
-              ptr2->isTrue=inl2[i];
-              if (inl2[i])  {
-                true_size++;
-                }
-              ransac_corresp.TCList.push_back(*ptr2);
-            };
-
-        }
-
-      delete [] u2;
-      delete [] inl2;
-
-      //Empirical checks
-      if (!(pars.useF)) //H
-        {
-          cv::Mat Hlor(3,3,CV_64F, Hloran);
-          cv::Mat Hinv(3,3,CV_64F);
-          cv::invert(Hlor.t(),Hinv, cv::DECOMP_LU);
-          double* HinvPtr = (double*)Hinv.data;
-          int HIsNotZeros = 0;
-          for (i=0; i<9; i++)
-            HIsNotZeros = (HIsNotZeros || (HinvPtr[i] != 0.0));
-          if (!HIsNotZeros)
-            {
-              ransac_corresp.TCList.clear();
-              true_size = 0;
-              return 0;
-            }
-          for (i=0; i<9; i++)
-            {
-              ransac_corresp.H[i]=HinvPtr[i];
-              H[i] = HinvPtr[i];
-            }
-          ///
-          TentativeCorrespListExt checked_corresp;
-
-#ifdef DO_TRANSFER_H_CHECK
-          int checked_numb=0;
-          checked_numb = NaiveHCheck(ransac_corresp,ransac_corresp.H, 10.0); //if distance between point and reprojected point in both images <=10 px - additional check for degeneracy
-          if (checked_numb < MIN_POINTS) {
-              //     cerr << "Can`t get enough good points after naive check" << std::endl
-              //                   <<  checked_numb << " good points out of " << ransac_corresp.TCList.size() <<std::endl;
-true_size = 0;
-              ransac_corresp.TCList.clear();
-            }
-#endif
-          H_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,3.0*pars.HLAFCoef*pars.err_threshold,&HDsSymMax);
-          if (checked_corresp.TCList.size() < MIN_POINTS) {
-            checked_corresp.TCList.clear();
-            true_size = 0;
-}
-          // std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after H-LAF-check" << std::endl;
-          ransac_corresp.TCList = checked_corresp.TCList;
-
-        }
-      else   //F
-        {
-          TentativeCorrespListExt checked_corresp;
-          F_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,pars.LAFCoef*pars.err_threshold,FDS1);
-          if (checked_corresp.TCList.size() < MIN_POINTS) {
-            checked_corresp.TCList.clear();
-            true_size = 0;
-}
-          std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after LAF-check" << std::endl;
-          ransac_corresp.TCList = checked_corresp.TCList;
-          for (i=0; i<9; i++)
-            ransac_corresp.H[i]=Hloran[i];
-        }
-    }
-  else
+  if (tent_size < MIN_POINTS)
     {
       if (VERB)  cout << tent_size << " points is not enought points to do RANSAC" << endl;
       ransac_corresp.TCList.clear();
       true_size = 0;
       return 0;
     }
+
+  double Hloran[3*3];
+  double *u2Ptr = new double[tent_size*6], *u2;
+  u2=u2Ptr;
+  typedef unsigned char uchar;
+  unsigned char *inl2 = new uchar[tent_size];
+  std::vector<TentativeCorrespExt>::iterator ptr1 = in_corresp.TCList.begin();
+  for(i=0; i < tent_size; i++, ptr1++)
+    {
+      *u2Ptr =  ptr1->first.reproj_kp.x;
+      u2Ptr++;
+
+      *u2Ptr =  ptr1->first.reproj_kp.y;
+      u2Ptr++;
+      *u2Ptr =  1.;
+      u2Ptr++;
+
+      *u2Ptr =  ptr1->second.reproj_kp.x;
+      u2Ptr++;
+
+      *u2Ptr =  ptr1->second.reproj_kp.y;
+      u2Ptr++;
+      *u2Ptr =  1.;
+      u2Ptr++;
+    };
+  if (pars.useF)
+    {
+      int* data_out = (int *) malloc(tent_size * 18 * sizeof(int));
+      double *resids;
+      int I_H = 0;
+      int *Ihptr = &I_H;
+      double HinF [3*3];
+      exp_ransacFcustom(u2,tent_size, pars.err_threshold*pars.err_threshold,pars.confidence,pars.max_samples,Hloran,inl2,data_out,do_lo,0,&resids, HinF,Ihptr,EXFDS1,FDS1, pars.doSymmCheck);
+      free(resids);
+      free(data_out);
+      // if (VERB) std::cout << "Inliers in homography inside = " << I_H << std::endl;
+    }
+  else {
+      int* data_out = (int *) malloc(tent_size * 18 * sizeof(int));
+      double *resids;
+      exp_ransacHcustom(u2, tent_size, pars.err_threshold*pars.err_threshold, pars.confidence, max_samples, Hloran, inl2,4, data_out,oriented_constr ,0,&resids,HDS1,HDSi1,HDSidx1,pars.doSymmCheck);
+      free(resids);
+      free(data_out);
+    }
+  // writing ransac matchings list
+  std::vector<TentativeCorrespExt>::iterator ptr2 = in_corresp.TCList.begin();
+  if (!pars.justMarkOutliers)
+    {
+      for(i=0; i < tent_size; i++, ptr2++)
+        {
+          ptr2->isTrue=inl2[i];
+          if (inl2[i])  {
+              true_size++;
+              ransac_corresp.TCList.push_back(*ptr2);
+            }
+        };
+    }
+  else
+    {
+      for(i=0; i < tent_size; i++, ptr2++)
+        {
+          ptr2->isTrue=inl2[i];
+          if (inl2[i])  {
+              true_size++;
+            }
+          ransac_corresp.TCList.push_back(*ptr2);
+        };
+
+    }
+
+  delete [] u2;
+  delete [] inl2;
+
+  //Empirical checks
+  if (!(pars.useF)) //H
+    {
+      cv::Mat Hlor(3,3,CV_64F, Hloran);
+      cv::Mat Hinv(3,3,CV_64F);
+      cv::invert(Hlor.t(),Hinv, cv::DECOMP_LU);
+      double* HinvPtr = (double*)Hinv.data;
+      int HIsNotZeros = 0;
+      for (i=0; i<9; i++)
+        HIsNotZeros = (HIsNotZeros || (HinvPtr[i] != 0.0));
+      if (!HIsNotZeros)
+        {
+          ransac_corresp.TCList.clear();
+          true_size = 0;
+          return 0;
+        }
+      for (i=0; i<9; i++)
+        {
+          ransac_corresp.H[i]=HinvPtr[i];
+          H[i] = HinvPtr[i];
+        }
+      ///
+      TentativeCorrespListExt checked_corresp;
+
+#ifdef DO_TRANSFER_H_CHECK
+      int checked_numb=0;
+      checked_numb = NaiveHCheck(ransac_corresp,ransac_corresp.H, 10.0); //if distance between point and reprojected point in both images <=10 px - additional check for degeneracy
+      if (checked_numb < MIN_POINTS) {
+          //     cerr << "Can`t get enough good points after naive check" << std::endl
+          //                   <<  checked_numb << " good points out of " << ransac_corresp.TCList.size() <<std::endl;
+          true_size = 0;
+          ransac_corresp.TCList.clear();
+        }
+#endif
+      H_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,3.0*pars.HLAFCoef*pars.err_threshold,&HDsSymMax);
+      if (checked_corresp.TCList.size() < MIN_POINTS) {
+          checked_corresp.TCList.clear();
+          true_size = 0;
+        }
+      // std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after H-LAF-check" << std::endl;
+      ransac_corresp.TCList = checked_corresp.TCList;
+      true_size = checked_corresp.TCList.size();
+    }
+  else   //F
+    {
+      TentativeCorrespListExt checked_corresp;
+      F_LAF_check(ransac_corresp.TCList,Hloran,checked_corresp.TCList,pars.LAFCoef*pars.err_threshold,FDS1);
+      if (checked_corresp.TCList.size() < MIN_POINTS) {
+          checked_corresp.TCList.clear();
+          true_size = 0;
+        }
+      std::cerr << checked_corresp.TCList.size() << " out of " << ransac_corresp.TCList.size() << " left after LAF-check" << std::endl;
+      ransac_corresp.TCList = checked_corresp.TCList;
+       true_size = checked_corresp.TCList.size();
+      for (i=0; i<9; i++)
+        ransac_corresp.H[i]=Hloran[i];
+    }
+
   return true_size;
 }
 #ifdef WITH_ORSA
@@ -1211,9 +1211,9 @@ int NaiveHCheck(TentativeCorrespListExt &corresp,double *H,const double error)
 
 
 cv::Mat DrawRegions(const cv::Mat &in_img,
-                         const AffineRegionList kps,
-                         const int r1,
-                         const cv::Scalar color1) {
+                    const AffineRegionList kps,
+                    const int r1,
+                    const cv::Scalar color1) {
   cv::Mat out_img;
   double k_scale = 3.0;//3 sigma
   if (in_img.channels() == 1)
@@ -1223,8 +1223,8 @@ cv::Mat DrawRegions(const cv::Mat &in_img,
 
   double cosine_sine_table[44];
   double cosine_sine_table3d[66];
-//  cosine_sine_table[21]=0;
-//  cosine_sine_table[43]=0;
+  //  cosine_sine_table[21]=0;
+  //  cosine_sine_table[43]=0;
   for (int l=0; l<22; l++) {
       cosine_sine_table[l]=cos(l*M_PI/10);
       cosine_sine_table[22+l]=sin(l*M_PI/10);
@@ -1235,7 +1235,7 @@ cv::Mat DrawRegions(const cv::Mat &in_img,
     cosine_sine_table3d[l]=1.0;
 
   cv::Mat cs_table(2,22,CV_64F, cosine_sine_table);
- // cv::Mat cs_table3d(3,22,CV_64F, cosine_sine_table3d);
+  // cv::Mat cs_table3d(3,22,CV_64F, cosine_sine_table3d);
 
   /// Image 1
   AffineRegionList::const_iterator ptrOut = kps.begin();
@@ -1260,7 +1260,7 @@ cv::Mat DrawRegions(const cv::Mat &in_img,
                 r1, 		        // line thickness
                 CV_AA, 0);
 
-   }
+    }
   return out_img;
 }
 
@@ -1322,12 +1322,12 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
       else
         out_tmp2=in_img2.clone();
 
-   //   cv::Mat tmpimage1 (in_img1.rows,in_img1.cols,CV_32FC3,cv::Scalar(255, 255,255));
-     // tmpimage1=cv::Scalar(255, 255,255);
+      //   cv::Mat tmpimage1 (in_img1.rows,in_img1.cols,CV_32FC3,cv::Scalar(255, 255,255));
+      // tmpimage1=cv::Scalar(255, 255,255);
       //   cv::addWeighted(out_tmp1,1.0,tmpimage1,-0.15,0.,out_tmp1); //make darker
 
-   //   cv::Mat tmpimage2 (in_img2.rows,in_img2.cols,CV_32FC3,cv::Scalar(255, 255,255));
-    //  tmpimage2=cv::Scalar(255, 255,255);
+      //   cv::Mat tmpimage2 (in_img2.rows,in_img2.cols,CV_32FC3,cv::Scalar(255, 255,255));
+      //  tmpimage2=cv::Scalar(255, 255,255);
       //   cv::addWeighted(out_tmp2,1.0,tmpimage2,-0.15,0.,out_tmp2); //make darker
 
       std::vector<TentativeCorrespExt>::iterator ptrOut = matchings.TCList.begin();
@@ -1628,26 +1628,26 @@ void DrawMatches(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat &out_img
       cv::Mat roiImg2 = in_img2(cv::Rect(0,0,in_img2.cols,in_img2.rows));
 
       out_tmp1 = cv::Mat (max(in_img1.rows,in_img2.rows),in_img1.cols+in_img2.cols+sep,in_img1.type(), cv::Scalar(255,255,255));
-   //   out_tmp1 = cv::Scalar(255,255,255);
+      //   out_tmp1 = cv::Scalar(255,255,255);
 
       cv::Mat roiImgResult_Left = out_tmp1(cv::Rect(0,0,in_img1.cols,in_img1.rows));
       cv::Mat roiImgResult_Right = out_tmp1(cv::Rect(in_img1.cols+sep,0,in_img2.cols,in_img2.rows));
       roiImg1.copyTo(roiImgResult_Left); //Img1 will be on the left of imgResult
       roiImg2.copyTo(roiImgResult_Right); //Img2 will be on the right of imgResult
-//      if (out_tmp1.channels() < 3)
-//          cv::cvtColor(out_tmp1.clone(),out_tmp1,CV_GRAY2RGB);
+      //      if (out_tmp1.channels() < 3)
+      //          cv::cvtColor(out_tmp1.clone(),out_tmp1,CV_GRAY2RGB);
 
 
       out_tmp2 = cv::Mat(in_img1.rows+in_img2.rows+sep, max(in_img1.cols,in_img2.cols),in_img2.type(),cv::Scalar(255,255,255));
-    //  out_tmp2 = cv::Scalar(255,255,255);
+      //  out_tmp2 = cv::Scalar(255,255,255);
 
       cv::Mat roiImgResult_Up = out_tmp2(cv::Rect(0,0,in_img1.cols,in_img1.rows));
       cv::Mat roiImgResult_Down = out_tmp2(cv::Rect(0,in_img1.rows+sep, in_img2.cols,in_img2.rows));
       roiImg1.copyTo(roiImgResult_Up); //Img1 will be on the left of imgResult
       roiImg2.copyTo(roiImgResult_Down); //Img2 will be on the right of imgResult
 
-//      if (out_img2.channels() < 3)
-//        cv::cvtColor(out_tmp2.clone(),out_tmp2,CV_GRAY2RGB);
+      //      if (out_img2.channels() < 3)
+      //        cv::cvtColor(out_tmp2.clone(),out_tmp2,CV_GRAY2RGB);
 
       if(!DrawCentersOnly)
         {
@@ -1889,11 +1889,11 @@ void DrawMatchesWithError(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Mat
         out_img2=in_img2.clone();
 
       cv::Mat tmpimage1 (in_img1.rows,in_img1.cols,CV_32FC3,cv::Scalar(255, 255,255));
-    //  tmpimage1=cv::Scalar(255, 255,255);
+      //  tmpimage1=cv::Scalar(255, 255,255);
       cv::addWeighted(out_tmp1,1.0,tmpimage1,-0.15,0.,out_tmp1); //make darker
 
       cv::Mat tmpimage2 (in_img2.rows,in_img2.cols,CV_32FC3,cv::Scalar(255, 255,255));
-     // tmpimage2=cv::Scalar(255, 255,255);
+      // tmpimage2=cv::Scalar(255, 255,255);
       cv::addWeighted(out_tmp2,1.0,tmpimage2,-0.15,0.,out_tmp2); //make darker
       cv::Scalar color_corr = color2;
 
@@ -2410,7 +2410,7 @@ void DrawMatchingsSimple(const cv::Mat &in_img, cv::Mat &out_img,const cv::Mat &
   if (order)
     for(i=0; i < matchings.size(); i++, ptrOut++)
       {
-      //  if (!(ptrOut->isTrue)) continue;
+        //  if (!(ptrOut->isTrue)) continue;
 
         cv::circle(out_img, cv::Point(int(ptrOut->first.x),int(ptrOut->first.y)),r1,color1,-1); //draw original points
         double xa,ya;
@@ -2591,7 +2591,7 @@ void DrawMatchingRegions3D(const cv::Mat &in_img1,const cv::Mat &in_img2, cv::Ma
 
       if (tmpimage1.channels() !=3) {
           cv::cvtColor(tmpimage1,tmpimage1,CV_GRAY2RGB);
-      }
+        }
 
       std::vector<TentativeCorrespExt>::iterator ptrOut = matchings.TCList.begin();
       for(i=0; i < matchings.TCList.size(); i++, ptrOut++)
@@ -2813,8 +2813,8 @@ void DrawChangedMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv
   cv::Mat tmpimage1;
   if (in_img.channels() != 3)
     {
-  cv::cvtColor(in_img,out_img,CV_GRAY2RGB);
-  cv::cvtColor(in_img,tmpimage1,CV_GRAY2RGB);
+      cv::cvtColor(in_img,out_img,CV_GRAY2RGB);
+      cv::cvtColor(in_img,tmpimage1,CV_GRAY2RGB);
     }
   else {
       out_img = in_img.clone();
@@ -2953,11 +2953,11 @@ void DrawChangedMatchingRegions(const cv::Mat &in_img, cv::Mat &out_img,const cv
 
 void WriteMatchings(TentativeCorrespListExt &match, std::ostream &out1, int writeWithRatios)
 {
-//  out1 << (int) match.TCList.size() << std::endl;
+  //  out1 << (int) match.TCList.size() << std::endl;
   std::vector<TentativeCorrespExt>::iterator ptr = match.TCList.begin();
-    if (writeWithRatios)
+  if (writeWithRatios)
     {
-        out1 << "x1,y1,x2,y2,FGINN_ratio,SNN_ratio,detector,descriptor,is_correct " << std::endl;
+      out1 << "x1,y1,x2,y2,FGINN_ratio,SNN_ratio,detector,descriptor,is_correct " << std::endl;
 
       for(int i=0; i < (int) match.TCList.size(); i++, ptr++)
         out1 << ptr->first.reproj_kp.x << "," << ptr->first.reproj_kp.y << "," << ptr->second.reproj_kp.x << "," << ptr->second.reproj_kp.y << ","
