@@ -5,7 +5,7 @@ PROJECT(MODS_NEW)
 add_definitions(-DA64)
 add_definitions(-std=c++11)
 
-SET(WITH_CAFFE TRUE)
+SET(WITH_CAFFE FALSE)
 
 message("Looking for OpenCV")
 #SET (OpenCV_DIR "/usr/local/opencv-2.4.9/")

@@ -865,11 +865,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                ;// Will detect and describe at once
                 } else  {
 
-
                   //   std::string curr_desc = synth_par[curr_det][synth].descriptors[i_desc];
-
                   doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
-
                   cmp::SORB CurrentDetector(det_par.SaddleParam.respThreshold,
                                             det_par.SaddleParam.scalefac,
                                             det_par.SaddleParam.pyrLevels,
@@ -890,12 +887,10 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                             det_par.SaddleParam.minArcLength,
                                             det_par.SaddleParam.maxArcLength);
 
-
                   //cmp::SORB detector(responseThr, scaleFactor, nlevels, edgeThreshold, epsilon, 2, cmp::SORB::DELTA_SCORE , 31,
                   //                   doNMS, descSize, deltaThr, nfeatures, allC1feats, strictMaximum, subPixPrecision, gravityCenter, innerTstType);
 
                   Mat dcts, mask;
-
                   printf("Detecting SADDLE points... \n");
                   temp_img1.pixels.convertTo(CharImage,CV_8U);
                   CurrentDetector(CharImage, mask, keypoints_Sad);//, dcts, false );
@@ -1083,7 +1078,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                     }
                 }
             }
-
           else if (curr_det.compare("KAZE")==0)
             {
               doExternalAffineAdaptation = det_par.FOCIParam.doBaumberg;
@@ -1662,10 +1656,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           int desc_size = descriptors_1.cols;
                           for (int kp_num=0; kp_num<kp_size; kp_num++)
                             {
-                              //                              if (kp_num == 0) {
-                              //                                  std::cout << keypoints_Sad[kp_num].pt.x << " " << keypoints_Sad[kp_num].pt.y << std::endl;
-                              //                                  std::cout << temp_kp1_desc[kp_num].det_kp.x  << " " << temp_kp1_desc[kp_num].det_kp.y;
-                              //                                }
                               temp_kp1_desc[kp_num].det_kp.x = keypoints_Sad[kp_num].pt.x;
                               temp_kp1_desc[kp_num].det_kp.y = keypoints_Sad[kp_num].pt.y;
                               temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_Sad[kp_num].angle*M_PI/180.0);
@@ -1700,25 +1690,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
                           temp_kp_map["None"] = temp_kp1;
 
-
-                          //                          unsigned int kp_size = temp_kp1.size();
-                          //                          keypoints_1.clear();
-                          //                          keypoints_1.reserve(kp_size);
-                          //                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                          //                              cv::KeyPoint temp_pt;
-                          //                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                          //                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-
-                          //                              temp_pt.octave = temp_kp1_desc[kp_num].det_kp.octave_number;
-                          //                              temp_pt.response =  temp_kp1_desc[kp_num].det_kp.response;
-                          //                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);// keypoints_Sad[kp_num].angle;
-                          //                           //   std::cout << temp_pt.angle << " ";
-                          //                            //  std::cout << keypoints_Sad[kp_num].angle<< " " << std::endl;
-                          //                            //  ;
-                          //                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  det_par.SaddleParam.PEParam.mrSize;
-                          //                              keypoints_1.push_back(temp_pt);
-                          //                            }
-                          //                           CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                         }
 
                       if (curr_det == "ORB") {
@@ -1738,10 +1709,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           int desc_size = descriptors_1.cols;
                           for (int kp_num=0; kp_num<kp_size; kp_num++)
                             {
-                              //                              if (kp_num == 0) {
-                              //                                  std::cout << keypoints_1[kp_num].pt.x << " " << keypoints_1[kp_num].pt.y << std::endl;
-                              //                                  std::cout << temp_kp1_desc[kp_num].det_kp.x  << " " << temp_kp1_desc[kp_num].det_kp.y;
-                              //                                }
                               temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
                               temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
                               temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
@@ -1775,22 +1742,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           ReprojectRegionsAndRemoveTouchBoundary(temp_kp1, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
                           ReprojectRegionsAndRemoveTouchBoundary(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows, 3.0);
                           temp_kp_map["None"] = temp_kp1;
-
-
-                          //                          unsigned int kp_size = temp_kp1.size();
-                          //                   //       keypoints_1.clear();
-                          //                          keypoints_1.resize(kp_size);
-                          //                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                          //                              cv::KeyPoint temp_pt;
-                          //                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                          //                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                          //                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                          //                              temp_pt.octave = temp_kp1_desc[kp_num].det_kp.octave_number;
-                          //                            //  std::cout << temp_pt.angle << " ";
-                          //                              temp_pt.response =  temp_kp1_desc[kp_num].det_kp.response;
-                          //                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s *  det_par.ORBParam.PEParam.mrSize; //?mrSizeORB;
-                          //                              keypoints_1[kp_num]=temp_pt;                            }
-                          //                         CurrentDescriptor.compute(CharImage, keypoints_1, descriptors_1);
                         }
 
                     }
@@ -1858,7 +1809,6 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               //                }
               else if (curr_desc.compare("KAZE") == 0) //KAZE
                 {
-
                   if (OpenCV_det) //no data conversion needed
                     {
                       if (curr_det == "Saddle") {
@@ -1962,22 +1912,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   desc_par.SURFDescParam.PEParam.patchSize,
                                   desc_par.SURFDescParam.PEParam.FastPatchExtraction,
                                   desc_par.SURFDescParam.PEParam.photoNorm);
-
-
                 }
-              //              else if (curr_desc.compare("DALI") == 0)
-              //                {
-              //                  DALIDescriptor DALIDesc(desc_par.DALIDescParam);
-              //                  DescribeRegions(temp_kp1_desc,
-              //                                  temp_img1, DALIDesc,
-              //                                  desc_par.DALIDescParam.PEParam.mrSize,
-              //                                  desc_par.DALIDescParam.PEParam.patchSize,
-              //                                  desc_par.DALIDescParam.PEParam.FastPatchExtraction,
-              //                                  desc_par.DALIDescParam.PEParam.photoNorm);
-
-
-              //                }
-
               else if (curr_desc.compare("FREAK") == 0) //FREAK
                 {
                   //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
@@ -2186,15 +2121,10 @@ void ImageRepresentation::SaveRegionsMichal(std::string fname, int mode) {
                       desc_dim = desc_it->second[0].desc.vec.size();
                     }
                 }
-
               if (desc_dim == 0) {
-
                   std::cerr << "All descriptors are empty" << std::endl;
                   kpfile.close();
                   continue;
-
-
-
                 }
               kpfile.write((char *) &desc_dim, sizeof(int));
 
