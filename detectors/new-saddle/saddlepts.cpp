@@ -344,7 +344,7 @@ int txt_from_feats(vector<cmp::SadKeyPoint> kpts, Mat dcts, char *outpath)
 
 	for (vector<cmp::SadKeyPoint>::iterator kp = kpts.begin(), kpEnd = kpts.end(); kp != kpEnd; ++kp, iDesc++)
 	{
-		coef = 1/(5.1962*kp->size);
+		coef = 1.0/(kp->size);
 		coef *= coef;
 		fprintf(ftfile, "%.2f %.3f %f 0.0 %f ", kp->pt.x, kp->pt.y, coef, coef);
 		p = dcts.ptr<uchar>(iDesc);
