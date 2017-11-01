@@ -1,5 +1,10 @@
 ## MODS: Image Matching with On-Demand Synthesis.
 
+## Binaries can be downloaded here
+
+https://github.com/ducha-aiki/mods/releases/
+
+
 Compilation. 
 MODS depends on OpenCV version 2.4.9 and LAPACK
 
