@@ -57,10 +57,12 @@ Make sure, that CMake generates mingw32 make files, not Visual Studio.
 
 ## Example of use:
 Linux:
+
     ./mods examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
 
 Windows:
-    ./mods.exe examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
+
+    mods.exe examples/cat.png examples/cat2.png out1.png out2.png k1.txt k2.txt m.txt l.txt 0 0 examples/cat.txt config_iter_mods_cviu.ini iters_mods_cviu.ini
 
 
 ## Configurations:
