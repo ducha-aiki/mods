@@ -19,12 +19,14 @@ struct DominantOrientationParams {
   float threshold;
   bool addUpRight;
   bool halfSIFTMode;
+  std::string  external_command;
   PatchExtractionParams PEParam;
   DominantOrientationParams() {
     maxAngles = -1;
     threshold = 0.8;
     addUpRight = false;
     halfSIFTMode = false;
+    external_command = "";
   }
 };
 

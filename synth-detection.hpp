@@ -158,6 +158,13 @@ int DetectOrientation(AffineRegionList &in_kp_list,
                       const double th = 0.8,
                       const bool addUpRight = false);
 
+int DetectOrientationExt(AffineRegionList &in_kp_list,
+                      AffineRegionList &out_kp_list,
+                      SynthImage &img,
+                      const double mrSize,
+                      const int patchSize,
+                      std::string exernal_command);
+
 int DetectAffineShape(AffineRegionList &in_kp_list,
                       AffineRegionList &out_kp_list1,
                       SynthImage &img,

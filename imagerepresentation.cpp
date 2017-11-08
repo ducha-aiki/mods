@@ -1201,6 +1201,10 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
             } else {
               ////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Change it!s
               if (SIFT_like_desc) {
+                  if (dom_ori_par.external_command.size() > 0) {
+                      DetectOrientationExt(temp_kp1, temp_kp1_SIFT_like_desc, temp_img1,
+                                        dom_ori_par.PEParam.mrSize, dom_ori_par.PEParam.patchSize,dom_ori_par.external_command);
+                  } else
                   DetectOrientation(temp_kp1, temp_kp1_SIFT_like_desc, temp_img1,
                                     dom_ori_par.PEParam.mrSize, dom_ori_par.PEParam.patchSize,
                                     false, dom_ori_par.maxAngles,

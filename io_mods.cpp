@@ -1079,6 +1079,7 @@ void GetDomOriPars(DominantOrientationParams &DomOriPars, INIReader &reader, cha
   DomOriPars.halfSIFTMode = reader.GetBoolean(section, "halfSIFTMode", DomOriPars.halfSIFTMode);
   DomOriPars.maxAngles = (int)reader.GetInteger(section, "maxAngles", DomOriPars.maxAngles);
   DomOriPars.threshold = (float) reader.GetDouble(section, "threshold", DomOriPars.threshold);
+  DomOriPars.external_command = reader.GetString(section, "external_command", DomOriPars.external_command);
   GetPatchExtractionPars(DomOriPars.PEParam,reader, section);
 }
 

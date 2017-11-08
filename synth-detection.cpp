@@ -43,14 +43,14 @@ const double COS_PI_2 = cos(M_PI/2);
 const double SIN_PI_2 = sin(M_PI/2);
 
 void DescribeRegionsExt(const AffineRegionList &in_kp_list,
-                   const  SynthImage &img,  cv::Mat &patches,  double mrSize  ,
-                           int patchSize , bool fast_extraction , bool photoNorm , bool export_and_read)
+                        const  SynthImage &img,  cv::Mat &patches,  double mrSize  ,
+                        int patchSize , bool fast_extraction , bool photoNorm , bool export_and_read)
 //Describes region with SIFT or other descriptor
 {
   // std::cerr << "photonorm=" << photoNorm << std::endl;
   std::vector<unsigned char> workspace;
   // patch size in the image / patch size -> amount of down/up sampling
-   unsigned int n_descs = in_kp_list.size();
+  unsigned int n_descs = in_kp_list.size();
   cv::Mat mask(patchSize,patchSize,CV_32F);
   computeCircularGaussMask(mask);
   cv::Mat all_patches =  cv::Mat::zeros(patchSize * n_descs, patchSize, CV_32FC1);
@@ -88,8 +88,8 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
 
               gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
               // subsample with corresponding scale
-             int res =  interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
-                          imageToPatchScale, 0, 0, imageToPatchScale, currentROI);
+              int res =  interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
+                                     imageToPatchScale, 0, 0, imageToPatchScale, currentROI);
 
             } else {
               // if imageToPatchScale is small (i.e. lot of oversampling), affine normalize without smoothing
@@ -109,7 +109,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
             }
 
 
- //  all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)) = patch.clone();
+          //  all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)) = patch.clone();
 
         }
     } else {
@@ -136,7 +136,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
               float mean, var;
               photometricallyNormalize(currentROI, mask, mean, var);
             }
-     //    patch.copyTo(all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)));
+          //    patch.copyTo(all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows)));
 
         }
 
@@ -164,7 +164,7 @@ bool HIsEye(double* H) {
 }
 
 int ReprojectRegionsAndRemoveTouchBoundary(AffineRegionList &keypoints, double *H, int orig_w, int orig_h, const double mrSize, const bool dontRemove) {
-int old_size = keypoints.size();
+  int old_size = keypoints.size();
   cv::Mat H1(3, 3, CV_64F, H);
   cv::Mat Hinv(3, 3, CV_64F);
   cv::invert(H1, Hinv, cv::DECOMP_LU);
@@ -200,7 +200,7 @@ int old_size = keypoints.size();
         }
     }
   keypoints = temp_keypoints;
-//std::cout << old_size << " , become " << keypoints.size() << std::endl;
+  //std::cout << old_size << " , become " << keypoints.size() << std::endl;
   return (int)keypoints.size();
 }
 int SetVSPars(const std::vector <double> &scale_set,
@@ -942,6 +942,114 @@ public:
 
 };
 
+int DetectOrientationExt(AffineRegionList &in_kp_list,
+                         AffineRegionList &out_kp_list,
+                         SynthImage &img,
+                         const double mrSize,
+                         const int patchSize,
+                         std::string exernal_command) {
+  AffineRegionList temp_kp_list;
+  temp_kp_list.reserve(in_kp_list.size());
+
+  AffineRegion temp_region, const_temp_region;
+  unsigned int count = 0;
+  //unsigned int i;
+  double mrScale = (double)mrSize; // half patch size in pixels of image
+  int patchImageSize = 2*int(mrScale)+1; // odd size
+  vector<float> angles1;//, angles2;
+  //  angles1.reserve(5);
+  // angles2.reserve(5);
+  double imageToPatchScale = double(patchImageSize) / (double)patchSize;
+  // patch size in the image / patch size -> amount of down/up sampling
+
+  cv::Mat patch(patchSize,patchSize,CV_32FC1);
+  cv::Mat all_patches(patchSize*in_kp_list.size(), patchSize, CV_32FC1);
+  cv::Mat H1(3,3,CV_64F,img.H);
+  cv::Mat Hinv(3,3,CV_64F);
+  cv::invert(H1,Hinv, cv::DECOMP_LU);
+
+  for (int i=0; i < in_kp_list.size(); i++)
+    {
+      const_temp_region=in_kp_list[i];
+      angles1.clear();
+      float curr_sc = imageToPatchScale*const_temp_region.det_kp.s;
+
+      if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
+                                  (float) in_kp_list[i].det_kp.x,
+                                  (float) in_kp_list[i].det_kp.y,
+                                  (float) in_kp_list[i].det_kp.a11,
+                                  (float) in_kp_list[i].det_kp.a12,
+                                  (float) in_kp_list[i].det_kp.a21,
+                                  (float) in_kp_list[i].det_kp.a22,
+                                  k_sigma * in_kp_list[i].det_kp.s,
+                                  k_sigma * in_kp_list[i].det_kp.s) ) {
+          continue;
+        }
+      cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
+
+      interpolate(img.pixels,(float)const_temp_region.det_kp.x,
+                  (float)const_temp_region.det_kp.y,
+                  (float)const_temp_region.det_kp.a11*curr_sc,
+                  (float)const_temp_region.det_kp.a12*curr_sc,
+                  (float)const_temp_region.det_kp.a21*curr_sc,
+                  (float)const_temp_region.det_kp.a22*curr_sc,
+                  currentROI);
+
+    }
+
+  int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+  std::string img_fname = "CLIORIDET"+std::to_string(rnd1)+".bmp";
+  cv::imwrite(img_fname,all_patches );
+  std::string desc_fname = "CLIORIDET"+std::to_string(rnd1)+".txt";
+
+  std::string command = exernal_command + " " + img_fname + " "  + desc_fname;
+
+  system(command.c_str());
+  std::ifstream focikp(desc_fname);
+  if (focikp.is_open()) {
+
+      for (int i = 0; i < in_kp_list.size(); i++) {
+          const_temp_region=in_kp_list[i];
+
+          double angle = 0;
+
+          focikp >> angle;
+          double ci = cos(-angle);
+          double si = sin(-angle);
+          if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
+                                      (float) in_kp_list[i].det_kp.x,
+                                      (float) in_kp_list[i].det_kp.y,
+                                      (float) in_kp_list[i].det_kp.a11,
+                                      (float) in_kp_list[i].det_kp.a12,
+                                      (float) in_kp_list[i].det_kp.a21,
+                                      (float) in_kp_list[i].det_kp.a22,
+                                      k_sigma * in_kp_list[i].det_kp.s,
+                                      k_sigma * in_kp_list[i].det_kp.s) ) {
+              continue;
+            }
+          temp_region=const_temp_region;
+          temp_region.det_kp.a11 = const_temp_region.det_kp.a11*ci-const_temp_region.det_kp.a12*si;
+          temp_region.det_kp.a12 = const_temp_region.det_kp.a11*si+const_temp_region.det_kp.a12*ci;
+          temp_region.det_kp.a21 = const_temp_region.det_kp.a21*ci-const_temp_region.det_kp.a22*si;
+          temp_region.det_kp.a22 = const_temp_region.det_kp.a21*si+const_temp_region.det_kp.a22*ci;
+          temp_kp_list.push_back(temp_region);
+
+        }
+    }
+  focikp.close();
+  std::string rm_command = "rm " + img_fname;
+  system(rm_command.c_str());
+  rm_command = "rm " + desc_fname;
+  system(rm_command.c_str());
+  std::cerr << "ori  done" <<std::endl;
+
+
+  out_kp_list=temp_kp_list;
+
+
+
+  return (int)temp_kp_list.size();
+}
 int DetectOrientation(AffineRegionList &in_kp_list,
                       AffineRegionList &out_kp_list,
                       SynthImage &img,
@@ -972,6 +1080,7 @@ int DetectOrientation(AffineRegionList &in_kp_list,
   cv::invert(H1,Hinv, cv::DECOMP_LU);
 
   EstimateDominantAnglesFunctor EstDomOri(patchSize,doHalfSIFT);
+
   for (int i=0; i < in_kp_list.size(); i++)
     {
       const_temp_region=in_kp_list[i];
@@ -1001,6 +1110,7 @@ int DetectOrientation(AffineRegionList &in_kp_list,
                       (float)const_temp_region.det_kp.a22*curr_sc,
                       patch);
           EstDomOri(patch,angles1,th,maxAngNum);
+
           for (size_t j = 0; j < angles1.size(); j++)
             {
               double ci = cos(-angles1[j]);
@@ -1013,12 +1123,42 @@ int DetectOrientation(AffineRegionList &in_kp_list,
               temp_region.det_kp.a22 = const_temp_region.det_kp.a21*si+const_temp_region.det_kp.a22*ci;
               temp_kp_list.push_back(temp_region);
             }
+          ///////////////
+
+          //          if (i ==8) {
+          //          for (size_t uu = 0; uu < 10/*angles1.size()*/; uu++) {
+          //              interpolate(img.pixels,(float)const_temp_region.det_kp.x,
+          //                          (float)const_temp_region.det_kp.y,
+          //                          (float) temp_region.det_kp.a11*curr_sc,
+          //                          (float) temp_region.det_kp.a12*curr_sc,
+          //                          (float) temp_region.det_kp.a21*curr_sc,
+          //                          (float) temp_region.det_kp.a22*curr_sc,
+          //                          patch);
+
+          //                EstDomOri(patch,angles1,th,1);
+          //                std::cerr << 180.* angles1[0] / M_PI  << std::endl;
+
+          //                double ci = cos(-angles1[0]);
+          //                double si = sin(-angles1[0]);
+
+          //                AffineRegion temp_region2=temp_region;
+          //                temp_region2.det_kp.a11 = temp_region.det_kp.a11*ci-temp_region.det_kp.a12*si;
+          //                temp_region2.det_kp.a12 = temp_region.det_kp.a11*si+temp_region.det_kp.a12*ci;
+          //                temp_region2.det_kp.a21 = temp_region.det_kp.a21*ci-temp_region.det_kp.a22*si;
+          //                temp_region2.det_kp.a22 = temp_region.det_kp.a21*si+temp_region.det_kp.a22*ci;
+          //                temp_region = temp_region2;
+          //            }
+          //            }
+          //          //////////
         }
       if (addUpRight) {
           temp_kp_list.push_back(const_temp_region);
         }
     }
   out_kp_list=temp_kp_list;
+
+
+
   return (int)temp_kp_list.size();
 }
 
@@ -1248,7 +1388,7 @@ void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1, 
       std::getline(in1, line);
       std::istringstream iss3(line);
       iss3 >> temp_reg.det_kp.x >> temp_reg.det_kp.y >> a >> b >> c;
-     // std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << a << " " << b << " " << c << std::endl;
+      // std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << a << " " << b << " " << c << std::endl;
 
       utls::Matrix2 A(a, b, b, c);
       utls::Matrix2 U, T, C;
@@ -1264,8 +1404,8 @@ void ReadKPsMik(AffineRegionList &keys, std::istream &in1, const int det_type1, 
       temp_reg.type = (detector_type) det_type1;
       temp_reg.det_kp.s = sqrt(temp_reg.det_kp.a11*temp_reg.det_kp.a22 - temp_reg.det_kp.a12*temp_reg.det_kp.a21);
       rectifyTransformation(temp_reg.det_kp.a11,temp_reg.det_kp.a12,temp_reg.det_kp.a21,temp_reg.det_kp.a22);
-   //   std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << temp_reg.det_kp.a11 << " " << temp_reg.det_kp.a22  << " "
-   //             << temp_reg.det_kp.s << std::endl;
+      //   std::cout << temp_reg.det_kp.x << " " << temp_reg.det_kp.y << " " << temp_reg.det_kp.a11 << " " << temp_reg.det_kp.a22  << " "
+      //             << temp_reg.det_kp.s << std::endl;
 
       temp_reg.reproj_kp =  temp_reg.det_kp;
       temp_keys.push_back(temp_reg);
