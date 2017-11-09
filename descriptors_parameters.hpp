@@ -19,6 +19,7 @@ struct DominantOrientationParams {
   float threshold;
   bool addUpRight;
   bool halfSIFTMode;
+  bool useCNN;
   std::string  external_command;
   PatchExtractionParams PEParam;
   DominantOrientationParams() {
@@ -26,6 +27,7 @@ struct DominantOrientationParams {
     threshold = 0.8;
     addUpRight = false;
     halfSIFTMode = false;
+    useCNN = false;
     external_command = "";
   }
 };
@@ -43,40 +45,7 @@ struct CLIDescriptorParams {
 
 };
 
-struct CaffeDescriptorParams
-{
-  std::string WeightsFile;
-  std::string ProtoTxt;
-  double MeanB;
-  double MeanG;
-  double MeanR;
-  int batchSize;
-  int patchSize;
-  double mrSize;
-  std::string LayerName;
-  std::string Pooling;
-  std::string Normalization;
-  bool DoSIFTLikeOrientation;
-  int maxOrientations;
-  bool estimateOrientation;
-  double orientTh;
-    PatchExtractionParams PEParam;
-  CaffeDescriptorParams()
-  {
-    MeanB=104;
-    MeanG=117;
-    MeanR=123;
-    mrSize = 5.192;
-    batchSize = 256;
-    patchSize = 32;
-    Pooling = "none";
-    Normalization = "L2";
-    DoSIFTLikeOrientation = true;
-    maxOrientations = 0;
-    estimateOrientation= true;
-    orientTh = 0.8;
-  }
-};
+
 
 struct DescriptorsParameters {
   CLIDescriptorParams CLIDescParam;

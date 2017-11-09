@@ -103,6 +103,55 @@ const std::string _DescriptorNames [] = {"SIFT", "RootSIFT",
 const std::vector<std::string> DescriptorNames (_DescriptorNames,_DescriptorNames +
                                               sizeof(_DescriptorNames)/sizeof(*_DescriptorNames));
 
+struct PatchExtractionParams {
+
+  int patchSize;
+  double mrSize;
+  bool FastPatchExtraction;
+  bool photoNorm;
+  PatchExtractionParams() {
+    mrSize = 5.1962;
+    patchSize = 41;
+    FastPatchExtraction = false;
+    photoNorm = true;
+  }
+};
+
+
+struct CaffeDescriptorParams
+{
+  std::string WeightsFile;
+  std::string ProtoTxt;
+  double MeanB;
+  double MeanG;
+  double MeanR;
+  int batchSize;
+  int patchSize;
+  double mrSize;
+  std::string LayerName;
+  std::string Pooling;
+  std::string Normalization;
+  bool DoSIFTLikeOrientation;
+  int maxOrientations;
+  bool estimateOrientation;
+  double orientTh;
+    PatchExtractionParams PEParam;
+  CaffeDescriptorParams()
+  {
+    MeanB=104;
+    MeanG=117;
+    MeanR=123;
+    mrSize = 5.192;
+    batchSize = 256;
+    patchSize = 32;
+    Pooling = "none";
+    Normalization = "L2";
+    DoSIFTLikeOrientation = true;
+    maxOrientations = 0;
+    estimateOrientation= true;
+    orientTh = 0.8;
+  }
+};
 
 /// Basic structures:
 
@@ -238,20 +287,6 @@ struct AffineRegion{
   AffineKeypoint reproj_kp;//reprojected affine region to the original image
   Descriptor desc;
 
-};
-
-struct PatchExtractionParams {
-
-  int patchSize;
-  double mrSize;
-  bool FastPatchExtraction;
-  bool photoNorm;
-  PatchExtractionParams() {
-    mrSize = 5.1962;
-    patchSize = 41;
-    FastPatchExtraction = false;
-    photoNorm = true;
-  }
 };
 
 

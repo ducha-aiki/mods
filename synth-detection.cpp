@@ -44,7 +44,7 @@ const double SIN_PI_2 = sin(M_PI/2);
 
 void DescribeRegionsExt(const AffineRegionList &in_kp_list,
                         const  SynthImage &img,  cv::Mat &patches,  double mrSize  ,
-                        int patchSize , bool fast_extraction , bool photoNorm , bool export_and_read)
+                        int patchSize , bool fast_extraction , bool photoNorm , bool export_and_read, bool do_mask)
 //Describes region with SIFT or other descriptor
 {
   // std::cerr << "photonorm=" << photoNorm << std::endl;
@@ -1155,6 +1155,114 @@ int DetectOrientation(AffineRegionList &in_kp_list,
           temp_kp_list.push_back(const_temp_region);
         }
     }
+  out_kp_list=temp_kp_list;
+
+
+
+  return (int)temp_kp_list.size();
+}
+
+
+int DetectAffineShapeExt(AffineRegionList &in_kp_list,
+                         AffineRegionList &out_kp_list,
+                         SynthImage &img,
+                         const AffineShapeParams par) {
+
+  AffineRegionList temp_kp_list;
+  temp_kp_list.reserve(in_kp_list.size());
+  std::string exernal_command = par.external_command;
+  AffineRegion temp_region, const_temp_region;
+  unsigned int count = 0;
+  //unsigned int i;
+  double mrScale = par.mrSize; // half patch size in pixels of image
+  int patchImageSize = 2*int(mrScale)+1; // odd size
+  double imageToPatchScale = double(patchImageSize) / (double)par.patchSize;
+  // patch size in the image / patch size -> amount of down/up sampling
+  int patchSize = par.patchSize;
+  cv::Mat patch(patchSize,patchSize,CV_32FC1);
+  cv::Mat all_patches(patchSize*in_kp_list.size(), patchSize, CV_32FC1);
+  cv::Mat H1(3,3,CV_64F,img.H);
+  cv::Mat Hinv(3,3,CV_64F);
+  cv::invert(H1,Hinv, cv::DECOMP_LU);
+
+  for (int i=0; i < in_kp_list.size(); i++)
+    {
+      const_temp_region=in_kp_list[i];
+
+      float curr_sc = imageToPatchScale*const_temp_region.det_kp.s;
+
+      if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
+                                  (float) in_kp_list[i].det_kp.x,
+                                  (float) in_kp_list[i].det_kp.y,
+                                  (float) in_kp_list[i].det_kp.a11,
+                                  (float) in_kp_list[i].det_kp.a12,
+                                  (float) in_kp_list[i].det_kp.a21,
+                                  (float) in_kp_list[i].det_kp.a22,
+                                  k_sigma * in_kp_list[i].det_kp.s,
+                                  k_sigma * in_kp_list[i].det_kp.s) ) {
+          continue;
+        }
+      cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
+
+      interpolate(img.pixels,(float)const_temp_region.det_kp.x,
+                  (float)const_temp_region.det_kp.y,
+                  (float)const_temp_region.det_kp.a11*curr_sc,
+                  (float)const_temp_region.det_kp.a12*curr_sc,
+                  (float)const_temp_region.det_kp.a21*curr_sc,
+                  (float)const_temp_region.det_kp.a22*curr_sc,
+                  currentROI);
+
+    }
+
+  int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+  std::string img_fname = "CLIORIDET"+std::to_string(rnd1)+".bmp";
+  cv::imwrite(img_fname,all_patches );
+  std::string desc_fname = "CLIORIDET"+std::to_string(rnd1)+".txt";
+
+  std::string command = exernal_command + " " + img_fname + " "  + desc_fname;
+
+  system(command.c_str());
+  std::ifstream focikp(desc_fname);
+  if (focikp.is_open()) {
+
+      for (int i = 0; i < in_kp_list.size(); i++) {
+          const_temp_region=in_kp_list[i];
+
+          double a11 = 0;
+          double a12 = 0;
+          double a21 = 0;
+          double a22 = 0;
+
+          focikp >> a11  >> a12 >> a21 >> a22;
+
+          if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
+                                      (float) in_kp_list[i].det_kp.x,
+                                      (float) in_kp_list[i].det_kp.y,
+                                      (float) in_kp_list[i].det_kp.a11,
+                                      (float) in_kp_list[i].det_kp.a12,
+                                      (float) in_kp_list[i].det_kp.a21,
+                                      (float) in_kp_list[i].det_kp.a22,
+                                      k_sigma * in_kp_list[i].det_kp.s,
+                                      k_sigma * in_kp_list[i].det_kp.s) ) {
+              continue;
+            }
+          temp_region=const_temp_region;
+          temp_region.det_kp.a11 = a11;
+          temp_region.det_kp.a12 = a12;
+          temp_region.det_kp.a21 = a21;
+          temp_region.det_kp.a22 = a22;
+          temp_kp_list.push_back(temp_region);
+
+        }
+    }
+  focikp.close();
+  std::string rm_command = "rm " + img_fname;
+  system(rm_command.c_str());
+  rm_command = "rm " + desc_fname;
+  system(rm_command.c_str());
+  std::cerr << "aff  done" <<std::endl;
+
+
   out_kp_list=temp_kp_list;
 
 

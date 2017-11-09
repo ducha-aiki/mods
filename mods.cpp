@@ -191,13 +191,30 @@ int main(int argc, char **argv)
 #ifdef WITH_CAFFE
   //caffe::Caffe::set_phase(caffe::Caffe::TEST);
   caffe::Caffe::set_mode(caffe::Caffe::GPU);
-   std::shared_ptr<caffe::Net<float> > caffe_net;
-   std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
+  std::shared_ptr<caffe::Net<float> > caffe_net;
+  std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
   caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
   caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
 
-  ImgRep1.InitCaffe(caffe_net);
-  ImgRep2.InitCaffe(caffe_net);
+  ImgRep1.AddNet(caffe_net, "Descriptor");
+  ImgRep2.AddNet(caffe_net, "Descriptor");
+//////////////
+  std::shared_ptr<caffe::Net<float> > affine_net;
+  std::cerr << Config1.DetectorsPars.AffNetParam.ProtoTxt << std::endl;
+  affine_net.reset(new caffe::Net<float>(Config1.DetectorsPars.AffNetParam.ProtoTxt, caffe::TEST));
+  affine_net->CopyTrainedLayersFrom(Config1.DetectorsPars.AffNetParam.WeightsFile);
+
+  ImgRep1.AddNet(affine_net, "AffNet");
+  ImgRep2.AddNet(affine_net, "AffNet");
+/////////////
+  std::shared_ptr<caffe::Net<float> > ori_net;
+  std::cerr << Config1.DetectorsPars.OriNetParam.ProtoTxt << std::endl;
+  ori_net.reset(new caffe::Net<float>(Config1.DetectorsPars.OriNetParam.ProtoTxt, caffe::TEST));
+  ori_net->CopyTrainedLayersFrom(Config1.DetectorsPars.OriNetParam.WeightsFile);
+
+  ImgRep1.AddNet(ori_net, "OriNet");
+  ImgRep2.AddNet(ori_net, "OriNet");
+
   std::cerr << "Net init ok" << std::endl;
 #endif
   CorrespondenceBank Tentatives;

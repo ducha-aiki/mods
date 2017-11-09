@@ -279,6 +279,9 @@ void GetBaumbergPars(AffineShapeParams &par, INIReader &reader,const char* secti
   par.doBaumberg = reader.GetInteger(section, "doBaumberg", par.doBaumberg);
   par.initialSigma = reader.GetDouble(section, "initialSigma", par.initialSigma);
   std::string method = reader.GetString(section, "method", "SMM");
+  par.external_command = reader.GetString(section, "external_command", par.external_command);
+  par.useCNN = reader.GetBoolean(section, "useCNN", par.useCNN);
+
   par.affBmbrgMethod = AFF_BMBRG_SMM;
   if (method == "SMM") {
       par.affBmbrgMethod = AFF_BMBRG_SMM;
@@ -745,6 +748,8 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
 
 #ifdef WITH_CAFFE
   GetCaffePars(conf1.DescriptorPars.CaffeDescParam,ConfigIni);
+  GetCaffePars(conf1.DetectorsPars.AffNetParam,ConfigIni,"AffNet");
+  GetCaffePars(conf1.DetectorsPars.OriNetParam,ConfigIni, "OriNet");
 #endif
   GetMatchPars(conf1.Matchparam,ConfigIni,ItersIni);
   conf1.CLIparams.doCLAHE = ConfigIni.GetInteger("Matching", "doCLAHE", conf1.CLIparams.doCLAHE);
@@ -829,6 +834,8 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
 
 #ifdef WITH_CAFFE
   GetCaffePars(conf1.DescriptorPars.CaffeDescParam,ConfigIni);
+  GetCaffePars(conf1.DetectorsPars.AffNetParam,ConfigIni,"AffNet");
+  GetCaffePars(conf1.DetectorsPars.OriNetParam,ConfigIni, "OriNet");
 #endif
   GetMatchPars(conf1.Matchparam,ConfigIni,ItersIni);
   conf1.CLIparams.doCLAHE = ConfigIni.GetInteger("Matching", "doCLAHE", conf1.CLIparams.doCLAHE);
@@ -961,6 +968,8 @@ int getCLIparam(configs &conf1,int argc, char **argv)
 
 #ifdef WITH_CAFFE
   GetCaffePars(conf1.DescriptorPars.CaffeDescParam,ConfigIni);
+  GetCaffePars(conf1.DetectorsPars.AffNetParam,ConfigIni,"AffNet");
+  GetCaffePars(conf1.DetectorsPars.OriNetParam,ConfigIni, "OriNet");
 #endif
   GetMatchPars(conf1.Matchparam,ConfigIni,ItersIni);
   conf1.LoadColor = ConfigIni.GetInteger("Computing", "LoadColor", conf1.LoadColor);
@@ -1077,6 +1086,7 @@ int getCLIparam(configs &conf1,int argc, char **argv)
 void GetDomOriPars(DominantOrientationParams &DomOriPars, INIReader &reader, char const *section) {
   DomOriPars.addUpRight = reader.GetBoolean(section, "addUpRight", DomOriPars.addUpRight);
   DomOriPars.halfSIFTMode = reader.GetBoolean(section, "halfSIFTMode", DomOriPars.halfSIFTMode);
+  DomOriPars.useCNN = reader.GetBoolean(section, "useCNN", DomOriPars.useCNN);
   DomOriPars.maxAngles = (int)reader.GetInteger(section, "maxAngles", DomOriPars.maxAngles);
   DomOriPars.threshold = (float) reader.GetDouble(section, "threshold", DomOriPars.threshold);
   DomOriPars.external_command = reader.GetString(section, "external_command", DomOriPars.external_command);
@@ -1125,6 +1135,8 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
 
 #ifdef WITH_CAFFE
   GetCaffePars(conf1.DescriptorPars.CaffeDescParam,ConfigIni);
+  GetCaffePars(conf1.DetectorsPars.AffNetParam,ConfigIni,"AffNet");
+  GetCaffePars(conf1.DetectorsPars.OriNetParam,ConfigIni, "OriNet");
 #endif
   GetMatchPars(conf1.Matchparam,ConfigIni,ItersIni);
   conf1.CLIparams.doCLAHE = ConfigIni.GetInteger("Matching", "doCLAHE", conf1.CLIparams.doCLAHE);

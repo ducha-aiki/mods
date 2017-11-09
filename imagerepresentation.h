@@ -29,6 +29,7 @@ public:
   ~ImageRepresentation();
 #ifdef WITH_CAFFE
   void InitCaffe(std::shared_ptr<caffe::Net<float> > net_ptr);
+  void AddNet(std::shared_ptr<caffe::Net<float> > net_ptr, std::string name);
 #endif
   std::vector< std::map<std::string, SynthImage> > SynthViews;
 
@@ -70,6 +71,8 @@ protected:
   std::string Name;
 #ifdef WITH_CAFFE
   std::shared_ptr<caffe::Net<float> > caffe_net_ptr;
+   std::map<std::string, std::shared_ptr<caffe::Net<float> > > caffe_net_ptrs_map;
+
   bool NetInUse;
 #endif
 

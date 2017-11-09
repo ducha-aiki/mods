@@ -164,7 +164,10 @@ int DetectOrientationExt(AffineRegionList &in_kp_list,
                       const double mrSize,
                       const int patchSize,
                       std::string exernal_command);
-
+int DetectAffineShapeExt(AffineRegionList &in_kp_list,
+                      AffineRegionList &out_kp_list1,
+                      SynthImage &img,
+                      const AffineShapeParams par);
 int DetectAffineShape(AffineRegionList &in_kp_list,
                       AffineRegionList &out_kp_list1,
                       SynthImage &img,
@@ -176,7 +179,7 @@ int DetectAffineShape(AffineRegionList &in_kp_list,
 
 void DescribeRegionsExt(const AffineRegionList &in_kp_list,
                     const  SynthImage &img, cv::Mat& patches,  double mrSize = 3.0*sqrt(3.0),
-                           int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool export_and_read = true);
+                           int patchSize = 41, bool fast_extraction = false, bool photoNorm = false, bool export_and_read = true, bool do_mask = true);
 
 template <typename FuncType>
 void DescribeRegions(AffineRegionList &in_kp_list,

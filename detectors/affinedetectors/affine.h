@@ -48,6 +48,8 @@ struct AffineShapeParams
   // Invariant used for Baumberg iteration
   AffineBaumbergMethod affBmbrgMethod;
   float affMeasRegion;
+  std::string external_command;
+  bool useCNN;
 
   AffineShapeParams()
   {
@@ -60,6 +62,7 @@ struct AffineShapeParams
     doBaumberg = 1;
     affBmbrgMethod = AFF_BMBRG_SMM;
     affMeasRegion = 0.5;
+    useCNN = false;
   }
 };
 

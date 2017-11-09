@@ -21,16 +21,19 @@ USE_CUDA = True
 
 model = OriNet(PS = PSS)
 weightd_fname = 'tanh_plain_9.pth'
-weightd_fname = 'pixels_only_checkpoint_9.pth'
+#weightd_fname = 'pixels_only_checkpoint_9.pth'
+#weightd_fname = 'HardNetLoss_1.pth'
+weightd_fname = 'newrot.pth'
 checkpoint = torch.load(weightd_fname)
 model.load_state_dict(checkpoint['state_dict'])
 
-model = OrientationDetector(patch_size = PSS)
+#model = OrientationDetector(patch_size = PSS)
 
 PSS=28
 coef = 1.
 model = YiNet()
 model.import_weights('/home/old-ufo/dev/benchmark-orientation/matlab/src/KeypointOrientations/GHHPoolingEF/prelearned/efsift-360')
+#model.import_weights('/home/old-ufo/dev/benchmark-orientation/matlab/src/KeypointOrientations/GHHPooling/prelearned/sift')
 
 model.eval()
 if USE_CUDA:
