@@ -1228,14 +1228,24 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
           if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
                                       (float) in_kp_list[i].det_kp.x,
                                       (float) in_kp_list[i].det_kp.y,
-                                      (float) in_kp_list[i].det_kp.a11,
-                                      (float) in_kp_list[i].det_kp.a12,
-                                      (float) in_kp_list[i].det_kp.a21,
-                                      (float) in_kp_list[i].det_kp.a22,
-                                      k_sigma * in_kp_list[i].det_kp.s,
-                                      k_sigma * in_kp_list[i].det_kp.s) ) {
+                                      (float) a11,
+                                      (float) a12,
+                                      (float) a21,
+                                      (float) a22,
+                                      par.mrSize * in_kp_list[i].det_kp.s,
+                                      par.mrSize * in_kp_list[i].det_kp.s) ) {
               continue;
             }
+          float l1 = 1.0f, l2 = 1.0f;
+           if (!getEigenvalues(a11, a12,a21,a22, l1, l2)) {
+               continue;
+             }
+
+           // leave on too high anisotropyb
+           if ((l1/l2>6) || (l2/l1>6)) {
+               continue;
+             }
+
           temp_region=const_temp_region;
           temp_region.det_kp.a11 = a11;
           temp_region.det_kp.a12 = a12;

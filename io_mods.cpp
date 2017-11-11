@@ -274,6 +274,7 @@ void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section)
 void GetBaumbergPars(AffineShapeParams &par, INIReader &reader,const char* section) {
   par.maxIterations = reader.GetInteger(section, "max_iter", par.maxIterations);
   par.patchSize = reader.GetInteger(section, "patch_size", par.patchSize);
+  par.mrSize = reader.GetInteger(section, "mrSize", par.mrSize);
   par.smmWindowSize = reader.GetInteger(section, "smmWindowSize", par.smmWindowSize);
   par.convergenceThreshold = reader.GetDouble(section, "convergenceThreshold", par.convergenceThreshold);
   par.doBaumberg = reader.GetInteger(section, "doBaumberg", par.doBaumberg);
