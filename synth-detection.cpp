@@ -86,6 +86,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
                           (float) in_kp_list[i].det_kp.a22,
                           smoothed);
 
+
               gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
               // subsample with corresponding scale
               int res =  interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
@@ -113,25 +114,41 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
 
         }
     } else {
+      double mrScale = mrSize; // half patch size in pixels of image
+      int patchImageSize = 2*int(mrScale)+1; // odd size
+      double imageToPatchScale = double(patchImageSize) / (double)patchSize;
+      // patch size in the image / patch size -> amount of down/up sampling
 
       for (unsigned int i = 0; i < n_descs; i++) {
           cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
+          AffineRegion const_temp_region=in_kp_list[i];
 
-          cv::Mat patch(patchSize, patchSize, CV_32FC1);
+          float curr_sc = imageToPatchScale*const_temp_region.det_kp.s;
 
-          double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
-          int patchImageSize = 2 * int(mrScale) + 1; // odd size
-          double imageToPatchScale = double(patchImageSize) / (double) patchSize;
-          float curr_sc = imageToPatchScale;
-
-          interpolate(img.pixels,
-                      (float) in_kp_list[i].det_kp.x,
-                      (float) in_kp_list[i].det_kp.y,
-                      (float) in_kp_list[i].det_kp.a11 * curr_sc,
-                      (float) in_kp_list[i].det_kp.a12 * curr_sc,
-                      (float) in_kp_list[i].det_kp.a21 * curr_sc,
-                      (float) in_kp_list[i].det_kp.a22 * curr_sc,
+          interpolate(img.pixels,(float)const_temp_region.det_kp.x,
+                      (float)const_temp_region.det_kp.y,
+                      (float)const_temp_region.det_kp.a11*curr_sc,
+                      (float)const_temp_region.det_kp.a12*curr_sc,
+                      (float)const_temp_region.det_kp.a21*curr_sc,
+                      (float)const_temp_region.det_kp.a22*curr_sc,
                       currentROI);
+
+
+          //          cv::Mat patch(patchSize, patchSize, CV_32FC1);
+
+          //          double mrScale = (double) mrSize * in_kp_list[i].det_kp.s; // half patch size in pixels of image
+          //          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          //          double imageToPatchScale = double(patchImageSize) / (double) patchSize;
+          //          float curr_sc = imageToPatchScale;
+
+          //          interpolate(img.pixels,
+          //                      (float) in_kp_list[i].det_kp.x,
+          //                      (float) in_kp_list[i].det_kp.y,
+          //                      (float) in_kp_list[i].det_kp.a11 * curr_sc,
+          //                      (float) in_kp_list[i].det_kp.a12 * curr_sc,
+          //                      (float) in_kp_list[i].det_kp.a21 * curr_sc,
+          //                      (float) in_kp_list[i].det_kp.a22 * curr_sc,
+          //                      currentROI);
           if (photoNorm) {
               float mean, var;
               photometricallyNormalize(currentROI, mask, mean, var);
@@ -1172,52 +1189,25 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
   temp_kp_list.reserve(in_kp_list.size());
   std::string exernal_command = par.external_command;
   AffineRegion temp_region, const_temp_region;
-  unsigned int count = 0;
-  //unsigned int i;
-  double mrScale = par.mrSize; // half patch size in pixels of image
-  int patchImageSize = 2*int(mrScale)+1; // odd size
-  double imageToPatchScale = double(patchImageSize) / (double)par.patchSize;
-  // patch size in the image / patch size -> amount of down/up sampling
+
   int patchSize = par.patchSize;
-  cv::Mat patch(patchSize,patchSize,CV_32FC1);
-  cv::Mat all_patches(patchSize*in_kp_list.size(), patchSize, CV_32FC1);
-  cv::Mat H1(3,3,CV_64F,img.H);
-  cv::Mat Hinv(3,3,CV_64F);
-  cv::invert(H1,Hinv, cv::DECOMP_LU);
-
-  for (int i=0; i < in_kp_list.size(); i++)
-    {
-      const_temp_region=in_kp_list[i];
-
-      float curr_sc = imageToPatchScale*const_temp_region.det_kp.s;
-
-      if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
-                                  (float) in_kp_list[i].det_kp.x,
-                                  (float) in_kp_list[i].det_kp.y,
-                                  (float) in_kp_list[i].det_kp.a11,
-                                  (float) in_kp_list[i].det_kp.a12,
-                                  (float) in_kp_list[i].det_kp.a21,
-                                  (float) in_kp_list[i].det_kp.a22,
-                                  k_sigma * in_kp_list[i].det_kp.s,
-                                  k_sigma * in_kp_list[i].det_kp.s) ) {
-          continue;
-        }
-      cv::Mat currentROI = all_patches(Rect(0, i*patch.rows, patch.cols, patch.rows));
-
-      interpolate(img.pixels,(float)const_temp_region.det_kp.x,
-                  (float)const_temp_region.det_kp.y,
-                  (float)const_temp_region.det_kp.a11*curr_sc,
-                  (float)const_temp_region.det_kp.a12*curr_sc,
-                  (float)const_temp_region.det_kp.a21*curr_sc,
-                  (float)const_temp_region.det_kp.a22*curr_sc,
-                  currentROI);
-
+  if  (patchSize % 2 == 0) {
+      patchSize++;
     }
 
+  cv::Mat all_patches(patchSize*in_kp_list.size(), patchSize, CV_32FC1);
+
+  DescribeRegionsExt(in_kp_list,img, all_patches,
+                     par.mrSize,
+                     patchSize ,
+                     true,
+                     false,
+                     true);
+
   int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-  std::string img_fname = "CLIORIDET"+std::to_string(rnd1)+".bmp";
+  std::string img_fname = "CLI_AFFDET"+std::to_string(rnd1)+".bmp";
   cv::imwrite(img_fname,all_patches );
-  std::string desc_fname = "CLIORIDET"+std::to_string(rnd1)+".txt";
+  std::string desc_fname = "CLI_AFFDET"+std::to_string(rnd1)+".txt";
 
   std::string command = exernal_command + " " + img_fname + " "  + desc_fname;
 
@@ -1267,7 +1257,7 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
 
 
 
-  return (int)temp_kp_list.size();
+  return (int)out_kp_list.size();
 }
 
 

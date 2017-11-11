@@ -68,11 +68,14 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
       DescribeRegionsExt(kps,temp_img1, patches,
                          par.mrSize,
                          odd_patch_size,
-                         false,
+                         true,
                          false,
                          true);
 
     }
+  // int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+  //std::string img_fname = "CAFFEAFFDET"+std::to_string(rnd1)+".bmp";
+  // cv::imwrite(img_fname,patches );
 
   //get the blob
   const int dat_channels = 1;
@@ -1303,16 +1306,16 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                 } else if (afShPar.useCNN) {
 
                   std::vector<std::vector<float> > a11a21a22 = DescribeWithCaffeNet(det_par.AffNetParam,
-                                                                             temp_kp1,
-                                                                             temp_img1,
-                                                                             caffe_net_ptrs_map["AffNet"]);
+                                                                                    temp_kp1,
+                                                                                    temp_img1,
+                                                                                    caffe_net_ptrs_map["AffNet"]);
                   AffineRegion temp_region,  const_temp_region;
 
                   temp_kp_aff.clear();
                   temp_kp_aff.reserve(a11a21a22.size());
 
                   for (int kp_idx = 0; kp_idx < a11a21a22.size(); kp_idx ++) {
-                       const_temp_region=temp_kp1[kp_idx];
+                      const_temp_region=temp_kp1[kp_idx];
 
 
                       temp_region=const_temp_region;
@@ -1321,6 +1324,16 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                       temp_region.det_kp.a21 = a11a21a22[kp_idx][1];
                       temp_region.det_kp.a22 = a11a21a22[kp_idx][2];
                       rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22 );
+                     float l1 = 1.0f, l2 = 1.0f;
+                      if (!getEigenvalues(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22, l1, l2)) {
+                          continue;
+                        }
+
+                      // leave on too high anisotropyb
+                      if ((l1/l2>6) || (l2/l1>6)) {
+                          continue;
+                        }
+
                       temp_kp_aff.push_back(temp_region);
 
                     }
@@ -1368,7 +1381,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                       temp_kp1_SIFT_like_desc.reserve(yx.size());
 
                       for (int kp_idx = 0; kp_idx < yx.size(); kp_idx ++) {
-                           const_temp_region=temp_kp1[kp_idx];
+                          const_temp_region=temp_kp1[kp_idx];
 
                           double angle = atan2(yx[kp_idx][0], yx[kp_idx][1]);
                           double ci = cos(-angle);
@@ -2278,7 +2291,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               if (curr_det.compare("SURF")==0 )
                 cvReleaseImage(&int_img);
             }
-          std::cerr << "storing" << std::endl;
+       //   std::cerr << "storing" << std::endl;
           OneDetectorKeypointsMapVector[synth] = temp_kp_map;
         }
       for (unsigned int synth=0; synth<n_synths; synth++)
