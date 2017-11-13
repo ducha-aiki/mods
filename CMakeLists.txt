@@ -143,8 +143,13 @@ TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors sc
 ${OpenCV_LIBS} z vl m)
 endif(WITH_CAFFE)
 
+
+
+
 set (TT FALSE)
-if (TT)
+set (AA TRUE)
+
+if (AA)
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp io_mods.cpp)
 if(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv
@@ -153,7 +158,9 @@ else(WITH_CAFFE)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors scv AKAZE vl mrogh saddlepts
 ${OpenCV_LIBS} m z)
 endif(WITH_CAFFE)
+endif(AA)
 
+if(TT)
 add_executable(extract_regions_for_benchmark extract_regions_for_benchmark correspondencebank.cpp
 imagerepresentation.cpp io_mods.cpp)
 if(WITH_CAFFE)

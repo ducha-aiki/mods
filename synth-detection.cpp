@@ -64,7 +64,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
 
           float mrScale = ceil(in_kp_list[i].det_kp.s * mrSize); // half patch size in pixels of image
 
-          int patchImageSize = 2 * int(mrScale) + 1; // odd size
+          int patchImageSize = patchSize % 2 != 0 ? 2 * int(mrScale) + 1 : 2 * int(mrScale); // odd size
           float imageToPatchScale = float(patchImageSize) / float(patchSize);  // patch size in the image / patch size -> amount of down/up sampling
           // is patch touching boundary? if yes, ignore this feature
           if (imageToPatchScale > 0.4) {
@@ -89,7 +89,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
 
               gaussianBlurInplace(smoothed, 1.5f * imageToPatchScale);
               // subsample with corresponding scale
-              int res =  interpolate(smoothed, (float) (patchImageSize >> 1), (float) (patchImageSize >> 1),
+              int res =  interpolate(smoothed, (float) (patchImageSize  / 2 ), (float) (patchImageSize  /2 ),
                                      imageToPatchScale, 0, 0, imageToPatchScale, currentROI);
 
             } else {
@@ -115,7 +115,7 @@ void DescribeRegionsExt(const AffineRegionList &in_kp_list,
         }
     } else {
       double mrScale = mrSize; // half patch size in pixels of image
-      int patchImageSize = 2*int(mrScale)+1; // odd size
+      int patchImageSize = patchSize % 2 != 0 ? 2 * int(mrScale) + 1 : 2 * int(mrScale); // odd size
       double imageToPatchScale = double(patchImageSize) / (double)patchSize;
       // patch size in the image / patch size -> amount of down/up sampling
 
@@ -1200,7 +1200,7 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
   DescribeRegionsExt(in_kp_list,img, all_patches,
                      par.mrSize,
                      patchSize ,
-                     true,
+                     false,
                      false,
                      true);
 
@@ -1224,7 +1224,16 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
           double a22 = 0;
 
           focikp >> a11  >> a12 >> a21 >> a22;
+          rectifyAffineTransformationUpIsUp(a11,a12,a21,a22 );
+           float l1 = 1.0f, l2 = 1.0f;
+            if (!getEigenvalues(a11, a12,a21,a22, l1, l2)) {
+                continue;
+              }
 
+            // leave on too high anisotropyb
+            if ((l1/l2>6) || (l2/l1>6)) {
+                continue;
+              }
           if (interpolateCheckBorders(img.pixels.cols,img.pixels.rows,
                                       (float) in_kp_list[i].det_kp.x,
                                       (float) in_kp_list[i].det_kp.y,
@@ -1236,15 +1245,8 @@ int DetectAffineShapeExt(AffineRegionList &in_kp_list,
                                       par.mrSize * in_kp_list[i].det_kp.s) ) {
               continue;
             }
-          float l1 = 1.0f, l2 = 1.0f;
-           if (!getEigenvalues(a11, a12,a21,a22, l1, l2)) {
-               continue;
-             }
 
-           // leave on too high anisotropyb
-           if ((l1/l2>6) || (l2/l1>6)) {
-               continue;
-             }
+
 
           temp_region=const_temp_region;
           temp_region.det_kp.a11 = a11;

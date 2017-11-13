@@ -47,9 +47,11 @@ public:
   void onKeypointDetected(const Mat &blur, float x, float y, float s, float pixelDistance, int type, float response)
   {
     g_numberOfPoints++;
-
+    if (par.sampleFromImage) {
+        findAffineShape(image, x, y, s, 1.0, type, response);//!!!!!!!!!!!!!!!!
+      } else {
         findAffineShape(blur, x, y, s, pixelDistance, type, response);
-
+      }
   }
   void onAffineShapeFound(
       const Mat &blur, float x, float y, float s, float pixelDistance,
@@ -86,18 +88,18 @@ public:
 
   void exportKeypoints(vector<AffineKeypoint>& out1)
   {
-  //  std::cerr << "Hessian points detected " << g_numberOfPoints << std::endl;
-  //  std::cerr << "AffineShapes points detected " << g_numberOfAffinePoints << std::endl;
+    //  std::cerr << "Hessian points detected " << g_numberOfPoints << std::endl;
+    //  std::cerr << "AffineShapes points detected " << g_numberOfAffinePoints << std::endl;
 
     prepareKeysForExport();
     unsigned int keys_size = keys.size();
     out1.reserve(out1.size() + keys_size);
     for (size_t i=0; i < keys_size; i++)
       {
-        AffineKeypoint &k = keys[i];        
+        AffineKeypoint &k = keys[i];
         AffineKeypoint tmpRegion;
-   //     k.s *= sqrt(fabs(k.a11*k.a22-k.a12*k.a21));
-   //     rectifyAffineTransformationUpIsUp(k.a11, k.a12, k.a21, k.a22);
+        //     k.s *= sqrt(fabs(k.a11*k.a22-k.a12*k.a21));
+        //     rectifyAffineTransformationUpIsUp(k.a11, k.a12, k.a21, k.a22);
         tmpRegion.x=k.x;
         tmpRegion.y=k.y;
         tmpRegion.a11=k.a11;
@@ -131,7 +133,7 @@ private:
     else
       {
         sortKeys();
-    //    std::cerr << "Keys sorted" << std::endl;
+        //    std::cerr << "Keys sorted" << std::endl;
         double maxResponse = fabs(keys[0].response);
         int regNumber = (int) keys.size();
 
@@ -193,28 +195,28 @@ private:
     //    std::cout << "effectiveThreshold = " << effectiveThreshold << std::endl;
     return keys.size();
   }
-//  void doBaumberg()
-//  {
-//    vector<AffineKeypoint> keys_temp(keys.size()); //temporal archive
-//    for (size_t i=0; i < keys.size(); i++)
-//      {
-//        keys_temp[i].x=keys[i].x;
-//        keys_temp[i].y=keys[i].y;
-//        keys_temp[i].a11=keys[i].a11;
-//        keys_temp[i].a12=keys[i].a12;
-//        keys_temp[i].a21=keys[i].a21;
-//        keys_temp[i].a22=keys[i].a22;
-//        keys_temp[i].s=keys[i].s;
-//        keys_temp[i].response = keys[i].response;
-//        keys_temp[i].sub_type = keys[i].sub_type;
-//      }
-//    keys.clear();
-//
-//    for (size_t i=0; i < keys_temp.size(); i++)
-//      findAffineShape(*originalImg,keys_temp[i].x,keys_temp[i].y,keys_temp[i].s, 1.0, keys_temp[i].sub_type,keys_temp[i].response);
-//
-//    effectiveThreshold = keys[keys.size() - 1].response;
-//  }
+  //  void doBaumberg()
+  //  {
+  //    vector<AffineKeypoint> keys_temp(keys.size()); //temporal archive
+  //    for (size_t i=0; i < keys.size(); i++)
+  //      {
+  //        keys_temp[i].x=keys[i].x;
+  //        keys_temp[i].y=keys[i].y;
+  //        keys_temp[i].a11=keys[i].a11;
+  //        keys_temp[i].a12=keys[i].a12;
+  //        keys_temp[i].a21=keys[i].a21;
+  //        keys_temp[i].a22=keys[i].a22;
+  //        keys_temp[i].s=keys[i].s;
+  //        keys_temp[i].response = keys[i].response;
+  //        keys_temp[i].sub_type = keys[i].sub_type;
+  //      }
+  //    keys.clear();
+  //
+  //    for (size_t i=0; i < keys_temp.size(); i++)
+  //      findAffineShape(*originalImg,keys_temp[i].x,keys_temp[i].y,keys_temp[i].s, 1.0, keys_temp[i].sub_type,keys_temp[i].response);
+  //
+  //    effectiveThreshold = keys[keys.size() - 1].response;
+  //  }
 };
 
 template<class T>

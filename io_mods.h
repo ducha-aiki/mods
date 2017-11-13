@@ -26,6 +26,7 @@ struct configs
     filteringParams FilterParam;
     drawingParams DrawParam;
     outputParams OutputParam;
+
     bool read_pre_extracted;
     bool match_one_to_many;
     string descriptor, matching_lib, verification_type;
@@ -35,6 +36,7 @@ struct configs
         LoadColor = 0;
         read_pre_extracted = false;
         match_one_to_many = false;
+
     }
 };
 

@@ -131,19 +131,13 @@ bool AffineShape::findAffineShape(const Mat &blur, float x, float y, float s, fl
 
           // compute the eigen values of the shape matrix
           if (!getEigenvalues(u11, u12, u21, u22, l1, l2)){
-//              if (affineShapeCallback)
-//                affineShapeCallback->onAffineShapeFound(blur, x, y, s, pixelDistance, 1, 0, 0, 1, type, response, l);
-//              return true;
-//            }
-            break; }
+            break;
+            }
 
           // leave on too high anisotropy
           if ((l1/l2>6) || (l2/l1>6)) {
-//              if (affineShapeCallback)
-//                affineShapeCallback->onAffineShapeFound(blur, x, y, s, pixelDistance, 1, 0, 0, 1, type, response, l);
-//              return true;
-         //   }
-            break; }
+            break;
+            }
 
           if (eigen_ratio_act < par.convergenceThreshold && eigen_ratio_bef < par.convergenceThreshold)
             {
@@ -152,11 +146,6 @@ bool AffineShape::findAffineShape(const Mat &blur, float x, float y, float s, fl
               return true;
             }
 
-//          if (l == par.maxIterations - 1){
-//              if (affineShapeCallback)
-//                affineShapeCallback->onAffineShapeFound(blur, x, y, s, pixelDistance, 1, 0, 0, 1, type, response, l);
-//              return true;
-//            }
         }
     }
   else

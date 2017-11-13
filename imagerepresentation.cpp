@@ -60,27 +60,30 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
                                                       std::shared_ptr<caffe::Net<float> > net_ptr) {
   std::vector<std::vector<float> > out;
   cv::Mat patches;
-  int odd_patch_size = par.patchSize;
-  if  (par.patchSize % 2 == 0) {
-      odd_patch_size++;
-    }
+  int odd_patch_size = par.patchSize ;
+//  if  (par.patchSize % 2 == 0)  {
+//      odd_patch_size++;
+//    }
   if (kps.size() > 0){
       DescribeRegionsExt(kps,temp_img1, patches,
                          par.mrSize,
                          odd_patch_size,
-                         true,
+                         false,
                          false,
                          true);
 
     }
-  // int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-  //std::string img_fname = "CAFFEAFFDET"+std::to_string(rnd1)+".bmp";
+  // Mat temp_patches;
+  // patches.convertTo(temp_patches, CV_8UC1);
+  // temp_patches.convertTo(patches, CV_32FC1);
+  //  int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
+  // std::string img_fname = "CAFFEAFFDET"+std::to_string(rnd1)+".bmp";
   // cv::imwrite(img_fname,patches );
 
   //get the blob
   const int dat_channels = 1;
-  const int dat_height = par.patchSize;
-  const int dat_width = par.patchSize;
+  const int dat_height = odd_patch_size;
+  const int dat_width = odd_patch_size;
   const int batch_size = par.batchSize;
   Blob<float>* blob = new Blob<float>(batch_size, dat_channels,  dat_height,  dat_width);
 
@@ -92,7 +95,7 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
   blob_proto.set_width(dat_width);
   /// Blob init
   Datum datum;
-  cv::Mat currentROI1 = patches(Rect(0, 0 * odd_patch_size, dat_height, dat_width));
+  cv::Mat currentROI1 = patches(Rect(0, 0, dat_height, dat_width));
   if (!cvMatToDatum(currentROI1, 0,&datum)) {
       std::cerr << "Cannot transform image to datum" << std::endl;
     }
@@ -114,10 +117,9 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
       for (int img_num=start_img; img_num<finish_img; img_num++)
         {
           cv::Mat currentROI = patches(Rect(0, img_num * odd_patch_size, dat_height, dat_width));
-          cv::Mat mean_patch, std_patch;
-          cv::meanStdDev(currentROI, mean_patch, std_patch);
-          currentROI = (currentROI -  mean_patch) / (std_patch + 1e-7);
-
+          //cv::Mat mean_patch, std_patch;
+          //cv::meanStdDev(currentROI, mean_patch, std_patch);
+          //currentROI = (currentROI -  mean_patch) / (std_patch + 1e-7);
           int i = 0;
           int offset = (img_num - start_img) * dat_height * dat_width;
           for (int h = 0; h < dat_height; ++h) {
@@ -139,7 +141,7 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
           {
             const boost::shared_ptr<Blob<float> > feature_blob = net_ptr->blob_by_name(par.LayerName);
             const float* feature_blob_data = feature_blob->cpu_data();
-            const int desc_size = feature_blob->width()* feature_blob->height()*feature_blob->channels();
+            const int desc_size = feature_blob->width() * feature_blob->height() * feature_blob->channels();
 
             for (int img_num=start_img; img_num<finish_img; img_num++)
               {
@@ -149,7 +151,7 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
                 int offset = (img_num - start_img)*desc_size;
 
                 for (int i = 0; i < desc_size; ++i) {
-                    const float v1 = feature_blob_data[i+offset];
+                    const double v1 = feature_blob_data[i+offset];
                     curr_desc[i] = v1;
                   }
                 out.push_back(curr_desc);
@@ -173,6 +175,24 @@ void saveKP(AffineKeypoint &ak, std::ostream &s) {
 void saveKPBench(AffineKeypoint &ak, std::ostream &s) {
   s << ak.x << " " << ak.y << " "  << ak.s << " " << ak.a11 << " " << ak.a12 << " " << ak.a21 << " " << ak.a22;
 }
+
+void saveKP_KM_format(AffineKeypoint &ak, std::ostream &s) {
+  double sc = ak.s * sqrt(fabs(ak.a11*ak.a22 - ak.a12*ak.a21))*3.0*sqrt(3.0);
+  rectifyAffineTransformationUpIsUp(ak.a11,ak.a12,ak.a21,ak.a22);
+
+  Mat A = (Mat_<float>(2,2) << ak.a11, ak.a12, ak.a21, ak.a22);
+  SVD svd(A, SVD::FULL_UV);
+
+  float *d = (float *)svd.w.data;
+  d[0] = 1.0f/(d[0]*d[0]*sc*sc);
+  d[1] = 1.0f/(d[1]*d[1]*sc*sc);
+
+  A = svd.u * Mat::diag(svd.w) * svd.u.t();
+
+  s << ak.x << " " << ak.y << " " << A.at<float>(0,0) << " " << A.at<float>(0,1) << " " << A.at<float>(1,1) << " ";
+}
+
+
 //  det([a11,a12;a21,a22}) = 1
 void saveKPMichal(AffineKeypoint &ak, std::ostream &s) {
   //float x, y, s, a11, a12, a21, a22, int type, float response, unsigned char desc[128]
@@ -230,6 +250,17 @@ void saveAR(AffineRegion &ar, std::ostream &s) {
   for (unsigned int i = 0; i < ar.desc.vec.size(); ++i) {
       s << ar.desc.vec[i] << " ";
     }
+}
+void saveAR_KM_format(AffineRegion &ar, std::ostream &s) {
+  // s << ar.id << " " << ar.img_id << " " <<  ar.img_reproj_id << " ";
+  //  s << ar.parent_id <<  " ";
+  //  saveKP(ar.det_kp,s);
+  saveKP_KM_format(ar.reproj_kp,s);
+  // s << ar.desc.type <<
+  for (unsigned int i = 0; i < ar.desc.vec.size(); i++) {
+      s << ar.desc.vec[i] << " ";
+    }
+  s << std::endl;
 }
 void saveARBench(AffineRegion &ar, std::ostream &s, std::ostream &s2) {
   saveKPBench(ar.det_kp,s2);
@@ -1305,6 +1336,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 
                 } else if (afShPar.useCNN) {
 
+                  det_par.AffNetParam.mrSize = afShPar.mrSize;
                   std::vector<std::vector<float> > a11a21a22 = DescribeWithCaffeNet(det_par.AffNetParam,
                                                                                     temp_kp1,
                                                                                     temp_img1,
@@ -1323,14 +1355,26 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                       temp_region.det_kp.a12 = 0;
                       temp_region.det_kp.a21 = a11a21a22[kp_idx][1];
                       temp_region.det_kp.a22 = a11a21a22[kp_idx][2];
+                      //                      std::cout <<  a11a21a22[kp_idx][0] << " 0 "   <<   a11a21a22[kp_idx][1] << " " <<  a11a21a22[kp_idx][2] << std::endl;
                       rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22 );
-                     float l1 = 1.0f, l2 = 1.0f;
+                      float l1 = 1.0f, l2 = 1.0f;
                       if (!getEigenvalues(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22, l1, l2)) {
                           continue;
                         }
 
                       // leave on too high anisotropyb
                       if ((l1/l2>6) || (l2/l1>6)) {
+                          continue;
+                        }
+                      if (interpolateCheckBorders(temp_img1.pixels.cols,temp_img1.pixels.rows,
+                                                  (float) temp_region.det_kp.x,
+                                                  (float) temp_region.det_kp.y,
+                                                  (float) temp_region.det_kp.a11,
+                                                  (float) temp_region.det_kp.a12 ,
+                                                  (float) temp_region.det_kp.a21,
+                                                  (float) temp_region.det_kp.a22 ,
+                                                  afShPar.mrSize * temp_region.det_kp.s,
+                                                  afShPar.mrSize * temp_region.det_kp.s) ) {
                           continue;
                         }
 
@@ -2291,7 +2335,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               if (curr_det.compare("SURF")==0 )
                 cvReleaseImage(&int_img);
             }
-       //   std::cerr << "storing" << std::endl;
+          //   std::cerr << "storing" << std::endl;
           OneDetectorKeypointsMapVector[synth] = temp_kp_map;
         }
       for (unsigned int synth=0; synth<n_synths; synth++)
@@ -2380,6 +2424,38 @@ void ImageRepresentation::SaveRegionsMichal(std::string fname, int mode) {
             }
           kpfile.close();
           //      std::cerr << "END OF FILE" << std::endl;
+        } else {
+
+
+          if (kpfile.is_open()) {
+
+              int num_keys = GetDescriptorsNumber(current_desc_name);
+              kpfile << "128" << std::endl;
+              kpfile << num_keys << std::endl;
+              if (num_keys == 0)
+                {
+                  std::cerr << "No keypoints detected" << std::endl;
+                  kpfile.close();
+                  continue;
+                }
+              int desc_dim;
+
+              for (std::map<std::string, AffineRegionVectorMap>::const_iterator
+                   reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end(); ++reg_it) {
+                  for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
+                       desc_it != reg_it->second.end(); ++desc_it) {
+                      if (desc_it->first != current_desc_name) {
+                          continue;
+                        }
+                      int n_desc = desc_it->second.size();
+
+                      for (int i = 0; i < n_desc; i++) {
+                          AffineRegion ar = desc_it->second[i];
+                          saveAR_KM_format(ar, kpfile);
+                        }
+                    }
+                }
+            }
         }
     }
 }

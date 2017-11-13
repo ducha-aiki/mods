@@ -44,7 +44,7 @@ struct AffineShapeParams
   float mrSize;
 
   int   doBaumberg;
-
+  bool sampleFromImage;
   // Invariant used for Baumberg iteration
   AffineBaumbergMethod affBmbrgMethod;
   float affMeasRegion;
@@ -63,6 +63,7 @@ struct AffineShapeParams
     affBmbrgMethod = AFF_BMBRG_SMM;
     affMeasRegion = 0.5;
     useCNN = false;
+    sampleFromImage = false;
   }
 };
 

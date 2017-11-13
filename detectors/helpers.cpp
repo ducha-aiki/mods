@@ -553,11 +553,11 @@ bool interpolate(const Mat &im,const float ofsx,const float ofsy,
 {
   bool ret = false;
   // input size (-1 for the safe bilinear interpolation)
-  const int width = im.cols-1;
-  const int height = im.rows-1;
+  const int width =   im.cols - 1;
+  const int height =  im.rows - 1;
   // output size
-  const int halfWidth  = res.cols >> 1;
-  const int halfHeight = res.rows >> 1;
+  const int halfWidth  = res.cols / 2;
+  const int halfHeight = res.rows / 2;
   float *out = res.ptr<float>(0);
 
   float rx = ofsx - (float)halfHeight * a12;
@@ -565,11 +565,11 @@ bool interpolate(const Mat &im,const float ofsx,const float ofsy,
   bool touch_boundary = interpolateCheckBorders(im,ofsx,ofsy,a11,a12,a21,a22,res);
   if (!touch_boundary)
   {
-    for (int j=-halfHeight; j<=halfHeight; ++j)
+    for (int j=-halfHeight; j<res.rows - halfHeight ; ++j)
     {
       float WX = rx - (float)halfWidth*a11;
       float WY = ry - (float)halfWidth*a21;
-      for(int i=-halfWidth; i<=halfWidth; ++i)
+      for(int i=-halfWidth; i<res.cols - halfWidth; ++i)
       {
         const int x = (int) (WX);
         const int y = (int) (WY);
@@ -589,11 +589,11 @@ bool interpolate(const Mat &im,const float ofsx,const float ofsy,
   }
   else
   {
-    for (int j=-halfHeight; j<=halfHeight; ++j)
+    for (int j=-halfHeight; j< res.rows - halfHeight ; ++j)
     {
       float WX = rx - halfWidth*a11;
       float WY = ry - halfWidth*a21;
-      for(int i=-halfWidth; i<=halfWidth; ++i)
+     for(int i=-halfWidth; i<res.cols - halfWidth; ++i)
       {
 //        const int x = (int) (WX);
 //        const int y = (int) (WY);

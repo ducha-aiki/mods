@@ -107,13 +107,39 @@ int main(int argc, char **argv)
     ImgRep1 = ImageRepresentation(img1,Config1.CLIparams.img1_fname);
   }
 #ifdef WITH_CAFFE
+  //caffe::Caffe::set_phase(caffe::Caffe::TEST);
   caffe::Caffe::set_mode(caffe::Caffe::GPU);
-   std::shared_ptr<caffe::Net<float> > caffe_net;
-   std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
-  caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
-  caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
+  if  (Config1.DescriptorPars.CaffeDescParam.ProtoTxt.size() > 0) {
+      std::shared_ptr<caffe::Net<float> > caffe_net;
+      std::cerr << Config1.DescriptorPars.CaffeDescParam.ProtoTxt << std::endl;
+      caffe_net.reset(new caffe::Net<float>(Config1.DescriptorPars.CaffeDescParam.ProtoTxt, caffe::TEST));
+      caffe_net->CopyTrainedLayersFrom(Config1.DescriptorPars.CaffeDescParam.WeightsFile);
 
-  ImgRep1.InitCaffe(caffe_net);
+      ImgRep1.AddNet(caffe_net, "Descriptor");
+
+    }
+  //////////////
+  if  (Config1.DetectorsPars.AffNetParam.ProtoTxt.size() > 0) {
+      std::shared_ptr<caffe::Net<float> > affine_net;
+      std::cerr << Config1.DetectorsPars.AffNetParam.ProtoTxt << std::endl;
+      affine_net.reset(new caffe::Net<float>(Config1.DetectorsPars.AffNetParam.ProtoTxt, caffe::TEST));
+      affine_net->CopyTrainedLayersFrom(Config1.DetectorsPars.AffNetParam.WeightsFile);
+
+      ImgRep1.AddNet(affine_net, "AffNet");
+
+    }
+  /////////////
+  if  (Config1.DetectorsPars.OriNetParam.ProtoTxt.size() > 0) {
+      std::shared_ptr<caffe::Net<float> > ori_net;
+      std::cerr << Config1.DetectorsPars.OriNetParam.ProtoTxt << std::endl;
+      ori_net.reset(new caffe::Net<float>(Config1.DetectorsPars.OriNetParam.ProtoTxt, caffe::TEST));
+      ori_net->CopyTrainedLayersFrom(Config1.DetectorsPars.OriNetParam.WeightsFile);
+
+      ImgRep1.AddNet(ori_net, "OriNet");
+
+
+      std::cerr << "Net init ok" << std::endl;
+    }
 #endif
 
   /// Affine regions detection
@@ -130,8 +156,14 @@ int main(int argc, char **argv)
   /// Writing images and logs
   std::cerr << "Writing files... " << endl;
 
-//  ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
-  ImgRep1.SaveRegionsMichal(Config1.CLIparams.k1_fname,ios::binary);
+  if (Config1.OutputParam.outputMikFormat) {
+     // ImgRep1.SaveRegionsMichal(Config1.CLIparams.k1_fname,ios::binary);
+      ImgRep1.SaveRegionsMichal(Config1.CLIparams.k1_fname, 123);
+  }  else {
+       ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
+    }
+
+
   return 0;
 }
 

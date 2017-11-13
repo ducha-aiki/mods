@@ -367,6 +367,9 @@ void GetHessPars(ScaleSpaceDetectorParams &HessPars, INIReader &reader,const cha
 
   HessPars.PyramidPars.iiDoGMode = reader.GetBoolean(section, "iiDoGMode", HessPars.PyramidPars.iiDoGMode);
 
+
+  HessPars.AffineShapePars.sampleFromImage = reader.GetBoolean(section, "sampleFromImage", HessPars.AffineShapePars.sampleFromImage);
+
   HessPars.AffineShapePars.maxIterations = reader.GetInteger(section, "max_iter", HessPars.AffineShapePars.maxIterations);
   HessPars.AffineShapePars.patchSize = reader.GetInteger(section, "patch_size", HessPars.AffineShapePars.patchSize);
   HessPars.AffineShapePars.smmWindowSize = reader.GetInteger(section, "smmWindowSize", HessPars.AffineShapePars.smmWindowSize);
@@ -409,6 +412,7 @@ void GetHarrPars(ScaleSpaceDetectorParams &HarrPars, INIReader &reader,const cha
   HarrPars.PyramidPars.initialSigma = reader.GetDouble(section, "initialSigma", HarrPars.PyramidPars.initialSigma);
   HarrPars.PyramidPars.edgeEigenValueRatio = reader.GetDouble(section, "edgeEigenValueRatio", HarrPars.PyramidPars.edgeEigenValueRatio);
   HarrPars.PyramidPars.iiDoGMode = reader.GetBoolean(section, "iiDoGMode", HarrPars.PyramidPars.iiDoGMode);
+  HarrPars.AffineShapePars.sampleFromImage = reader.GetBoolean(section, "sampleFromImage", HarrPars.AffineShapePars.sampleFromImage);
 
   HarrPars.AffineShapePars.maxIterations = reader.GetInteger(section, "max_iter", HarrPars.AffineShapePars.maxIterations);
   HarrPars.AffineShapePars.patchSize = reader.GetInteger(section, "patch_size", HarrPars.AffineShapePars.patchSize);
@@ -451,6 +455,7 @@ void GetDoGPars(ScaleSpaceDetectorParams &DoGPars, INIReader &reader,const char*
   DoGPars.PyramidPars.initialSigma = reader.GetDouble(section, "initialSigma", DoGPars.PyramidPars.initialSigma);
   DoGPars.PyramidPars.edgeEigenValueRatio = reader.GetDouble(section, "edgeEigenValueRatio", DoGPars.PyramidPars.edgeEigenValueRatio);
   DoGPars.PyramidPars.iiDoGMode = reader.GetBoolean(section, "iiDoGMode", DoGPars.PyramidPars.iiDoGMode);
+  DoGPars.AffineShapePars.sampleFromImage = reader.GetBoolean(section, "sampleFromImage", DoGPars.AffineShapePars.sampleFromImage);
 
   DoGPars.AffineShapePars.maxIterations = reader.GetInteger(section, "max_iter", DoGPars.AffineShapePars.maxIterations);
   DoGPars.AffineShapePars.patchSize = reader.GetInteger(section, "patch_size", DoGPars.AffineShapePars.patchSize);
@@ -771,7 +776,8 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetLIOPPars(conf1.DescriptorPars.LIOPParam, ConfigIni);
   GetIterPars(conf1.ItersParam,ItersIni);
 
-  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);
+  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);  conf1.OutputParam.outputMikFormat = ConfigIni.GetBoolean("TextOutput", "outputMikFormat",
+ conf1.OutputParam.outputMikFormat);
 
 
   conf1.Matchparam.maxSteps = ItersIni.GetInteger("Iterations", "Steps", 4);
@@ -862,7 +868,8 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   GetLIOPPars(conf1.DescriptorPars.LIOPParam, ConfigIni);
   GetIterPars(conf1.ItersParam,ItersIni);
 
-  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);
+  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);  conf1.OutputParam.outputMikFormat = ConfigIni.GetBoolean("TextOutput", "outputMikFormat",
+ conf1.OutputParam.outputMikFormat);
 
 
   conf1.Matchparam.maxSteps = ItersIni.GetInteger("Iterations", "Steps", 4);
@@ -1010,12 +1017,17 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   conf1.DrawParam.drawDetectedRegions = ConfigIni.GetBoolean("ImageOutput", "drawDetectedRegions",
                                                              conf1.DrawParam.drawDetectedRegions);
 
-  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);
+
+
+
+  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);  conf1.OutputParam.outputMikFormat = ConfigIni.GetBoolean("TextOutput", "outputMikFormat",
+ conf1.OutputParam.outputMikFormat);
   conf1.OutputParam.writeMatches = ConfigIni.GetInteger("TextOutput", "writeMatches", 1);
   conf1.OutputParam.timeLog = ConfigIni.GetInteger("TextOutput", "timeLog", 0);
   conf1.OutputParam.featureComplemetaryLog = ConfigIni.GetInteger("TextOutput", "featureComplemetaryLog", 0);
   conf1.OutputParam.verbose = ConfigIni.GetInteger("TextOutput", "verbose", 0);
   conf1.OutputParam.outputAllTentatives = ConfigIni.GetInteger("TextOutput", "outputAllTentatives", 0);
+
   conf1.OutputParam.outputEstimatedHorF = ConfigIni.GetInteger("TextOutput", "outputEstimatedHorF", 0);
   conf1.RANSACParam.LAFCoef = ConfigIni.GetInteger("Matching", "LAFcoef", 0);
   conf1.FilterParam.duplicateDist = ConfigIni.GetDouble("DuplicateFiltering", "duplicateDist", 3.0);
@@ -1168,7 +1180,8 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
   GetIterPars(conf1.ItersParam,ItersIni);
 
-  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);
+  conf1.OutputParam.writeKeypoints = ConfigIni.GetInteger("TextOutput", "writeKeypoints", 1);  conf1.OutputParam.outputMikFormat = ConfigIni.GetBoolean("TextOutput", "outputMikFormat",
+ conf1.OutputParam.outputMikFormat);
 
 
   conf1.Matchparam.maxSteps = ItersIni.GetInteger("Iterations", "Steps", 4);
