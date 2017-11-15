@@ -61,9 +61,9 @@ std::vector<std::vector<float> > DescribeWithCaffeNet(CaffeDescriptorParams par,
   std::vector<std::vector<float> > out;
   cv::Mat patches;
   int odd_patch_size = par.patchSize ;
-//  if  (par.patchSize % 2 == 0)  {
-//      odd_patch_size++;
-//    }
+  //  if  (par.patchSize % 2 == 0)  {
+  //      odd_patch_size++;
+  //    }
   if (kps.size() > 0){
       DescribeRegionsExt(kps,temp_img1, patches,
                          par.mrSize,
@@ -1327,72 +1327,72 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               AffineShapeParams afShPar = det_par.BaumbergParam;
               afShPar.affBmbrgMethod = det_par.HessParam.AffineShapePars.affBmbrgMethod;
               // std::cout << "bmbg method: " << (int)afShPar.affBmbrgMethod;
+              if (temp_kp1.size() > 0) {
+                  if (afShPar.external_command.size() > 0) {
+                      DetectAffineShapeExt(temp_kp1,
+                                           temp_kp_aff,
+                                           temp_img1,
+                                           afShPar);
 
-              if (afShPar.external_command.size() > 0) {
-                  DetectAffineShapeExt(temp_kp1,
-                                       temp_kp_aff,
-                                       temp_img1,
-                                       afShPar);
+                    } else if (afShPar.useCNN) {
 
-                } else if (afShPar.useCNN) {
+                      det_par.AffNetParam.mrSize = afShPar.mrSize;
+                      std::vector<std::vector<float> > a11a21a22 = DescribeWithCaffeNet(det_par.AffNetParam,
+                                                                                        temp_kp1,
+                                                                                        temp_img1,
+                                                                                        caffe_net_ptrs_map["AffNet"]);
+                      AffineRegion temp_region,  const_temp_region;
 
-                  det_par.AffNetParam.mrSize = afShPar.mrSize;
-                  std::vector<std::vector<float> > a11a21a22 = DescribeWithCaffeNet(det_par.AffNetParam,
-                                                                                    temp_kp1,
-                                                                                    temp_img1,
-                                                                                    caffe_net_ptrs_map["AffNet"]);
-                  AffineRegion temp_region,  const_temp_region;
+                      temp_kp_aff.clear();
+                      temp_kp_aff.reserve(a11a21a22.size());
 
-                  temp_kp_aff.clear();
-                  temp_kp_aff.reserve(a11a21a22.size());
-
-                  for (int kp_idx = 0; kp_idx < a11a21a22.size(); kp_idx ++) {
-                      const_temp_region=temp_kp1[kp_idx];
+                      for (int kp_idx = 0; kp_idx < a11a21a22.size(); kp_idx ++) {
+                          const_temp_region=temp_kp1[kp_idx];
 
 
-                      temp_region=const_temp_region;
-                      temp_region.det_kp.a11 = a11a21a22[kp_idx][0];
-                      temp_region.det_kp.a12 = 0;
-                      temp_region.det_kp.a21 = a11a21a22[kp_idx][1];
-                      temp_region.det_kp.a22 = a11a21a22[kp_idx][2];
-                      //                      std::cout <<  a11a21a22[kp_idx][0] << " 0 "   <<   a11a21a22[kp_idx][1] << " " <<  a11a21a22[kp_idx][2] << std::endl;
-                      rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22 );
-                      float l1 = 1.0f, l2 = 1.0f;
-                      if (!getEigenvalues(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22, l1, l2)) {
-                          continue;
+                          temp_region=const_temp_region;
+                          temp_region.det_kp.a11 = a11a21a22[kp_idx][0];
+                          temp_region.det_kp.a12 = 0;
+                          temp_region.det_kp.a21 = a11a21a22[kp_idx][1];
+                          temp_region.det_kp.a22 = a11a21a22[kp_idx][2];
+                          //                      std::cout <<  a11a21a22[kp_idx][0] << " 0 "   <<   a11a21a22[kp_idx][1] << " " <<  a11a21a22[kp_idx][2] << std::endl;
+                          rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22 );
+                          float l1 = 1.0f, l2 = 1.0f;
+                          if (!getEigenvalues(temp_region.det_kp.a11, temp_region.det_kp.a12 ,  temp_region.det_kp.a21 ,  temp_region.det_kp.a22, l1, l2)) {
+                              continue;
+                            }
+
+                          // leave on too high anisotropyb
+                          if ((l1/l2>6) || (l2/l1>6)) {
+                              continue;
+                            }
+                          if (interpolateCheckBorders(temp_img1.pixels.cols,temp_img1.pixels.rows,
+                                                      (float) temp_region.det_kp.x,
+                                                      (float) temp_region.det_kp.y,
+                                                      (float) temp_region.det_kp.a11,
+                                                      (float) temp_region.det_kp.a12 ,
+                                                      (float) temp_region.det_kp.a21,
+                                                      (float) temp_region.det_kp.a22 ,
+                                                      afShPar.mrSize * temp_region.det_kp.s,
+                                                      afShPar.mrSize * temp_region.det_kp.s) ) {
+                              continue;
+                            }
+
+                          temp_kp_aff.push_back(temp_region);
+
                         }
-
-                      // leave on too high anisotropyb
-                      if ((l1/l2>6) || (l2/l1>6)) {
-                          continue;
-                        }
-                      if (interpolateCheckBorders(temp_img1.pixels.cols,temp_img1.pixels.rows,
-                                                  (float) temp_region.det_kp.x,
-                                                  (float) temp_region.det_kp.y,
-                                                  (float) temp_region.det_kp.a11,
-                                                  (float) temp_region.det_kp.a12 ,
-                                                  (float) temp_region.det_kp.a21,
-                                                  (float) temp_region.det_kp.a22 ,
-                                                  afShPar.mrSize * temp_region.det_kp.s,
-                                                  afShPar.mrSize * temp_region.det_kp.s) ) {
-                          continue;
-                        }
-
-                      temp_kp_aff.push_back(temp_region);
 
                     }
+                  else {
+                      DetectAffineShape(temp_kp1,
+                                        temp_kp_aff,
+                                        temp_img1,
+                                        afShPar);
+                    }
 
+                  temp_kp1 = temp_kp_aff;
                 }
-              else {
-                  DetectAffineShape(temp_kp1,
-                                    temp_kp_aff,
-                                    temp_img1,
-                                    afShPar);
-                }
-
-              temp_kp1 = temp_kp_aff;
             }
-
           //
           /// Orientation estimation
 
@@ -1428,8 +1428,8 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           const_temp_region=temp_kp1[kp_idx];
 
                           double angle = atan2(yx[kp_idx][0], yx[kp_idx][1]);
-                          double ci = cos(-angle);
-                          double si = sin(-angle);
+                          double ci = cos(angle);
+                          double si = sin(angle);
 
                           temp_region=const_temp_region;
                           temp_region.det_kp.a11 = const_temp_region.det_kp.a11*ci-const_temp_region.det_kp.a12*si;
@@ -1534,131 +1534,21 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               else if (curr_desc.compare("CAFFE")==0)
                 {
 #ifdef WITH_CAFFE
+                  if (temp_kp1_desc.size() > 0) {
 
-                  std::vector<std::vector<float> > descrs = DescribeWithCaffeNet(desc_par.CaffeDescParam,
-                                                                                 temp_kp1_desc,
-                                                                                 temp_img1,
-                                                                                 caffe_net_ptrs_map["Descriptor"]);
-                  for (unsigned int kp_idx = 0; kp_idx < temp_kp1_desc.size(); kp_idx++) {
-                      temp_kp1_desc[kp_idx].desc.vec.resize(descrs[kp_idx].size());
-                      for (unsigned int di = 0; di < descrs[kp_idx].size(); di ++) {
-                          temp_kp1_desc[kp_idx].desc.vec[di] = descrs[kp_idx][di];
+                      std::vector<std::vector<float> > descrs = DescribeWithCaffeNet(desc_par.CaffeDescParam,
+                                                                                     temp_kp1_desc,
+                                                                                     temp_img1,
+                                                                                     caffe_net_ptrs_map["Descriptor"]);
+                      for (unsigned int kp_idx = 0; kp_idx < temp_kp1_desc.size(); kp_idx++) {
+                          temp_kp1_desc[kp_idx].desc.vec.resize(descrs[kp_idx].size());
+                          for (unsigned int di = 0; di < descrs[kp_idx].size(); di ++) {
+                              temp_kp1_desc[kp_idx].desc.vec[di] = floor(descrs[kp_idx][di]);
 
-                        };
-                      temp_kp1_desc[kp_idx].desc.type=DESC_CAFFE;
+                            };
+                          temp_kp1_desc[kp_idx].desc.type=DESC_CAFFE;
+                        }
                     }
-
-
-                  //                    cv::Mat patches;
-                  //                    int odd_patch_size = desc_par.CaffeDescParam.patchSize;
-                  //                    if  (desc_par.CaffeDescParam.patchSize % 2 == 0) {
-                  //                        odd_patch_size++;
-                  //                      }
-                  //                    if (temp_kp1_desc.size() > 0){
-                  //                        DescribeRegionsExt(temp_kp1_desc,temp_img1,patches,
-                  //                                           desc_par.CaffeDescParam.mrSize,
-                  //                                           odd_patch_size,
-                  //                                           false,
-                  //                                           false,
-                  //                                           true);
-
-                  //                      }
-
-                  //                    //get the blob
-                  //                    const int dat_channels = 1;
-                  //                    const int dat_height = desc_par.CaffeDescParam.patchSize;
-                  //                    const int dat_width = desc_par.CaffeDescParam.patchSize;
-                  //                    const int batch_size = desc_par.CaffeDescParam.batchSize;
-                  //                    Blob<float>* blob = new Blob<float>(batch_size, dat_channels,  dat_height,  dat_width);
-
-                  //                    //get the blobproto
-                  //                    BlobProto blob_proto;
-                  //                    blob_proto.set_num(batch_size);
-                  //                    blob_proto.set_channels(dat_channels);
-                  //                    blob_proto.set_height(dat_height);
-                  //                    blob_proto.set_width(dat_width);
-                  //                    /// Blob init
-                  //                    Datum datum;
-                  //                    cv::Mat currentROI1 = patches(Rect(0, 0 * odd_patch_size, dat_height, dat_width));
-                  //                    if (!cvMatToDatum(currentROI1, 0,&datum)) {
-                  //                        std::cerr << "Cannot transform image to datum" << std::endl;
-                  //                      }
-                  //                    int size_in_datum = std::max<int>(datum.data().size(),
-                  //                                                      datum.float_data_size());
-
-                  //                    for (int img_num=0; img_num<batch_size; img_num++)
-                  //                      {
-                  //                        for (int i = 0; i < size_in_datum; ++i) {
-                  //                            blob_proto.add_data(0.);
-                  //                          }
-                  //                      }
-                  //                    /// Blob init done
-                  //                    int n_batches = ceil((double)temp_kp1_desc.size() / (double)batch_size);
-                  //                    for (int b = 0; b < n_batches; b++) {
-                  //                        int start_img = b * batch_size;
-                  //                        int finish_img = min((b+1)*batch_size, (int)temp_kp1_desc.size());
-
-                  //                        for (int img_num=start_img; img_num<finish_img; img_num++)
-                  //                          {
-                  //                            cv::Mat currentROI = patches(Rect(0, img_num * odd_patch_size, dat_height, dat_width));
-                  //                            cv::Mat mean_patch, std_patch;
-                  //                            cv::meanStdDev(currentROI, mean_patch, std_patch);
-                  //                            currentROI = (currentROI -  mean_patch) / (std_patch + 1e-7);
-
-                  //                            int i = 0;
-                  //                            int offset = (img_num - start_img) * dat_height * dat_width;
-                  //                            for (int h = 0; h < dat_height; ++h) {
-                  //                                for (int w = 0; w < dat_width; ++w) {
-                  //                                    blob_proto.set_data(i+offset, currentROI.at<float>(h,w));
-                  //                                    i++;
-                  //                                  }
-                  //                              }
-                  //                          }
-                  //                        blob->FromProto(blob_proto);
-                  //                        vector<Blob<float>*> bottom;
-                  //                        bottom.push_back(blob);
-                  //                        //fill the vector
-                  //                        float type = 0.0;
-                  //#pragma omp critical
-                  //                        {
-                  //                          const vector<Blob<float>*>& result  = caffe_net_ptrs_map["Descriptor"]->Forward(bottom, &type);
-                  //                          if (caffe_net_ptrs_map["Descriptor"]->has_blob(desc_par.CaffeDescParam.LayerName))
-                  //                            {
-                  //                              const boost::shared_ptr<Blob<float> > feature_blob = caffe_net_ptrs_map["Descriptor"]->blob_by_name(desc_par.CaffeDescParam.LayerName);
-                  //                              const float* feature_blob_data = feature_blob->cpu_data();
-                  //                              const int desc_size = feature_blob->width()* feature_blob->height()*feature_blob->channels();
-
-                  //                              for (int img_num=start_img; img_num<finish_img; img_num++)
-                  //                                {
-                  //                                  temp_kp1_desc[img_num].desc.vec.resize(desc_size);
-                  //                                  int offset = (img_num - start_img)*desc_size;
-                  //                                  if (desc_par.CaffeDescParam.Normalization.compare("L2")==0)
-                  //                                    {
-                  //                                      L2normalize(feature_blob_data+offset,desc_size,temp_kp1_desc[img_num].desc.vec);
-                  //                                    }
-                  //                                  else if (desc_par.CaffeDescParam.Normalization.compare("L1")==0)
-                  //                                    {
-                  //                                      L1normalize(feature_blob_data+offset,desc_size,temp_kp1_desc[img_num].desc.vec);
-                  //                                    }
-                  //                                  else if (desc_par.CaffeDescParam.Normalization.compare("RootL2")==0)
-                  //                                    {
-                  //                                      RootNormalize(feature_blob_data+offset,desc_size,temp_kp1_desc[img_num].desc.vec);
-                  //                                    }
-                  //                                  else if (desc_par.CaffeDescParam.Normalization.compare("none")==0)
-                  //                                    {
-                  //                                      for (int i = 0; i < desc_size; ++i) {
-                  //                                          const float v1 = feature_blob_data[i+offset];
-                  //                                          temp_kp1_desc[img_num].desc.vec[i] = v1;
-                  //                                        }
-                  //                                    }
-                  //                                  temp_kp1_desc[img_num].desc.type=DESC_CAFFE;
-                  //                                }
-                  //                            }
-                  //                          else {
-                  //                              std::cerr << "The net has no blob " <<desc_par.CaffeDescParam.LayerName<< std::endl;
-                  //                            }
-                  //                        }
-                  //                      }
 #endif
                 }
 

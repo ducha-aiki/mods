@@ -12,35 +12,35 @@ sys.path.insert(0, '/home/ubuntu/dev/opencv-3.1/build/lib')
 import cv2
 import math
 import numpy as np
-from architectures import OriNetFast, YiNet
-from HandCraftedModules import OrientationDetector
+from architectures import OriNet, YiNet,AffNetPlainOld,AffNetFast,AffNetFasterELUMP,TNet
+from HandCraftedModules import OrientationDetector,AffineShapeEstimator
 
 PSS = 32
-coef = -1.
 USE_CUDA = True
 
-model = OriNetFast(PS = PSS)
-#weightd_fname = 'tanh_plain_9.pth'
-#weightd_fname = 'pixels_only_checkpoint_9.pth'
-#weightd_fname = 'HardNetLoss_1.pth'
-#weightd_fname = 'newrot.pth'
-#weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/!!!!!!/orinet_hn_9.pth'
-#weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/!!!!!!/orinet_pos_9.pth'
-weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/2222/orinet_pos_9.pth'
-#weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/2222/orinet_hn_9.pth'
+#model = AffNetPlainOld(PS = PSS)
+#weightd_fname = '/home/old-ufo/dev/learning_ori/affnetplain16.pth'# very good
+
+model = AffNetFast(PS = PSS)#0.000 298 ms
+#Graffity
+#weightd_fname = '/home/old-ufo/dev/vlbenchmakrs-1.0-beta/data/software/MODSHesAff/new6b_10M005_9.pth' #  also very good
+weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/newHP6b_10M005_04.pth'
+#weightd_fname = '/home/old-ufo/dev/mods/wxbs-journal/build/new6b_10M005_5.pth'
+#weightd_fname = '/home/old-ufo/dev/oxford-affine/new_weights/affnetfast_3b_no_shift_17ep.pth' # 25 / 126  good
+#weightd_fname = 'affnetfast_3b_no_shift_18ep.pth' # 26 / 126 , 0.00028
+
+#model = AffNetFasterELUMP(PS = PSS)
+#weightd_fname = 'AffNetFasterELUMP12.pth' #30/136, faster 0.000248
+
+#model = TNet(PS = PSS)
+#weightd_fname = 'TNet17.pth' #34/161, 0.000234 per patch
+
+
 
 checkpoint = torch.load(weightd_fname)
 model.load_state_dict(checkpoint['state_dict'])
 
-#model = OrientationDetector(patch_size = PSS)
-
-#PSS=28
-#coef = 1.
-#model = YiNet()
-####weightd_fname = '/home/old-ufo/dev/benchmark-orientation/matlab/src/KeypointOrientations/GHHPoolingEF/prelearned/efsift-360'
-#weightd_fname = '/home/old-ufo/dev/benchmark-orientation/matlab/src/KeypointOrientations/GHHPooling/prelearned/sift'
-#model.import_weights(weightd_fname)
-#model.import_weights(')
+#model = AffineShapeEstimator(patch_size = PSS) #35/160
 
 model.eval()
 if USE_CUDA:
@@ -55,13 +55,13 @@ except:
 
 image = cv2.imread(input_img_fname,0)
 h,w = image.shape
-print(h,w)
+print(h,w, weightd_fname)
 
 n_patches =  h/w
 
 
-descriptors_for_net = np.zeros((n_patches, 1))
-t = time.time()
+descriptors_for_net = np.zeros((n_patches, 4))
+
 patches = np.ndarray((n_patches, 1, PSS, PSS), dtype=np.float32)
 for i in range(n_patches):
     patch =  image[i*(w): (i+1)*(w), 0:w]
@@ -78,6 +78,8 @@ for batch_idx in range(n_batches):
             end = (batch_idx + 1) * bs
     else:
         end = (batch_idx + 1) * bs
+    if batch_idx * bs >= end:
+        continue
     data_a = patches[batch_idx * bs: end, :, :, :].astype(np.float32)
     data_a = torch.from_numpy(data_a)
     if USE_CUDA:
@@ -85,8 +87,8 @@ for batch_idx in range(n_batches):
     data_a = Variable(data_a, volatile=True)
     # compute output
     out_a = model(data_a)
-    descriptors_for_net[batch_idx * bs: end,:] = out_a.data.cpu().numpy().reshape(-1, 1)
+    descriptors_for_net[batch_idx * bs: end,:] = out_a.data.cpu().numpy().reshape(-1, 4)
 print descriptors_for_net.shape
 et  = time.time() - t
-print 'processing', et, et/float(n_patches), ' per patch', weightd_fname
-np.savetxt(output_fname,  coef*descriptors_for_net, delimiter=' ', fmt='%10.5f')    
+print 'processing', et, et/float(n_patches), ' per patch'
+np.savetxt(output_fname,  descriptors_for_net, delimiter=' ', fmt='%10.5f')    
