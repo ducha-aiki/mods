@@ -20,4 +20,4 @@ include_directories(.)
 add_library(affinedetectors ${affdets_srcs})
 
 
-TARGET_LINK_LIBRARIES(affinedetectors helpers opencv_features2d248 opencv_core248 opencv_highgui248)
+TARGET_LINK_LIBRARIES(affinedetectors helpers opencv_features2d opencv_core opencv_highgui)
