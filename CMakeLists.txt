@@ -111,7 +111,7 @@ link_directories(${CMAKE_SOURCE_DIR}/lapack_for_windows/lib)
 
 
 add_library(matching ${matching_srcs})
-TARGET_LINK_LIBRARIES(matching opencv_features2d248 opencv_core248 opencv_highgui248 degensac lapack Match Numerics)
+TARGET_LINK_LIBRARIES(matching opencv_features2d opencv_core opencv_highgui degensac lapack Match Numerics)
 
 ################## View synthesis
 
@@ -124,7 +124,7 @@ link_directories(c:/opencv-2.4.8/opencv-2.4.8/build/install/x86/mingw/lib)
 add_library(synth-detection ${synth-detection_srcs})
 
 TARGET_LINK_LIBRARIES(synth-detection matching opensurf
-mser affinedetectors AKAZE helpers  opencv_features2d248 opencv_core248 opencv_highgui248)
+mser affinedetectors AKAZE helpers  opencv_features2d opencv_core opencv_highgui)
 
 #include_directories(.
 #./dali)
@@ -137,9 +137,9 @@ io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc)#smsld/wzhlib.cpp smsld/descriptor.cpp s
 
  link_directories(${CMAKE_SOURCE_DIR}/lapack_for_windows/lib)
 TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors  AKAZE  mrogh  
-opencv_features2d248 opencv_core248 opencv_highgui248 m )
+opencv_features2d opencv_core opencv_highgui m )
 
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors  AKAZE  mrogh  
-opencv_features2d248 opencv_core248 opencv_highgui248 m )
+opencv_features2d opencv_core opencv_highgui m )
