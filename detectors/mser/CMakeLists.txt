@@ -32,6 +32,6 @@ include_directories(.
 ./LL)
 
 add_library(mser ${mser_srcs})
-TARGET_LINK_LIBRARIES(mser  opencv_features2d248 opencv_core248 opencv_highgui248)
+TARGET_LINK_LIBRARIES(mser  opencv_features2d opencv_core opencv_highgui)
 
 
