@@ -3,7 +3,7 @@ layer {
   name: "data"
   type: "Input"
   top: "data"
-  input_param { shape: { dim: 256 dim: 1 dim: 32 dim: 32 } }
+  input_param { shape: { dim: 128 dim: 1 dim: 32 dim: 32 } }
 }
 layer {
   name: "data_norm"
