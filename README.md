@@ -1,5 +1,7 @@
 ## MODS: Image Matching with On-Demand Synthesis.
 
+**NEW: Simplified MODS with external deep CNN descriptors https://github.com/ducha-aiki/mods-light-zmq**
+
 ## Binaries can be downloaded here
 
 https://github.com/ducha-aiki/mods/releases/
