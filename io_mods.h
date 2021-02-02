@@ -47,7 +47,7 @@ void GetMSERPars(extrema::ExtremaParams &MSERPars, INIReader &reader,const char*
 void GetFASTPars(FASTParams &pars, INIReader &reader,const char* section="FAST");
 void GetSTARPars(STARParams &pars, INIReader &reader,const char* section="STAR");
 
-void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section="TILDE");
+//void GetTILDEPars(TILDEParams &pars, INIReader &reader,const char* section="TILDE");
 void GetSFOPPars(SFOPParams &pars, INIReader &reader,const char* section="SFOP");
 void GetToSMSERPars(ToSMSERParams &pars, INIReader &reader,const char* section="TOS-MSER");
 
@@ -59,16 +59,16 @@ void GetBRISKPars(BRISKParams &pars, INIReader &reader,const char* section="BRIS
 void GetFREAKPars(FREAKParams &pars, INIReader &reader,const char* section="FREAK");
 void GetMROGHPars(MROGHParams &pars, INIReader &reader,const char* section="MROGHDescriptor");
 //void GetLIOPPars(LIOPDescriptorParams &pars, INIReader &reader,const char* section="LIOP");
-void GetKAZEPars(KAZEParams &pars, INIReader &reader,const char* section="AKAZE");
+//void GetKAZEPars(KAZEParams &pars, INIReader &reader,const char* section="AKAZE");
 //void GetDALIPars(DALIParams &pars, INIReader &reader,const char* section="DALI");
 void GetSMSLDPars(SMSLDParams &pars, INIReader &reader,const char* section="SMSLD");
 void GetORBPars(ORBParams &pars, INIReader &reader,const char* section="ORB");
 //void GetDAISYPars(DAISYParams &pars, INIReader &reader,const char* section="DAISY");
 void GetSSIMPars(SSIMParams &pars, INIReader &reader,const char* section="SSIM");
 void GetReadPars(ReadAffsFromFileParams &pars, INIReader &reader,const char* section="ReadAffs");
-void GetBICEPars(BICEParams &pars, INIReader &reader,const char* section="BICE");
+//void GetBICEPars(BICEParams &pars, INIReader &reader,const char* section="BICE");
 void GetPixelPars(PIXELSDescriptorParams &pars, INIReader &reader,const char* section="PixelDescriptor");
-void GetFOCIPars(FOCIParams &pars, INIReader &reader,const char* section="FOCI");
+//void GetFOCIPars(FOCIParams &pars, INIReader &reader,const char* section="FOCI");
 void GetHessPars(ScaleSpaceDetectorParams &HessPars, INIReader &reader,const char* section="HessianAffine");
 void GetPatchExtractionPars(PatchExtractionParams &PEPars, INIReader &reader,const char* section);
 void GetHarrPars(ScaleSpaceDetectorParams &HarrPars, INIReader &reader,const char* section="HarrisAffine");

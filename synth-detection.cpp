@@ -97,7 +97,7 @@ int old_size = keypoints.size();
         }
     }
   keypoints = temp_keypoints;
-  std::cout << old_size << " , become " << keypoints.size() << std::endl;
+ // std::cout << old_size << " , become " << keypoints.size() << std::endl;
   return (int)keypoints.size();
 }
 int SetVSPars(const std::vector <double> &scale_set,

@@ -271,22 +271,4 @@ struct WhatToMatch
   std::vector<std::string> separate_descriptors;
 };
 
-struct TILDEParams {
-  bool approx;
-  float scaleKeypoint;
-  float orientationKeypoint;
-  bool doBaumberg;
-  std::string pathFilter;
-  int maxPoints;
-  bool keep_only_positive;
-  TILDEParams() {
-    approx = false;
-    scaleKeypoint = 10.0;
-    orientationKeypoint = 0;
-    maxPoints = 500;
-    doBaumberg = false;
-    keep_only_positive = true;
-  }
-};
-
 #endif // STRUCTURES_HPP

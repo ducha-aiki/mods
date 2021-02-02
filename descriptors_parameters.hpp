@@ -17,8 +17,8 @@
 #include "descriptors/mroghdesc.hpp"
 #include "descriptors/pixelsdesc.hpp"
 #include "descriptors/surfdescriptor.hpp"
-#include "descriptors/kazedescriptor.hpp"
-#include "descriptors/bicedescriptor.hpp"
+//#include "descriptors/kazedescriptor.hpp"
+//#include "descriptors/bicedescriptor.hpp"
 //#include "descriptors/dalidescriptor.hpp"
 #include "descriptors/smslddescriptor.hpp"
 #include "descriptors/ssimdescriptor.hpp"
@@ -81,9 +81,9 @@ struct DescriptorsParameters {
   BRISKParams BRISKParam;
   MROGHParams MROGHParam;
   CaffeDescriptorParams CaffeDescParam;
-  BICEParams BICEParam;
+ // BICEParams BICEParam;
   PIXELSDescriptorParams PixelsParam;
-  KAZEParams KAZEParam;
+  //KAZEParams KAZEParam;
   SURFParams SURFDescParam;
  // DALIParams DALIDescParam;
   SMSLDParams SMSLDDescParam;

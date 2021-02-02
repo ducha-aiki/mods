@@ -7,12 +7,21 @@
 #include <vector>
 #include <string>
 #include <map>
-
+#include <fstream>
 #include "detectors/structures.hpp"
 #include "detectors/detectors_parameters.hpp"
 #include "descriptors_parameters.hpp"
+#include <sstream>
 
-
+namespace patch
+{
+    template < typename T > std::string to_string( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
+}
 ///
 #ifdef WITH_CAFFE
 #include "caffe/caffe.hpp"

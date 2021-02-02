@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(MODS)
 
 add_definitions(-DA64)
-add_definitions(-std=gnu++11)
+#add_definitions(-std=gnu++11)
+add_definitions(-std=c++11)
+
 
 SET(WITH_CAFFE FALSE)
 
@@ -69,9 +71,6 @@ add_subdirectory( ./detectors/mser )
 add_subdirectory( ./opensurf )
 add_subdirectory( ./libMatch)
 add_subdirectory( ./libNumerics)
-add_subdirectory( ./akaze)
-add_subdirectory( ./mrogh)
-#add_subdirectory( ./TILDE/c++)
 
 ####### DEGENSAC
 include_directories(
@@ -124,7 +123,7 @@ link_directories(c:/opencv-2.4.8/opencv-2.4.8/build/install/x86/mingw/lib)
 add_library(synth-detection ${synth-detection_srcs})
 
 TARGET_LINK_LIBRARIES(synth-detection matching opensurf
-mser affinedetectors AKAZE helpers  opencv_features2d opencv_core opencv_highgui)
+mser affinedetectors helpers  opencv_features2d opencv_core opencv_highgui)
 
 #include_directories(.
 #./dali)
@@ -136,10 +135,10 @@ add_executable(mods mods.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc)#smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
 
  link_directories(${CMAKE_SOURCE_DIR}/lapack_for_windows/lib)
-TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors  AKAZE  mrogh  
+TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors 
 opencv_features2d opencv_core opencv_highgui m )
 
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
-TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors  AKAZE  mrogh  
+TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors  
 opencv_features2d opencv_core opencv_highgui m )

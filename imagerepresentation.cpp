@@ -8,14 +8,7 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/nonfree/features2d.hpp>
 #include "opensurf/surflib.h"
-//#include "matching/liopdesc.hpp"
-#include "akaze/src/lib/AKAZE.h"
-#include "TILDE/c++/src/libTILDE.hpp"
 #include <cmath>
-//#include "detectors/new-saddle/sorb.h"
-
-//#include "synthviewdet_old.hpp"
-//#include "synthviewdet_old.hpp"
 
 
 #ifdef _OPENMP
@@ -676,10 +669,10 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           IplImage *int_img; //for SURF
           IpVec ipts1;//for SURF
           cv::Mat CharImage; //for OpenCV detectors
-          aka::AKAZEOptions options; //For KAZE
-          options.img_width = temp_img1.pixels.cols;
-          options.img_height = temp_img1.pixels.rows;
-          aka::AKAZE evolution1(options);
+       //   aka::AKAZEOptions options; //For KAZE
+        //  options.img_width = temp_img1.pixels.cols;
+        //  options.img_height = temp_img1.pixels.rows;
+         // aka::AKAZE evolution1(options);
 
           std::vector<cv::KeyPoint> keypoints_1; //for binary-dets
           cv::Mat descriptors_1; //for binary-dets
@@ -745,157 +738,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                 }
               focikp.close();
             }
-          else if (curr_det.compare("FOCI")==0)
-            {
-              doExternalAffineAdaptation = det_par.FOCIParam.doBaumberg;
-              //  DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
-              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
-              cv::imwrite(img_fname,temp_img1.pixels);
-              //srand();
-              std::string command = "wine EdgeFociAndBice.exe -mi -i " + img_fname;
-              //   command += " -mi";
-              if (det_par.FOCIParam.numberKPs > 0) {
-                  command += " -n "+ std::to_string(det_par.FOCIParam.numberKPs);
-                }
-              if (det_par.FOCIParam.computeOrientation) {
-                  command += " -co";
-                  if (det_par.FOCIParam.secondOrientation) {
-                      command += " -mo ";
-                    }
-                }
-              std::string fname1 = "FOCI" + std::to_string(synth+rnd1) + ".txt";
-              command += " -o " + fname1;
-              std::cerr << command <<std::endl;
-              system(command.c_str());
-              std::ifstream focikp(fname1);
-              if (focikp.is_open()) {
-
-                  int kp_size;
-                  focikp >> kp_size;
-
-                  temp_kp1.reserve(kp_size);
-                  for (int kp_num=0; kp_num < kp_size; kp_num++)
-                    {
-                      AffineRegion temp_region;
-                      temp_region.det_kp.pyramid_scale = -1;
-                      temp_region.det_kp.octave_number = -1;
-                      temp_region.det_kp.sub_type = 55;
-                      focikp >> temp_region.det_kp.x;
-                      focikp >> temp_region.det_kp.y;
-                      focikp >> temp_region.det_kp.a11;
-                      temp_region.det_kp.a11 = sqrt(temp_region.det_kp.a11);
-
-                      focikp >> temp_region.det_kp.a12;
-                      temp_region.det_kp.a12 = sqrt(temp_region.det_kp.a12);
-                      temp_region.det_kp.a21 = 0;
-                      focikp >> temp_region.det_kp.a22;
-                      temp_region.det_kp.a22 = sqrt(temp_region.det_kp.a22);
-                      temp_region.det_kp.s = 1.0;  //?
-                      focikp >> temp_region.det_kp.response;
-                      temp_region.type = DET_FOCI;
-                      float angle;
-                      focikp >> angle; //Not good yet
-
-                      temp_region.det_kp.s *= sqrt(fabs(temp_region.det_kp.a11*temp_region.det_kp.a22
-                                                        - temp_region.det_kp.a12*temp_region.det_kp.a21));
-
-                      rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11,
-                                                        temp_region.det_kp.a12,
-                                                        temp_region.det_kp.a21,
-                                                        temp_region.det_kp.a22);
-
-                      temp_kp1.push_back(temp_region);
-
-                    }
-                }
-              focikp.close();
-              std::string rm_command = "rm " + fname1;
-              system(rm_command.c_str());
-              rm_command = "rm " + img_fname;
-              system(rm_command.c_str());
-
-            }
-          else if (curr_det.compare("SFOP")==0)
-            {
-              doExternalAffineAdaptation = det_par.SFOPParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "SFOP"+std::to_string(synth+rnd1)+".png";
-              cv::imwrite(img_fname,temp_img1.pixels);
-              std::string command = "./sfop -i " + img_fname;
-              command += " --display false";
-              command += " --noise "+ std::to_string(det_par.SFOPParam.noise);
-              command += " --pTresh "+ std::to_string(det_par.SFOPParam.pThresh);
-              command += " --lWeight "+ std::to_string(det_par.SFOPParam.lWeight);
-              command += " --numOctaves  "+ std::to_string(det_par.SFOPParam.nLayers);
-              command += " --numLayers "+ std::to_string(det_par.SFOPParam.nOctaves);
-              std::string fname1 = "SFOP" + std::to_string(synth+rnd1) + ".txt";
-              command += " -o " + fname1;
-              std::cerr << command <<std::endl;
-              system(command.c_str());
-              std::ifstream focikp(fname1);
-              if (focikp.is_open()) {
-                  ReadKPsMik(temp_kp1, focikp, det_par.ToSMSERParam.scale);
-                }
-
-              focikp.close();
-              std::string rm_command = "rm " + fname1;
-              system(rm_command.c_str());
-              rm_command = "rm " + img_fname;
-              system(rm_command.c_str());
-            }
-          else if (curr_det.compare("WAVE")==0)
-            {
-              doExternalAffineAdaptation = det_par.WAVEParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "WAVE"+std::to_string(synth+rnd1)+".png";
-              cv::imwrite(img_fname,temp_img1.pixels);
-              std::string command = "./WaveDetector -i " + img_fname;
-              command += " -b "+ std::to_string(det_par.WAVEParam.b_wave);
-              command += " --non_maxima_suppression "+ std::to_string(det_par.WAVEParam.nms);
-              command += " -s "+ std::to_string(det_par.WAVEParam.s);
-              command += " -t "+ std::to_string(det_par.WAVEParam.t);
-              command += " -r "+ std::to_string(det_par.WAVEParam.r);
-              command += " -k "+ std::to_string(det_par.WAVEParam.k);
-              if (det_par.WAVEParam.pyramid) {
-                  command += " --pyramid";
-                }
-              std::string fname1 = "WAVE" + std::to_string(synth+rnd1) + ".txt";
-              command += " -o " + fname1;
-              std::cerr << command <<std::endl;
-              system(command.c_str());
-              std::ifstream focikp(fname1);
-              if (focikp.is_open()) {
-                  ReadKPsMik(temp_kp1, focikp);
-                }
-              focikp.close();
-              std::string rm_command = "rm " + fname1;
-              system(rm_command.c_str());
-              rm_command = "rm " + img_fname;
-              system(rm_command.c_str());
-            }
-          else if (curr_det.compare("WASH")==0)
-            {
-              doExternalAffineAdaptation = det_par.WASHParam.doBaumberg;
-              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "WASH"+std::to_string(synth+rnd1)+".png";
-              cv::imwrite(img_fname,temp_img1.pixels);
-              std::string command = "./WaSH_linux_64 -i " + img_fname;
-              command += " -t "+ std::to_string(det_par.WASHParam.threshold);
-              std::string fname1 = img_fname + ".wash";
-              std::cerr << command <<std::endl;
-              system(command.c_str());
-              std::ifstream focikp(fname1);
-              if (focikp.is_open()) {
-                  ReadKPsMik(temp_kp1, focikp, det_par.ToSMSERParam.scale);
-                }
-              focikp.close();
-              std::string rm_command = "rm " + fname1;
-              system(rm_command.c_str());
-              rm_command = "rm " + img_fname;
-              system(rm_command.c_str());
-            }
-       /*   else if (curr_det.compare("Saddle")==0)
+                /*   else if (curr_det.compare("Saddle")==0)
             {
 
               doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
@@ -949,15 +792,15 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               //              doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
               //              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
 
-              //              std::string img_fname = "Saddle"+std::to_string(synth+rnd1)+".png";
+              //              std::string img_fname = "Saddle"+patch::to_string(synth+rnd1)+".png";
               //              cv::imwrite(img_fname,temp_img1.pixels);
               //              std::string command = "./saddlepts_very_new -i " + img_fname;
               //              std::string fname1 = img_fname + ".saddle";
               //              command += " -o "+ fname1;
-              //              command += " -t "+ std::to_string(det_par.SaddleParam.threshold);
-              //              command += " -l "+ std::to_string(det_par.SaddleParam.pyrLevels);
-              //              command += " -s "+ std::to_string(det_par.SaddleParam.scalefac);
-              //              command += " -e "+ std::to_string(det_par.SaddleParam.epsilon);
+              //              command += " -t "+ patch::to_string(det_par.SaddleParam.threshold);
+              //              command += " -l "+ patch::to_string(det_par.SaddleParam.pyrLevels);
+              //              command += " -s "+ patch::to_string(det_par.SaddleParam.scalefac);
+              //              command += " -e "+ patch::to_string(det_par.SaddleParam.epsilon);
               //              if (det_par.SaddleParam.doNMS) {
               //                  command += " -n ";
               //                };
@@ -980,12 +823,12 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               //./saddlepts1 image-00547.bmp pts_saddle.txt 0/1
               //     doExternalAffineAdaptation = det_par.SaddleParam.doBaumberg;
               int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "tos-mser"+std::to_string(synth+rnd1)+".png";
+              std::string img_fname = "tos-mser"+patch::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               std::string command = "./Trees_no_img " + img_fname;
               std::string fname1 = img_fname + ".tosmser";
               command += " "+ fname1;
-              command += " "+ std::to_string(det_par.ToSMSERParam.run_mode);
+              command += " "+ patch::to_string(det_par.ToSMSERParam.run_mode);
 
               std::cerr << command << std::endl;
               system(command.c_str());
@@ -1006,7 +849,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           else if (curr_det.compare("MIK-MSER")==0)
             {
               int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "orig-mser"+std::to_string(synth+rnd1)+".png";
+              std::string img_fname = "orig-mser"+patch::to_string(synth+rnd1)+".png";
               cv::imwrite(img_fname,temp_img1.pixels);
               std::string command = "./mser.ln -i " + img_fname;
               std::string fname1 = img_fname + ".mikmser";
@@ -1107,51 +950,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                   temp_kp1[kp_num].type = DET_ORB;
                 }
             }
-        /*  else if (curr_det.compare("TILDE-plugin")==0)
-            {
-
-              doExternalAffineAdaptation = det_par.TILDEScaleSpaceParam.AffineShapePars.doBaumberg;
-              keypoints_1 = getTILDEKeyPoints(temp_img1.rgb_pixels,
-                                              det_par.TILDEScaleSpaceParam.TILDEParam.pathFilter, det_par.TILDEScaleSpaceParam.TILDEParam.approx,true,false);
-
-              int kp_size = keypoints_1.size();
-              temp_kp1.resize(kp_size);
-
-              for (int kp_num=0; kp_num < min(kp_size,det_par.TILDEScaleSpaceParam.TILDEParam.maxPoints); kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
-                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  temp_kp1[kp_num].type = DET_TILDE;
-                }
-            } */
-          else if (curr_det.compare("KAZE")==0)
-            {
-              doExternalAffineAdaptation = det_par.FOCIParam.doBaumberg;
-              evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels *1.0/255.0);
-              evolution1.Feature_Detection(keypoints_1);
-              int kp_size = keypoints_1.size();
-              temp_kp1.resize(kp_size);
-
-              for (int kp_num=0; kp_num<kp_size; kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
-                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  temp_kp1[kp_num].type = DET_KAZE;
-                }
-            }
-          else if (curr_det.compare("FAST")==0)
+            else if (curr_det.compare("FAST")==0)
             {
               doExternalAffineAdaptation = det_par.FASTParam.doBaumberg;
               temp_img1.pixels.convertTo(CharImage,CV_8U);
@@ -1426,7 +1225,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                           cv::cvtColor(colorPatch.clone(), colorPatch,  CV_GRAY2BGR);
                         }
 
-                      //     cv::imwrite(std::to_string(i)+".jpg",colorPatch);
+                      //     cv::imwrite(patch::to_string(i)+".jpg",colorPatch);
                       imgs_to_describe.push_back(colorPatch);
                     }
 
@@ -1608,12 +1407,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   desc_par.MagnLessSIFTParam.PEParam.photoNorm);
                 }
 
-              else if (curr_desc.compare("BICE") == 0)
-                {
-                  BICEDescriptor BICEdesc(desc_par.BICEParam);
-                  BICEdesc(temp_img1.pixels,temp_kp1_desc);
-                }
-       /*       else if (curr_desc.compare("LIOP") == 0) //LIOP
+                    /*       else if (curr_desc.compare("LIOP") == 0) //LIOP
                 {
                   LIOPDescriptor LIOPDesc(desc_par.LIOPParam);
                   DescribeRegions(temp_kp1_desc,
@@ -1633,17 +1427,11 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                                   desc_par.PixelsParam.PEParam.FastPatchExtraction,
                                   desc_par.PixelsParam.PEParam.photoNorm);
                 }
-              else if (curr_desc.compare("MROGH") == 0) //MROGH
-                {
-                  MROGHDescriptor MROGHdesc(desc_par.MROGHParam);
-                  MROGHdesc(temp_img1.pixels,temp_kp1,temp_kp1_desc);
-
-                }
-              else if (curr_desc.compare("ORB") == 0) //ORB
+                 else if (curr_desc.compare("ORB") == 0) //ORB
                 {
                   //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
                   //                    {
-                  std::cout << "ORB desc" << std::endl;
+              //    std::cout << "ORB desc" << std::endl;
                   const double mrSizeORB = 3.0;
                   cv::OrbFeatureDetector CurrentDescriptor(det_par.ORBParam.nfeatures,
                                                            det_par.ORBParam.scaleFactor,
@@ -1730,104 +1518,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 //                                  desc_par.KAZEParam.PEParam.photoNorm);
 
 //                }
-              else if (curr_desc.compare("KAZE") == 0) //KAZE
-              {
-
-                  if (OpenCV_det) //no data conversion needed
-                    {
-                      if (curr_det == "Saddle") {
-                          unsigned int kp_size = temp_kp1_desc.size();
-                          keypoints_1.clear();
-                          keypoints_1.reserve(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                         //      std::cout << temp_pt.pt.x << " ";
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
-                              temp_pt.class_id = 1;
-                              temp_pt.octave = 1;
-                              temp_pt.response = 1;
-                              keypoints_1.push_back(temp_pt);
-                            }
-                        }
-                      if (curr_det == "ORB") {
-                          unsigned int kp_size = temp_kp1_desc.size();
-                          keypoints_1.clear();
-                          keypoints_1.reserve(kp_size);
-                          for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                              cv::KeyPoint temp_pt;
-                              temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                           //    std::cout << temp_pt.pt.x << " ";
-                              temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                              temp_pt.octave = 1;
-                              temp_pt.response = 1;
-                              temp_pt.class_id = 1;
-
-                              temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                              temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
-                              keypoints_1.push_back(temp_pt);
-                            }
-                        }
-                      std::cout << "creating scalespace" << std::endl;
-
-                      evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
-
-                      std::cout << "computing descs" << keypoints_1.size() << " " << descriptors_1.size() <<  std::endl;
-                      evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
-                    }
-                  else {
-                      unsigned int kp_size = temp_kp1_desc.size();
-                      keypoints_1.clear();
-                      keypoints_1.reserve(kp_size);
-                      for (unsigned int kp_num = 0; kp_num < kp_size; kp_num++) {
-                          cv::KeyPoint temp_pt;
-                          temp_pt.pt.x = temp_kp1_desc[kp_num].det_kp.x;
-                        //  std::cout << temp_pt.pt.x << " ";
-                          temp_pt.pt.y = temp_kp1_desc[kp_num].det_kp.y;
-                          temp_pt.class_id = 1;
-                          temp_pt.angle = atan2( temp_kp1_desc[kp_num].det_kp.a12, temp_kp1_desc[kp_num].det_kp.a11);
-                          temp_pt.size = temp_kp1_desc[kp_num].det_kp.s * desc_par.KAZEParam.PEParam.mrSize;
-                          keypoints_1.push_back(temp_pt);
-                        }
-                      //temp_img1.pixels.convertTo(CharImage, CV_8U);
-                      std::cout << "creating scalespace" << std::endl;
-
-                      evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels * 1.0 / 255.0);
-                      std::cout << "computing descs" << std::endl;
-                      evolution1.Compute_Descriptors(keypoints_1, descriptors_1);
-                    }
-                  std::cout << "akaze ok" << std::endl;
-
-                int kp_size = keypoints_1.size();
-                int desc_size = descriptors_1.cols;
-
-                temp_kp1_desc.resize(kp_size);
-
-                for (int kp_num = 0; kp_num < kp_size; kp_num++) {
-                  temp_kp1_desc[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  temp_kp1_desc[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  temp_kp1_desc[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  temp_kp1_desc[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  temp_kp1_desc[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  temp_kp1_desc[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle * M_PI / 180.0);
-                  temp_kp1_desc[kp_num].det_kp.s = keypoints_1[kp_num].size / det_par.ORBParam.PEParam.mrSize;; //?
-                  temp_kp1_desc[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  temp_kp1_desc[kp_num].type = temp_kp1[0].type;
-                  temp_kp1_desc[kp_num].desc.type = DESC_KAZE;
-                  temp_kp1_desc[kp_num].desc.vec.resize(desc_size);
-
-                  unsigned char *descPtr = descriptors_1.ptr<unsigned char>(kp_num);
-                  for (int jj = 0; jj < desc_size; jj++, descPtr++) {
-                    temp_kp1_desc[kp_num].desc.vec[jj] = (float) *descPtr;
-                 //   std::cout << (float) *descPtr << " ";
-                    }
-                //  std::cout << std::endl;
-                }
-                ReprojectRegions(temp_kp1_desc, temp_img1.H, OriginalImg.cols, OriginalImg.rows);
-              }
-              else if (curr_desc.compare("SURF") == 0) //SURF
+                          else if (curr_desc.compare("SURF") == 0) //SURF
                 {
                   SURFDescriptor SURFDesc(desc_par.SURFDescParam);
                   DescribeRegions(temp_kp1_desc,
@@ -1878,7 +1569,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
                 {
                   //                  else if (curr_desc.compare("ORB") == 0) //ORB (not uses orientation estimated points)
                   //                    {
-                  std::cout << "FREAK desc" << std::endl;
+                //  std::cout << "FREAK desc" << std::endl;
                 //  const double mrSizeORB = 3.0;
                   cv::FREAK CurrentDescriptor(desc_par.FREAKParam.orientationNormalized,
                           desc_par.FREAKParam.scaleNormalized,
@@ -2149,7 +1840,7 @@ void ImageRepresentation::SaveRegions(std::string fname, int mode) {
           for (std::map<std::string, AffineRegionVectorMap>::const_iterator
                reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
               kpfile << reg_it->first << " " << reg_it->second.size() << std::endl;
-              std::cerr << reg_it->first << " " << reg_it->second.size() << std::endl;
+            //  std::cerr << reg_it->first << " " << reg_it->second.size() << std::endl;
 
               for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
                    desc_it != reg_it->second.end(); ++desc_it) {
@@ -2181,13 +1872,13 @@ void ImageRepresentation::LoadRegions(std::string fname) {
   if (kpfile.is_open()) {
       int numberOfDetectors = 0;
       kpfile >> numberOfDetectors;
-          std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
+      //    std::cerr << "numberOfDetectors=" <<numberOfDetectors << std::endl;
       for (int det = 0; det < numberOfDetectors; det++) {
           std::string det_name;
           int num_of_descs = 0;
           kpfile >> det_name;
           kpfile >> num_of_descs;
-                std::cerr << det_name << " " << num_of_descs << std::endl;
+        //        std::cerr << det_name << " " << num_of_descs << std::endl;
 
        //   reg_it->first << " " << reg_it->second.size() << std::endl;
           for (int desc = 0; desc < num_of_descs; desc++)  {
@@ -2199,7 +1890,7 @@ void ImageRepresentation::LoadRegions(std::string fname) {
               kpfile >> num_of_kp;
               int desc_size;
               kpfile >> desc_size;
-                      std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
+              //        std::cerr << desc_name << " " << num_of_kp << " " << desc_size << std::endl;
               for (int kp = 0; kp < num_of_kp; kp++)  {
                   AffineRegion ar;
                   loadAR(ar, kpfile);
@@ -2345,10 +2036,6 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
           IpVec ipts1;//for SURF
           cv::Mat CharImage; //for OpenCV detectors
 
-          aka::AKAZEOptions options; //For KAZE
-          options.img_width = temp_img1.pixels.cols;
-          options.img_height = temp_img1.pixels.rows;
-          aka::AKAZE evolution1(options);
 
           std::vector<cv::KeyPoint> keypoints_1; //for binary-dets
           cv::Mat descriptors_1; //for binary-dets
@@ -2376,7 +2063,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
                 }
             }
           //      int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-          //      std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
+          //      std::string img_fname = "FOCI"+patch::to_string(synth+rnd1)+".png";
           //      cv::imwrite(img_fname,temp_img1.pixels);
           /// Detection
           s_time = getMilliSecs1();
@@ -2409,197 +2096,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
                 }
               focikp.close();
             }
-          else if (curr_det.compare("FOCI")==0)
-            {
-              //  DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
-              int rnd1 = (int) getMilliSecs() + (std::rand() % (int)(1001));
-              std::string img_fname = "FOCI"+std::to_string(synth+rnd1)+".png";
-              cv::imwrite(img_fname,temp_img1.pixels);
-              //srand();
-              std::string command = "wine EdgeFociAndBice.exe -mi -i " + img_fname;
-              //   command += " -mi";
-              if (det_par.FOCIParam.numberKPs > 0) {
-                  command += " -n "+ std::to_string(det_par.FOCIParam.numberKPs);
-                }
-              if (det_par.FOCIParam.computeOrientation) {
-                  command += " -co";
-                  if (det_par.FOCIParam.secondOrientation) {
-                      command += " -mo ";
-                    }
-                }
-              std::string fname1 = "FOCI" + std::to_string(synth+rnd1) + ".txt";
-              command += " -o " + fname1;
-              std::cerr << command <<std::endl;
-              system(command.c_str());
-              std::ifstream focikp(fname1);
-              if (focikp.is_open()) {
-
-                  int kp_size;
-                  focikp >> kp_size;
-
-                  temp_kp1.reserve(kp_size);
-                  const float initialSigma = 1.6;
-                  cv::Mat gmag, gori, orimask;
-                  std::vector<unsigned char> workspace;
-                  cv::Mat mask, img_foci, imgHes, fx, fy;
-                  AffineShapeParams par = det_par.HessParam.AffineShapePars;
-                  gmag = cv::Mat(par.patchSize, par.patchSize, CV_32FC1),
-                      gori = cv::Mat(par.patchSize, par.patchSize, CV_32FC1),
-                      orimask = cv::Mat(par.patchSize, par.patchSize, CV_32FC1),
-                      mask = cv::Mat(par.smmWindowSize, par.smmWindowSize, CV_32FC1),
-                      img_foci = cv::Mat(par.smmWindowSize, par.smmWindowSize, CV_32FC1),
-                      fx = cv::Mat(par.smmWindowSize, par.smmWindowSize, CV_32FC1),
-                      fy = cv::Mat(par.smmWindowSize, par.smmWindowSize, CV_32FC1),
-
-
-                      computeGaussMask(mask);
-                  computeCircularGaussMask(orimask, par.smmWindowSize);
-                  for (int kp_num=0; kp_num < kp_size; kp_num++)
-                    {
-                      AffineRegion temp_region;
-                      temp_region.det_kp.pyramid_scale = -1;
-                      temp_region.det_kp.octave_number = -1;
-                      temp_region.det_kp.sub_type = 55;
-                      focikp >> temp_region.det_kp.x;
-                      focikp >> temp_region.det_kp.y;
-                      focikp >> temp_region.det_kp.a11;
-                      temp_region.det_kp.a11 = sqrt(temp_region.det_kp.a11);
-
-                      focikp >> temp_region.det_kp.a12;
-                      temp_region.det_kp.a12 = sqrt(temp_region.det_kp.a12);
-                      temp_region.det_kp.a21 = 0;
-                      focikp >> temp_region.det_kp.a22;
-                      temp_region.det_kp.a22 = sqrt(temp_region.det_kp.a22);
-                      temp_region.det_kp.s = 1.0;  //?
-                      focikp >> temp_region.det_kp.response;
-                      temp_region.type = DET_FOCI;
-                      float angle;
-                      focikp >> angle; //Not good yet
-
-                      temp_region.det_kp.s *= sqrt(fabs(temp_region.det_kp.a11*temp_region.det_kp.a22
-                                                        - temp_region.det_kp.a12*temp_region.det_kp.a21));
-                      //
-                      //
-                      rectifyAffineTransformationUpIsUp(temp_region.det_kp.a11,
-                                                        temp_region.det_kp.a12,
-                                                        temp_region.det_kp.a21,
-                                                        temp_region.det_kp.a22);
-
-                      if (det_par.FOCIParam.doBaumberg) { // Rewrite this!!!!!!!!
-                          float eigen_ratio_act = 0.0f, eigen_ratio_bef = 0.0f;
-                          float u11 = 1.0f, u12 = 0.0f, u21 = 0.0f, u22 = 1.0f, l1 = 1.0f, l2 = 1.0f;
-                          float lx = temp_region.det_kp.x, ly = temp_region.det_kp.y;
-                          float ratio =  temp_region.det_kp.s / (initialSigma);
-                          cv::Mat U, V, d, Au, Ap, D;
-                          // kernel size...
-                          //        std::cerr << "do baum" << std::endl;
-                          //        std::cerr << det_par.HessParam.AffineShapePars.smmWindowSize << std::endl;
-                          const int maskPixels = det_par.HessParam.AffineShapePars.smmWindowSize
-                              * det_par.HessParam.AffineShapePars.smmWindowSize;
-
-                          if (interpolateCheckBorders(temp_img1.pixels.cols,temp_img1.pixels.rows,
-                                                      (float) temp_region.det_kp.x,
-                                                      (float) temp_region.det_kp.y,
-                                                      (float) temp_region.det_kp.a11,
-                                                      (float) temp_region.det_kp.a12,
-                                                      (float) temp_region.det_kp.a21,
-                                                      (float) temp_region.det_kp.a22,
-                                                      2*5.0*ratio,
-                                                      2*5.0*ratio) ) {
-                              continue;
-                            }
-                          for (int l = 0; l < det_par.HessParam.AffineShapePars.maxIterations; l++)
-                            {
-                              float a = 0, b = 0, c = 0;
-
-                              // warp input according to current shape matrix
-                              //           std::cerr << "before interp ok" << std::endl;
-
-                              interpolate(temp_img1.pixels, lx, ly, u11*ratio, u12*ratio, u21*ratio, u22*ratio, img_foci);
-                              //            std::cerr << "after interp ok" << std::endl;
-                              // compute SMM on the warped patch
-                              float *maskptr = mask.ptr<float>(0);
-                              float *pfx = fx.ptr<float>(0), *pfy = fy.ptr<float>(0);
-                              //           cv::imwrite("gav.png",img_foci);
-                              //           std::cerr << "before grad" << std::endl;
-                              // float *img_fociptr = img_foci.ptr<float>(0); //!
-                              computeGradient(img_foci, fx, fy);
-                              //          std::cerr << "grad ok" << std::endl;
-
-                              // estimate SMM
-                              for (int i = 0; i < maskPixels; ++i)
-                                {
-                                  const float v = (*maskptr);
-                                  const float gxx = *pfx;
-                                  const float gyy = *pfy;
-                                  const float gxy = gxx * gyy;
-
-                                  a += gxx * gxx * v;
-                                  b += gxy * v;
-                                  c += gyy * gyy * v;
-                                  pfx++;
-                                  pfy++;
-                                  maskptr++;
-                                }
-                              a /= maskPixels;
-                              b /= maskPixels;
-                              c /= maskPixels;
-
-                              // compute inverse sqrt of the SMM
-                              invSqrt(a, b, c, l1, l2);
-
-                              if ((a != a) || (b != b) || (c !=c)){ //check for nan
-                                  break;
-                                }
-
-                              // update e igen ratios
-                              eigen_ratio_bef = eigen_ratio_act;
-                              eigen_ratio_act = 1.0 - l2 / l1;
-
-                              // accumulate the affine shape matrix
-                              float u11t = u11, u12t = u12;
-
-                              u11 = a*u11t+b*u21;
-                              u12 = a*u12t+b*u22;
-                              u21 = b*u11t+c*u21;
-                              u22 = b*u12t+c*u22;
-
-
-                              // compute the eigen values of the shape matrix
-                              if (!getEigenvalues(u11, u12, u21, u22, l1, l2))
-                                break;
-
-                              // leave on too high anisotropy
-                              if ((l1/l2>6) || (l2/l1>6))
-                                break;
-
-                              if (eigen_ratio_act < det_par.HessParam.AffineShapePars.convergenceThreshold
-                                  && eigen_ratio_bef < det_par.HessParam.AffineShapePars.convergenceThreshold) {
-                                  temp_region.det_kp.a11 = u11;
-                                  temp_region.det_kp.a12 = u12;
-                                  temp_region.det_kp.a21 = u21;
-                                  temp_region.det_kp.a22 = u22;
-
-                                  temp_kp1.push_back(temp_region);
-                                  break;
-                                }
-                            }
-                        } else {
-                          temp_kp1.push_back(temp_region);
-                        }
-                    }
-                }
-              //        std::cerr << "cloase ok" << std::endl;
-
-              //std::cerr << temp_kp1.size() << std::endl;
-              focikp.close();
-              std::string rm_command = "rm " + fname1;
-              system(rm_command.c_str());
-              rm_command = "rm " + img_fname;
-              system(rm_command.c_str());
-
-            }
-          else if (curr_det.compare("DoG")==0)
+                 else if (curr_det.compare("DoG")==0)
             {
               DetectAffineRegions(temp_img1, temp_kp1,det_par.DoGParam,DET_DOG,DetectAffineKeypoints);
             }
@@ -2669,27 +2166,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
                   temp_kp1[kp_num].type = DET_ORB;
                 }
             }
-          else if (curr_det.compare("KAZE")==0)
-            {
-              // evolution1.Create_Nonlinear_Scale_Space(temp_img1.pixels *1.0/255.0);
-              // evolution1.Feature_Detection(keypoints_1);
-              int kp_size = keypoints_1.size();
-              temp_kp1.resize(kp_size);
-
-              for (int kp_num=0; kp_num<kp_size; kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x = keypoints_1[kp_num].pt.x;
-                  temp_kp1[kp_num].det_kp.y = keypoints_1[kp_num].pt.y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a12 = sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.a22 = cos(keypoints_1[kp_num].angle*M_PI/180.0);
-                  temp_kp1[kp_num].det_kp.s = keypoints_1[kp_num].size /3.0; //?
-                  temp_kp1[kp_num].det_kp.response = keypoints_1[kp_num].response;
-                  temp_kp1[kp_num].type = DET_KAZE;
-                }
-            }
-          else if (curr_det.compare("FAST")==0)
+                 else if (curr_det.compare("FAST")==0)
             {
               temp_img1.pixels.convertTo(CharImage,CV_8U);
               cv::FASTX(CharImage,keypoints_1,det_par.FASTParam.threshold,

@@ -13,8 +13,7 @@
 #include "../helpers.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <assert.h>
-//#include "../../TILDE/c++/src/libTILDE.hpp"
-//#include <iostream>
+
 
 #ifdef _MSC_VER
 #define isnan _isnan

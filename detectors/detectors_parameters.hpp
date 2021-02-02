@@ -238,7 +238,6 @@ struct DetectorsParameters
     ScaleSpaceDetectorParams HessParam;
     ScaleSpaceDetectorParams HarrParam;
     ScaleSpaceDetectorParams DoGParam;
-    ScaleSpaceDetectorParams TILDEScaleSpaceParam;
     SURFParams SURFParam;
     SaddleParams SaddleParam;
     ToSMSERParams ToSMSERParam;
@@ -246,7 +245,7 @@ struct DetectorsParameters
     STARParams STARParam;
     BRISKParams BRISKParam;
     ORBParams ORBParam;
-    FOCIParams FOCIParam;
+  //  FOCIParams FOCIParam;
     ReadAffsFromFileParams ReadAffsFromFileParam;
     SFOPParams SFOPParam;
     WASHParams WASHParam;
