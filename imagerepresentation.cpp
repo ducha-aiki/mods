@@ -7,7 +7,6 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/nonfree/features2d.hpp>
-#include "opensurf/surflib.h"
 #include <cmath>
 
 
@@ -666,8 +665,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
           TimeSpent.SynthTime += time1;
 
           ///Structures initialization
-          IplImage *int_img; //for SURF
-          IpVec ipts1;//for SURF
+        
           cv::Mat CharImage; //for OpenCV detectors
        //   aka::AKAZEOptions options; //For KAZE
         //  options.img_width = temp_img1.pixels.cols;
@@ -887,37 +885,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               DetectAffineRegions(temp_img1, temp_kp1, det_par.TILDEScaleSpaceParam, DET_TILDE, DetectAffineKeypoints);
               temp_img1.pixels = gray_temp;
             } */
-          else if (curr_det.compare("SURF")==0)
-            {
-              doExternalAffineAdaptation = det_par.SURFParam.doBaumberg;
-              IplImage Iplimg1 = temp_img1.pixels;
-              // Create integral-image representation of the image
-              int_img = Integral(&Iplimg1);
-
-              int octaves = det_par.SURFParam.octaves;
-              int intervals = det_par.SURFParam.intervals;
-              int init_sample = det_par.SURFParam.init_sample;
-              float thres = det_par.SURFParam.thresh;
-              // Create Fast Hessian Object
-              FastHessian fh(int_img, ipts1, octaves, intervals, init_sample, thres);
-
-              // Extract interest points and store in vector ipts
-              fh.getIpoints();
-
-              int kp_size = ipts1.size();
-              temp_kp1.resize(kp_size);
-              for (int kp_num=0; kp_num < kp_size; kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x =ipts1[kp_num].x;
-                  temp_kp1[kp_num].det_kp.y = ipts1[kp_num].y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a12 = sin(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a22 = cos(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.s = ipts1[kp_num].scale;
-                  temp_kp1[kp_num].type = DET_SURF;
-                }
-            }
+        
           else if (curr_det.compare("ORB")==0)
             {
               OpenCV_det = true;
@@ -1518,18 +1486,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
 //                                  desc_par.KAZEParam.PEParam.photoNorm);
 
 //                }
-                          else if (curr_desc.compare("SURF") == 0) //SURF
-                {
-                  SURFDescriptor SURFDesc(desc_par.SURFDescParam);
-                  DescribeRegions(temp_kp1_desc,
-                                  temp_img1, SURFDesc,
-                                  desc_par.SURFDescParam.PEParam.mrSize,
-                                  desc_par.SURFDescParam.PEParam.patchSize,
-                                  desc_par.SURFDescParam.PEParam.FastPatchExtraction,
-                                  desc_par.SURFDescParam.PEParam.photoNorm);
-
-
-                }
+              
 //              else if (curr_desc.compare("DALI") == 0)
 //                {
 //                  DALIDescriptor DALIDesc(desc_par.DALIDescParam);
@@ -1728,8 +1685,7 @@ void ImageRepresentation::SynthDetectDescribeKeypoints (IterationViewsynthesisPa
               s_time = getMilliSecs1();
 
               // Deallocate the integral image
-              if (curr_det.compare("SURF")==0 )
-                cvReleaseImage(&int_img);
+            
             }
           OneDetectorKeypointsMapVector[synth] = temp_kp_map;
         }
@@ -1827,7 +1783,225 @@ void ImageRepresentation::SaveRegionsMichal(std::string fname, int mode) {
         }
     }
 }
+void ImageRepresentation::SaveRegionsNPZ(std::string fname) {
 
+  int desc_dim = -1;
+
+  int num_desc_dets = 0;
+  for (std::map<std::string, AffineRegionVectorMap>::const_iterator
+       reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
+      for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
+           desc_it != reg_it->second.end(); ++desc_it) {
+          if (desc_it->first == "None") continue;
+          num_desc_dets+=desc_it->second.size();
+          if (desc_dim == -1){
+              desc_dim = desc_it->second[0].desc.vec.size();
+            }
+          assert (desc_dim ==desc_it->second[0].desc.vec.size() );
+        }
+    }
+
+  std::vector<double> xy(2*num_desc_dets);
+  std::vector<double> scales(num_desc_dets);
+  std::vector<double> responses(num_desc_dets);
+  std::vector<double> A(4*num_desc_dets);
+  std::vector<uchar> descs(desc_dim*num_desc_dets);
+
+  int count = 0;
+  for (std::map<std::string, AffineRegionVectorMap>::const_iterator
+       reg_it = RegionVectorMap.begin(); reg_it != RegionVectorMap.end();  ++reg_it) {
+
+      for (AffineRegionVectorMap::const_iterator desc_it = reg_it->second.begin();
+           desc_it != reg_it->second.end(); ++desc_it) {
+          if (desc_it->first == "None") continue;
+          int n_desc = desc_it->second.size();
+          for (int i = 0; i < n_desc ; i++ ) {
+              AffineRegion ar = desc_it->second[i];
+              xy[2*count] = ar.reproj_kp.x;
+              xy[2*count+1] = ar.reproj_kp.y;
+              scales[count] = ar.reproj_kp.s;
+              A[4*count] = ar.reproj_kp.a11;
+              A[4*count+1] = ar.reproj_kp.a12;
+              A[4*count+2] = ar.reproj_kp.a21;
+              A[4*count+3] = ar.reproj_kp.a22;
+
+              responses[count] = ar.det_kp.response;
+
+              for (int di = 0; di < desc_dim ; di++ ) {
+                  descs[count*desc_dim + di] = (uchar)ar.desc.vec[di];
+                }
+              count++;
+            }
+        }
+    }
+
+  cnpy::npz_save(fname,"xy",&xy[0],{num_desc_dets,2},"w"); //"w" overwrites any existing file
+  cnpy::npz_save(fname,"scales",&scales[0],{num_desc_dets,1},"a"); //"a" appends to the file we created above
+  cnpy::npz_save(fname,"responses",&responses[0],{num_desc_dets,1},"a"); //"a" appends to the file we created above
+  cnpy::npz_save(fname,"A",&A[0],{num_desc_dets,4},"a"); //"a" appends to the file we created above
+  cnpy::npz_save(fname,"descs",&descs[0],{num_desc_dets,desc_dim},"a"); //"a" appends to the file we created above
+
+
+}
+AffineRegionVector ImageRepresentation::PreLoadRegionsNPZ(std::string fname) {
+  cnpy::npz_t my_npz = cnpy::npz_load(fname);
+  std::vector<std::string> keys;
+  bool A_is_here = false;
+  bool angle_is_here = false;
+
+  for(map<std::string,cnpy::NpyArray>::iterator it = my_npz.begin(); it != my_npz.end(); ++it) {
+      keys.push_back(it->first);
+      if (it->first == "A") {
+          A_is_here = true;
+        }
+      if (it->first == "angles") {
+          angle_is_here = true;
+        }
+    }
+
+
+  cnpy::NpyArray arr_xy = my_npz["xy"];
+  double* xy_ = arr_xy.data<double>();
+
+  cnpy::NpyArray arr_scales = my_npz["scales"];
+  double* scales_ = arr_scales.data<double>();
+
+
+  cnpy::NpyArray arr_resps = my_npz["responses"];
+  double* responses_ = arr_resps.data<double>();
+
+  cnpy::NpyArray arr_descs = my_npz["descs"];
+  uchar* descs_ = arr_descs.data<uchar>();
+
+  int num_of_kp = arr_xy.shape[0];
+  int desc_dim = arr_descs.shape[1];
+
+  assert( arr_xy.shape[0] ==  arr_scales.shape[0]);
+  assert( arr_scales.shape[0] ==  arr_descs.shape[0]);
+
+
+
+  AffineRegionVector desc_regions;
+  std::string det_name = "ReadAffs";
+  std::string desc_name = "RootSIFT";
+  if (A_is_here) { // save affine matrix
+      cnpy::NpyArray arr_A = my_npz["A"];
+      assert( arr_A.shape[0] ==  arr_descs.shape[0]);
+
+      double* A_ = arr_A.data<double>();
+
+      for (int kp = 0; kp < num_of_kp; kp++)  {
+          AffineRegion ar;
+          ar.det_kp.x = xy_[2*kp];
+          ar.det_kp.y = xy_[2*kp+1];
+
+          ar.det_kp.s = scales_[kp];
+          ar.det_kp.a11 = A_[4*kp];
+          ar.det_kp.a12 = A_[4*kp+1];
+          ar.det_kp.a21 = A_[4*kp+2];
+          ar.det_kp.a22 = A_[4*kp+3];
+
+          ar.det_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+          ar.reproj_kp.x = xy_[2*kp];
+          ar.reproj_kp.y = xy_[2*kp+1];
+
+          ar.reproj_kp.s = scales_[kp];
+          ar.reproj_kp.a11 = A_[4*kp];
+          ar.reproj_kp.a12 = A_[4*kp+1];
+          ar.reproj_kp.a21 = A_[4*kp+2];
+          ar.reproj_kp.a22 = A_[4*kp+3];
+          ar.reproj_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+
+          ar.desc.type = DESC_ROOT_SIFT;
+          ar.desc.vec.resize(desc_dim);
+          for (int dd=0; dd < desc_dim; dd++){
+              ar.desc.vec[dd] = descs_[kp*desc_dim + dd];
+            }
+          desc_regions.push_back(ar);
+        }
+
+    } else if (angle_is_here){ //save orientation
+      cnpy::NpyArray arr_angles = my_npz["angles"];
+      assert( arr_angles.shape[0] ==  arr_descs.shape[0]);
+
+      double* angles_ = arr_angles.data<double>();
+
+      for (int kp = 0; kp < num_of_kp; kp++)  {
+          AffineRegion ar;
+          double angle = angles_[kp]*M_PI/180.0;
+          ar.det_kp.x = xy_[2*kp];
+          ar.det_kp.y = xy_[2*kp+1];
+
+          ar.det_kp.s = scales_[kp];
+          ar.det_kp.a11 = cos(angle);
+          ar.det_kp.a12 = sin(angle);
+          ar.det_kp.a21 = -sin(angle);
+          ar.det_kp.a22 = cos(angle);
+          ar.det_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+          ar.reproj_kp.x = xy_[2*kp];
+          ar.reproj_kp.y = xy_[2*kp+1];
+
+          ar.reproj_kp.s = scales_[kp];
+          ar.reproj_kp.a11 = cos(angle);
+          ar.reproj_kp.a12 = sin(angle);
+          ar.reproj_kp.a21 = -sin(angle);
+          ar.reproj_kp.a22 = cos(angle);
+          ar.reproj_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+
+          ar.desc.type = DESC_ROOT_SIFT;
+          ar.desc.vec.resize(desc_dim);
+          for (int dd=0; dd < desc_dim; dd++){
+              ar.desc.vec[dd] = descs_[kp*desc_dim + dd];
+            }
+          desc_regions.push_back(ar);
+        }
+    } else { //circular upright
+      for (int kp = 0; kp < num_of_kp; kp++)  {
+          AffineRegion ar;
+          double angle = 0;
+          ar.det_kp.x = xy_[2*kp];
+          ar.det_kp.y = xy_[2*kp+1];
+
+          ar.det_kp.s = scales_[kp];
+          ar.det_kp.a11 = cos(angle);
+          ar.det_kp.a12 = sin(angle);
+          ar.det_kp.a21 = -sin(angle);
+          ar.det_kp.a22 = cos(angle);
+          ar.det_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+          ar.reproj_kp.x = xy_[2*kp];
+          ar.reproj_kp.y = xy_[2*kp+1];
+
+          ar.reproj_kp.s = scales_[kp];
+          ar.reproj_kp.a11 = cos(angle);
+          ar.reproj_kp.a12 = sin(angle);
+          ar.reproj_kp.a21 = -sin(angle);
+          ar.reproj_kp.a22 = cos(angle);
+          ar.reproj_kp.response = responses_[kp];
+          ar.type = DET_HESSIAN;
+
+          ar.desc.type = DESC_ROOT_SIFT;
+          ar.desc.vec.resize(desc_dim);
+          for (int dd=0; dd < desc_dim; dd++){
+              ar.desc.vec[dd] = descs_[kp*desc_dim + dd];
+            }
+          desc_regions.push_back(ar);
+        }
+    }
+  return desc_regions;
+
+
+}
+void ImageRepresentation::LoadRegionsNPZ(std::string fname) {
+
+  AffineRegionVector avr = PreLoadRegionsNPZ(fname);
+  AddRegions(avr,"HessianAffine", "RootSIFT");
+
+}
 void ImageRepresentation::SaveRegions(std::string fname, int mode) {
   std::ofstream kpfile(fname);
   if (mode == ios::binary) {
@@ -2032,8 +2206,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
           TimeSpent.SynthTime += time1;
 
           ///Structures initialization
-          IplImage *int_img; //for SURF
-          IpVec ipts1;//for SURF
+          
           cv::Mat CharImage; //for OpenCV detectors
 
 
@@ -2108,36 +2281,7 @@ void ImageRepresentation::SynthDetectDescribeKeypointsBench(IterationViewsynthes
             {
               DetectAffineRegions(temp_img1, temp_kp1,det_par.MSERParam,DET_MSER,DetectMSERs);
             }
-          else if (curr_det.compare("SURF")==0)
-            {
-              IplImage Iplimg1 = temp_img1.pixels;
-              // Create integral-image representation of the image
-              int_img = Integral(&Iplimg1);
-
-              int octaves = det_par.SURFParam.octaves;
-              int intervals = det_par.SURFParam.intervals;
-              int init_sample = det_par.SURFParam.init_sample;
-              float thres = det_par.SURFParam.thresh;
-              // Create Fast Hessian Object
-              FastHessian fh(int_img, ipts1, octaves, intervals, init_sample, thres);
-
-              // Extract interest points and store in vector ipts
-              fh.getIpoints();
-
-              int kp_size = ipts1.size();
-              temp_kp1.resize(kp_size);
-              for (int kp_num=0; kp_num < kp_size; kp_num++)
-                {
-                  temp_kp1[kp_num].det_kp.x =ipts1[kp_num].x;
-                  temp_kp1[kp_num].det_kp.y = ipts1[kp_num].y;
-                  temp_kp1[kp_num].det_kp.a11 = cos(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a12 = sin(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a21 = -sin(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.a22 = cos(ipts1[kp_num].orientation);
-                  temp_kp1[kp_num].det_kp.s = ipts1[kp_num].scale;
-                  temp_kp1[kp_num].type = DET_SURF;
-                }
-            }
+         
           else if (curr_det.compare("ORB")==0)
             {
               cv::OrbFeatureDetector CurrentDetector(det_par.ORBParam.nfeatures,

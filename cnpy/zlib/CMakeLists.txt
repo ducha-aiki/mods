@@ -1,10 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(mrogh)
-
-FIND_PACKAGE(OpenCV)
-if (OPENCV_FOUND)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenCV_CXX_FLAGS}")
-endif (OPENCV_FOUND)
+PROJECT(zlib)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-strict-aliasing")
@@ -14,5 +9,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 include_directories(.)
 
-add_library(mrogh mrogh.cpp)
-TARGET_LINK_LIBRARIES(mrogh ${OpenCV_LIBS} helpers)
+
+
+# Set source files to be added to the library
+file(GLOB_RECURSE SRCS_ZLIB 
+	"*.c"
+)
+
+add_library(zlib  ${SRCS_ZLIB})
+

@@ -3,16 +3,17 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(MODS)
 
 add_definitions(-DA64)
-#add_definitions(-std=gnu++11)
-add_definitions(-std=c++11)
+add_definitions(-std=gnu++11)
+#add_definitions(-std=c++11)
+add_definitions(-fpermissive)
 
 
 SET(WITH_CAFFE FALSE)
 
 message("Looking for OpenCV")
-SET (OpenCV_DIR "C:/opencv-2.4.8/opencv-2.4.8/build/install")
+SET (OpenCV_DIR "c:/opencv-2.4.8/opencv-2.4.8/new_build/install/")
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/windows/mods/mods-video/binary_desc/brisk/")
-FIND_PACKAGE( OpenCV  REQUIRED core imgproc highgui)
+FIND_PACKAGE( OpenCV)
 if (OPENCV_FOUND)
   message("Found!")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenCV_CXX_FLAGS}")
@@ -29,7 +30,7 @@ endif (OPENCV_FOUND)
 #FIND_PACKAGE(CUDA REQUIRED)
 
 enable_language (Fortran)
-#  set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/lapack_for_windows")
+set(LAPACK_DIR "${CMAKE_SOURCE_DIR}/lapack_for_windows")
 
 FIND_PACKAGE(LAPACK)
 if (LAPACK_FOUND)
@@ -42,6 +43,7 @@ endif (LAPACK_FOUND)
 
 FIND_PACKAGE(OpenMP)
 if (OPENMP_FOUND)
+  message("OpenMP found")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -68,9 +70,10 @@ add_subdirectory( ./matutls)
 add_subdirectory( ./detectors)
 add_subdirectory( ./detectors/affinedetectors)
 add_subdirectory( ./detectors/mser )
-add_subdirectory( ./opensurf )
 add_subdirectory( ./libMatch)
 add_subdirectory( ./libNumerics)
+add_subdirectory( ./cnpy)
+
 
 ####### DEGENSAC
 include_directories(
@@ -122,12 +125,8 @@ include_directories(.)
 link_directories(c:/opencv-2.4.8/opencv-2.4.8/build/install/x86/mingw/lib)
 add_library(synth-detection ${synth-detection_srcs})
 
-TARGET_LINK_LIBRARIES(synth-detection matching opensurf
-mser affinedetectors helpers  opencv_features2d opencv_core opencv_highgui)
+TARGET_LINK_LIBRARIES(synth-detection matching mser affinedetectors helpers  opencv_features2d opencv_core opencv_highgui)
 
-#include_directories(.
-#./dali)
-#./smsld)
 
 link_directories(${CMAKE_SOURCE_DIR}/lapack_for_windows/lib)
 link_directories(c:/opencv-2.4.8/opencv-2.4.8/build/install/x86/mingw/lib)
@@ -136,9 +135,8 @@ io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc)#smsld/wzhlib.cpp smsld/descriptor.cpp s
 
  link_directories(${CMAKE_SOURCE_DIR}/lapack_for_windows/lib)
 TARGET_LINK_LIBRARIES(mods inih matching synth-detection mser affinedetectors 
-opencv_features2d opencv_core opencv_highgui m )
+opencv_features2d opencv_core opencv_highgui m cnpy-static zlib)
 
 add_executable(extract_features extract_features.cpp correspondencebank.cpp imagerepresentation.cpp
 io_mods.cpp  ssdesc-cpp-1.1.1/ssdesc.cc) # smsld/wzhlib.cpp smsld/descriptor.cpp smsld/Match.cpp smsld/Image.cpp)
-TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors  
-opencv_features2d opencv_core opencv_highgui m )
+TARGET_LINK_LIBRARIES(extract_features inih matching synth-detection mser affinedetectors  opencv_features2d opencv_core opencv_highgui m  cnpy-static zlib)

@@ -12,6 +12,7 @@
 #include "detectors/detectors_parameters.hpp"
 #include "descriptors_parameters.hpp"
 #include <sstream>
+#include "cnpy/cnpy.h"
 
 namespace patch
 {
@@ -65,6 +66,11 @@ public:
   void SaveRegionsBenchmark(std::string fname1, std::string fname2);
   void SaveDescriptorsBenchmark(std::string fname1);
   void LoadRegions(std::string fname);
+  void SaveRegionsNPZ(std::string fname);
+ 
+  void LoadRegionsNPZ(std::string fname);
+  
+  AffineRegionVector PreLoadRegionsNPZ(std::string fname);
 
 protected:
   TimeLog TimeSpent;

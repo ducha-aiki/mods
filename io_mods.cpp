@@ -181,15 +181,6 @@ void GetWAVEPars(WAVEParams &pars, INIReader &reader,const char* section)
 }
 
 
-void GetSURFPars(SURFParams &pars, INIReader &reader,const char* section)
-{
-  pars.init_sample = reader.GetInteger(section, "init_sample", pars.init_sample);
-  pars.intervals= reader.GetInteger(section, "intervals", pars.intervals);
-  pars.octaves = reader.GetInteger(section, "octaves", pars.octaves);
-  pars.thresh = reader.GetDouble(section, "thresh", pars.thresh);
-  GetPatchExtractionPars(pars.PEParam,reader,section);
-  pars.doBaumberg = reader.GetBoolean(section,"doBaumberg",pars.doBaumberg);
-}
 void GetBRISKPars(BRISKParams &pars, INIReader &reader,const char* section)
 {
   pars.patternScale = reader.GetDouble(section, "patternScale", pars.patternScale);
@@ -686,8 +677,6 @@ int getCLIparamExtractFeatures(configs &conf1,int argc, char **argv)
   GetFASTPars(conf1.DetectorsPars.FASTParam, ConfigIni);
   GetSTARPars(conf1.DetectorsPars.STARParam, ConfigIni);
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
-  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);
-  GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
 
   GetSFOPPars(conf1.DetectorsPars.SFOPParam,ConfigIni);
  
@@ -777,7 +766,6 @@ int getCLIparamExtractFeaturesBenchmark(configs &conf1,int argc, char **argv)
   GetFASTPars(conf1.DetectorsPars.FASTParam, ConfigIni);
   GetSTARPars(conf1.DetectorsPars.STARParam, ConfigIni);
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
-  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetReadPars(conf1.DetectorsPars.ReadAffsFromFileParam, ConfigIni);
   GetPixelPars(conf1.DescriptorPars.PixelsParam, ConfigIni);
@@ -897,8 +885,6 @@ int getCLIparam(configs &conf1,int argc, char **argv)
   GetFASTPars(conf1.DetectorsPars.FASTParam, ConfigIni);
   GetSTARPars(conf1.DetectorsPars.STARParam, ConfigIni);
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
-  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);
-  GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
  /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
@@ -1061,8 +1047,6 @@ int getCLIparamExportDescriptorsBenchmark(configs &conf1, int argc, char **argv)
   GetFASTPars(conf1.DetectorsPars.FASTParam, ConfigIni);
   GetSTARPars(conf1.DetectorsPars.STARParam, ConfigIni);
   GetBRISKPars(conf1.DetectorsPars.BRISKParam, ConfigIni);
-  GetSURFPars(conf1.DetectorsPars.SURFParam, ConfigIni);
-  GetSURFPars(conf1.DescriptorPars.SURFDescParam, ConfigIni);
   GetORBPars(conf1.DetectorsPars.ORBParam, ConfigIni);
   GetSMSLDPars(conf1.DescriptorPars.SMSLDDescParam, ConfigIni);
  /* GetDALIPars(conf1.DescriptorPars.DALIDescParam, ConfigIni); */

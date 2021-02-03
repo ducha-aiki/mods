@@ -29,7 +29,10 @@
 #include "imagerepresentation.h"
 #include "correspondencebank.h"
 
-
+inline static bool endsWith(const std::string& str, const std::string& suffix)
+{
+  return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
 //#define SCV
 
 #ifdef SCV
@@ -233,9 +236,28 @@ if (Config1.read_pre_extracted)
 
     if (Config1.read_pre_extracted) {
         std::cerr << "Iteration 0, loading pre-extracted features"<< std::endl;
-
+       if (endsWith(Config1.CLIparams.k1_fname,".npz")){
+            
+  ImgRep1.LoadRegionsNPZ(Config1.CLIparams.k1_fname);
+           
+ }
+          else {
+          
     ImgRep1.LoadRegions(Config1.CLIparams.k1_fname);
-    ImgRep2.LoadRegions(Config1.CLIparams.k2_fname);
+
+     
+       }
+       
+   if (endsWith(Config1.CLIparams.k2_fname,".npz")){
+    
+          ImgRep2.LoadRegionsNPZ(Config1.CLIparams.k2_fname);
+    
+        }
+       
+   else {
+         
+   ImgRep2.LoadRegions(Config1.CLIparams.k2_fname);
+}
     std::cerr << "Loading done"<< std::endl;
 
     } else {
@@ -464,8 +486,32 @@ if (Config1.read_pre_extracted)
     if (Config1.OutputParam.writeKeypoints && !Config1.read_pre_extracted)
     {
       // std::cerr << "Keypoints outputs is not implemented yet!" << std::endl;
-      ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
-      ImgRep2.SaveRegions(Config1.CLIparams.k2_fname,0);
+          if (endsWith(Config1.CLIparams.k1_fname,".npz")){
+
+      
+        ImgRep1.SaveRegionsNPZ(Config1.CLIparams.k1_fname);
+       
+     } else {
+          
+    ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
+
+      
+      }
+          if (endsWith(Config1.CLIparams.k2_fname,".npz")){
+
+  
+            ImgRep2.SaveRegionsNPZ(Config1.CLIparams.k2_fname);
+       
+     } else {
+   
+           ImgRep2.SaveRegions(Config1.CLIparams.k2_fname,0);
+
+       
+     } 
+
+
+  //    ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
+   //   ImgRep2.SaveRegions(Config1.CLIparams.k2_fname,0);
 
       //            ofstream file_desc(Config1.CLIparams.k1_fname);
       //            if (file_desc.is_open())

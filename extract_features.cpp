@@ -44,6 +44,11 @@
 #include <omp.h>
 #endif
 
+inline static bool endsWith(const std::string& str, const std::string& suffix)
+{
+  return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
+
 using namespace std;
 
 const int nn_n = 50; //number of nearest neighbours retrieved to get 1st inconsistent
@@ -130,8 +135,18 @@ int main(int argc, char **argv)
   std::cerr << "Writing files... " << endl;
 
 //  ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
+ // ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
+   if (endsWith(Config1.CLIparams.k1_fname,".npz")){
+   
+       ImgRep1.SaveRegionsNPZ(Config1.CLIparams.k1_fname);
+     
+   } else {
+        
   ImgRep1.SaveRegions(Config1.CLIparams.k1_fname,0);
-  return 0;
+
+   
+     } 
+ return 0;
 }
 
 

@@ -16,10 +16,6 @@
 #include "matching/siftdesc.h"
 #include "descriptors/mroghdesc.hpp"
 #include "descriptors/pixelsdesc.hpp"
-#include "descriptors/surfdescriptor.hpp"
-//#include "descriptors/kazedescriptor.hpp"
-//#include "descriptors/bicedescriptor.hpp"
-//#include "descriptors/dalidescriptor.hpp"
 #include "descriptors/smslddescriptor.hpp"
 #include "descriptors/ssimdescriptor.hpp"
 

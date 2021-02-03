@@ -38,7 +38,6 @@ inline long getMilliSecs()
 #include "detectors/helpers.h"
 #include <sys/time.h>
 #include "detectors/structures.hpp"
-#include "descriptors/mroghdesc.hpp"
 
 inline long getMilliSecs1()
 {
